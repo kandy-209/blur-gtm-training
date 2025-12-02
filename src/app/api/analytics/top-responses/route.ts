@@ -40,6 +40,11 @@ export async function GET(request: NextRequest) {
     const objectionCategory = searchParams.get('objectionCategory');
     const minScore = parseInt(searchParams.get('minScore') || '70');
     const limit = parseInt(searchParams.get('limit') || '20');
+    const includeUserIds = searchParams.get('includeUserIds') === 'true';
+
+    // Try to get current user for ownership checking
+    const user = await getCurrentUser(request);
+    const userId = user?.id;
 
     const topResponses = await db.getTopResponses({
       scenarioId: scenarioId || undefined,
@@ -47,6 +52,29 @@ export async function GET(request: NextRequest) {
       minScore,
       limit: Math.min(limit, 100),
     });
+
+    // If includeUserIds is true, add user IDs to each response
+    if (includeUserIds && userId) {
+      const allResponses = await db.getUserResponses({
+        scenarioId: scenarioId || undefined,
+        objectionCategory: objectionCategory || undefined,
+        limit: 1000,
+      });
+
+      // Enrich top responses with user ownership info
+      const enrichedResponses = topResponses.map((topResp) => {
+        const matchingResponses = allResponses.filter((r: { userMessage: string }) => 
+          r.userMessage.toLowerCase().trim() === topResp.response.toLowerCase().trim()
+        );
+        const userOwnsResponse = matchingResponses.some((r: { userId: string }) => r.userId === userId);
+        return {
+          ...topResp,
+          userOwnsResponse,
+        };
+      });
+
+      return NextResponse.json({ topResponses: enrichedResponses });
+    }
 
     return NextResponse.json({ topResponses });
   } catch (error) {
@@ -60,7 +88,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Check if user is admin
+    // Check if user is authenticated
     const user = await getCurrentUser(request);
     if (!user) {
       return NextResponse.json(
@@ -70,15 +98,11 @@ export async function DELETE(request: NextRequest) {
     }
 
     const userRole = getUserRole(user);
-    if (userRole !== 'admin') {
-      return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
-      );
-    }
+    const userId = user.id;
+    const isAdmin = userRole === 'admin';
 
     const body = await request.json();
-    const { response, scenarioId, objectionCategory } = body;
+    const { response, scenarioId, objectionCategory, deleteOwnOnly } = body;
 
     if (!response) {
       return NextResponse.json(
@@ -92,7 +116,7 @@ export async function DELETE(request: NextRequest) {
     const sanitizedScenarioId = scenarioId ? sanitizeInput(scenarioId, 100) : undefined;
     const sanitizedObjectionCategory = objectionCategory ? sanitizeInput(objectionCategory, 100) : undefined;
 
-    // Delete all responses matching this text
+    // Get all responses matching this text
     const responses = await db.getUserResponses({
       scenarioId: sanitizedScenarioId,
       objectionCategory: sanitizedObjectionCategory,
@@ -100,13 +124,30 @@ export async function DELETE(request: NextRequest) {
     });
 
     // Filter by matching response text
-    const matchingResponses = responses.filter((r: { userMessage: string }) => 
+    let matchingResponses = responses.filter((r: { userMessage: string }) => 
       r.userMessage.toLowerCase().trim() === sanitizedResponse.toLowerCase().trim()
     );
 
-    // Delete all matching responses
+    // If not admin and deleteOwnOnly is true (or not specified), only delete user's own responses
+    if (!isAdmin && (deleteOwnOnly !== false)) {
+      matchingResponses = matchingResponses.filter((r: { userId: string }) => r.userId === userId);
+    }
+
+    if (matchingResponses.length === 0) {
+      return NextResponse.json(
+        { error: isAdmin ? 'No matching responses found' : 'No matching responses found that belong to you' },
+        { status: 404 }
+      );
+    }
+
+    // Delete matching responses
     let deletedCount = 0;
     for (const resp of matchingResponses) {
+      // Double-check: non-admins can only delete their own responses
+      if (!isAdmin && resp.userId !== userId) {
+        continue;
+      }
+      
       try {
         await db.deleteUserResponse(resp.id);
         deletedCount++;
