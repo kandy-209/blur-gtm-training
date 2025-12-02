@@ -53,8 +53,8 @@ export default function RoleplayPage() {
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Sales Role-Play Training</h1>
                 <p className="text-muted-foreground">Practice your sales skills with AI-powered scenarios</p>
               </div>
-              <div className="grid gap-8 lg:grid-cols-3">
-                <div className="lg:col-span-2">
+              <div className="grid gap-6 sm:gap-8 grid-cols-1 lg:grid-cols-3">
+                <div className="lg:col-span-2 order-1 lg:order-1">
                   <ErrorBoundary>
                     <RoleplayEngine
                       scenario={scenario}
@@ -64,7 +64,7 @@ export default function RoleplayPage() {
                     />
                   </ErrorBoundary>
                 </div>
-                <div className="space-y-6">
+                <div className="space-y-6 order-2 lg:order-2">
                   <ErrorBoundary>
                     <TopResponses
                       scenarioId={scenario.id}

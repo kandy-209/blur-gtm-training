@@ -359,12 +359,12 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   }, [voiceMode, autoPlayAudio, state.conversationHistory.length]);
 
   return (
-    <div className="flex flex-col h-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="flex flex-col h-full max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
       {/* Persona Header */}
       <Card className="border-gray-200 bg-gradient-to-br from-gray-50 to-white">
         <CardHeader className="pb-4">
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0">
+            <div className="flex-1 w-full sm:w-auto">
               <CardTitle className="text-lg font-semibold mb-2">Role-Playing as: {scenario.persona.name}</CardTitle>
               <div className="space-y-2 text-sm text-muted-foreground">
                 <p>
@@ -375,7 +375,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 ml-4">
+            <div className="flex items-center gap-2 sm:ml-4 flex-wrap">
               <Button
                 variant="ghost"
                 size="sm"
@@ -418,7 +418,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
 
       {/* Conversation History */}
       <Card className="flex-1 border-gray-200 overflow-hidden">
-        <div className="h-full overflow-y-auto p-6 min-h-[400px] max-h-[600px]">
+        <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-6 min-h-[300px] sm:min-h-[400px] max-h-[500px] sm:max-h-[600px]">
           <div className="space-y-4">
             {state.conversationHistory.map((msg, idx) => (
               <div
@@ -426,7 +426,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
                 className={`flex ${msg.role === 'rep' ? 'justify-end' : 'justify-start'} animate-fade-in`}
               >
                 <div
-                  className={`max-w-[80%] rounded-xl p-4 transition-smooth ${
+                  className={`max-w-[90%] sm:max-w-[80%] rounded-xl p-3 sm:p-4 transition-smooth ${
                     msg.role === 'rep'
                       ? 'bg-black text-white shadow-sm'
                       : 'bg-gray-100 text-gray-900 border border-gray-200'

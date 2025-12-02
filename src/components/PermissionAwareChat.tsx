@@ -190,7 +190,7 @@ export function PermissionAwareChat({ initialChatType = 'general' }: { initialCh
   }, [selectedChatType, initialChatType]);
 
   return (
-    <Card className="border-gray-200 h-[600px] flex flex-col">
+    <Card className="border-gray-200 h-[500px] sm:h-[600px] flex flex-col">
       <CardHeader className="pb-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">

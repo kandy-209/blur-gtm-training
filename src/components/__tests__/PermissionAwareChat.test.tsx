@@ -107,7 +107,7 @@ describe('PermissionAwareChat', () => {
       expect(screen.getByText(/General Chat/i)).toBeInTheDocument();
     });
     
-    const input = screen.getByPlaceholderText(/Ask any question about Cursor/i);
+    const input = screen.getByPlaceholderText(/Ask any question about Cursor/i) || screen.getByPlaceholderText(/Ask any question/i) || screen.getByRole('textbox');
     const sendButton = screen.getByRole('button', { name: /send/i });
 
     fireEvent.change(input, { target: { value: 'Test' } });

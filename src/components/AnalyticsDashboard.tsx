@@ -126,7 +126,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="border-gray-200 hover-lift transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Scenarios Completed</CardTitle>

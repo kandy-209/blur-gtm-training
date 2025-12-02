@@ -48,10 +48,10 @@ export default function AuthPage() {
 
   if (showGuestForm) {
     return (
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Continue as Guest</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Continue as Guest</h1>
             <p className="text-muted-foreground">
               Start practicing immediately without creating an account
             </p>
