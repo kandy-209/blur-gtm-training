@@ -80,3 +80,16 @@ global.Headers = class Headers {
   }
 }
 
+// Mock Vercel Analytics
+jest.mock('@vercel/analytics', () => ({
+  track: jest.fn(),
+}))
+
+jest.mock('@vercel/analytics/next', () => ({
+  Analytics: () => null,
+}))
+
+jest.mock('@vercel/speed-insights/next', () => ({
+  SpeedInsights: () => null,
+}))
+

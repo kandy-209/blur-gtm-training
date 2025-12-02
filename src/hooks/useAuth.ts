@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/auth';
+import { trackAuthEvent } from '@/lib/vercel-analytics';
 
 export interface GuestUser {
   id: string;
@@ -63,15 +64,21 @@ export function useAuth() {
 
     // Listen for auth changes
     if (supabase) {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         // If user signs in, clear guest user
         if (session?.user) {
           localStorage.removeItem('guest_user');
           setUser(session.user);
+          if (event === 'SIGNED_IN') {
+            trackAuthEvent('sign_in', { userId: session.user.id });
+          }
         } else {
           // Check if guest user exists
           const guestUser = checkGuestUser();
           setUser(guestUser);
+          if (event === 'SIGNED_OUT') {
+            trackAuthEvent('sign_out');
+          }
         }
         setLoading(false);
       });
@@ -92,6 +99,7 @@ export function useAuth() {
     };
     localStorage.setItem('guest_user', JSON.stringify(guestUser));
     setUser(guestUser);
+    trackAuthEvent('guest_mode', { userId: guestUser.id });
   };
 
   const signOut = async () => {

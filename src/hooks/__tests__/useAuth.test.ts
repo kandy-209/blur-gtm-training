@@ -2,6 +2,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useAuth } from '../useAuth';
 import { supabase } from '@/lib/auth';
 
+// Mock Vercel Analytics
+jest.mock('@/lib/vercel-analytics', () => ({
+  trackAuthEvent: jest.fn(),
+}));
+
 jest.mock('@/lib/auth', () => ({
   supabase: {
     auth: {

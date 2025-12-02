@@ -1,5 +1,16 @@
 import { analytics } from '@/lib/analytics'
 
+// Mock Vercel Analytics
+jest.mock('@/lib/vercel-analytics', () => ({
+  trackTrainingEvent: jest.fn(),
+  trackRoleplayEvent: jest.fn(),
+  trackLiveSessionEvent: jest.fn(),
+  trackChatEvent: jest.fn(),
+  trackAuthEvent: jest.fn(),
+  trackAnalyticsEvent: jest.fn(),
+  trackLeaderboardEvent: jest.fn(),
+}))
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}

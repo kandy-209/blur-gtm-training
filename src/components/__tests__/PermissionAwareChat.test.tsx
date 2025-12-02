@@ -9,6 +9,11 @@ jest.mock('@/lib/permissions', () => ({
   canAccessChat: jest.fn(() => true),
 }));
 
+// Mock Vercel Analytics
+jest.mock('@/lib/vercel-analytics', () => ({
+  trackChatEvent: jest.fn(),
+}));
+
 global.fetch = jest.fn();
 
 // Mock scrollIntoView

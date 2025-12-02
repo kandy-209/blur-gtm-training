@@ -77,6 +77,10 @@ export function PermissionAwareChat({ initialChatType = 'general' }: { initialCh
 
     // Check permission before sending (OSO-style authorization)
     if (!hasAccess) {
+      trackChatEvent('chat_permission_denied', {
+        chatType: selectedChatType,
+        permissionRequired: currentConfig.title,
+      });
       setMessages(prev => [...prev, {
         role: 'system',
         content: `You don't have permission to use ${currentConfig.title}. ${isGuest ? 'Please sign in to access this feature.' : 'Contact your administrator for access.'}`,
@@ -88,6 +92,12 @@ export function PermissionAwareChat({ initialChatType = 'general' }: { initialCh
     const userMessage = input.trim();
     setInput('');
     setIsLoading(true);
+
+    // Track chat message
+    trackChatEvent('chat_message', {
+      chatType: selectedChatType,
+      messageLength: userMessage.length,
+    });
 
     // Add user message
     setMessages(prev => [...prev, { 
@@ -168,6 +178,15 @@ export function PermissionAwareChat({ initialChatType = 'general' }: { initialCh
   const availableChatTypes = Object.entries(chatConfigs).filter(([key, config]) => 
     canAccessChat(user, config.chatType as any)
   );
+
+  // Track chat type switch
+  useEffect(() => {
+    if (selectedChatType !== initialChatType) {
+      trackChatEvent('chat_type_switch', {
+        chatType: selectedChatType,
+      });
+    }
+  }, [selectedChatType, initialChatType]);
 
   return (
     <Card className="border-gray-200 h-[600px] flex flex-col">

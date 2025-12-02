@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { analytics } from '@/lib/analytics';
+import { trackRoleplayEvent } from '@/lib/vercel-analytics';
 import VoiceControls from '@/components/VoiceControls';
 import ResponseSuggestions from '@/components/ResponseSuggestions';
 import { LoadingState } from '@/components/ui/loading-state';

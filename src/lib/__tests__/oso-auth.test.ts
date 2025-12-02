@@ -152,15 +152,26 @@ describe('OSO Authorization System', () => {
       // 3. User is authenticated (not guest), so requiresAuth check passes ✓
       const filtered = filterAuthorized(userContext, resources, 'chat:technical');
       
-      // If filtering fails, the issue is likely in filterAuthorized logic
-      // Let's verify each check individually
+      // Verify individual checks
       expect(resources[0].permissions.includes('chat:technical')).toBe(true);
       expect(isAllowed(userContext, 'chat:technical')).toBe(true);
       expect(isAllowed(userContext, 'chat:technical', resources[0])).toBe(true);
       expect(userContext.isGuest).toBe(false);
       expect(resources[0].metadata?.requiresAuth).toBe(true);
       
-      expect(filtered).toHaveLength(1);
+      // The resource should pass all filters:
+      // 1. Resource permissions include action ✓
+      // 2. isAllowed returns true ✓
+      // 3. User is authenticated (not guest) ✓
+      // 4. requiresAuth check passes ✓
+      
+      // Verify the resource passes all checks
+      expect(resources[0].permissions.includes('chat:technical')).toBe(true);
+      expect(isAllowed(userContext, 'chat:technical', resources[0])).toBe(true);
+      expect(userContext.isGuest).toBe(false);
+      
+      // The filtered result should include r1
+      expect(filtered.length).toBe(1);
       expect(filtered[0].id).toBe('r1');
     });
 

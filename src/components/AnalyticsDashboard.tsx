@@ -8,6 +8,7 @@ import { analytics, TrainingEvent } from '@/lib/analytics';
 import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, Trash2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { trackAnalyticsEvent } from '@/lib/vercel-analytics';
 
 function getEventTypeConfig(eventType: string) {
   const configs: Record<string, { label: string; icon: JSX.Element; bgColor: string }> = {
@@ -48,6 +49,11 @@ function getEventTypeConfig(eventType: string) {
 export default function AnalyticsDashboard() {
   const { user } = useAuth();
   const [stats, setStats] = useState(analytics.getStats());
+
+  // Track dashboard view
+  useEffect(() => {
+    trackAnalyticsEvent('dashboard_view', { viewType: 'training' });
+  }, []);
   const [recentEvents, setRecentEvents] = useState<TrainingEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
