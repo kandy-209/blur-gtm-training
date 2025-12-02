@@ -33,6 +33,8 @@ jobs:
       continue-on-error: true
 
     - name: Run unit tests
+      # Exclude route/page tests and routes-404 tests - these run in separate steps
+      # Note: Each Jest invocation is independent, so ignore patterns don't carry over between steps
       run: npm test -- --coverage --maxWorkers=2 --testPathIgnorePatterns='(.*/__tests__/(routes|pages)\.test\.(ts|tsx|js|jsx)$|.*routes-404\.test\.(ts|tsx|js|jsx)$)' --passWithNoTests
       env:
         CI: true
@@ -41,7 +43,8 @@ jobs:
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'test-key' }}
 
     - name: Run route tests
-      run: npm test -- --testPathPattern='(__tests__/routes|routes-404)\.test' --passWithNoTests
+      # Explicitly include route tests - this is a separate Jest invocation, so ignore patterns from step 1 don't apply
+      run: npm test -- --testPathPattern='(.*/__tests__/routes\.test|.*routes-404\.test)\.(ts|tsx|js|jsx)$' --passWithNoTests
       env:
         CI: true
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'sk-ant-test-key-for-ci' }}
