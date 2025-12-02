@@ -32,13 +32,93 @@ export default function LiveRoleplayLobby({ userId, username, onMatchFound }: Li
   const [matchFound, setMatchFound] = useState<LobbyUser | null>(null);
 
   useEffect(() => {
-    // Poll for lobby updates
+    // Poll for lobby updates and check for matches
     const interval = setInterval(async () => {
-      if (isSearching) {
+      if (isSearching && !matchFound) {
         try {
-          const response = await fetch('/api/live/lobby');
-          const data = await response.json();
-          setLobbyUsers(data.users || []);
+          // Check for lobby users and active session
+          const lobbyResponse = await fetch(`/api/live/lobby?userId=${userId}`);
+          const lobbyData = await lobbyResponse.json();
+          setLobbyUsers(lobbyData.users || []);
+          
+          // Check if we've been matched (have an active session)
+          if (lobbyData.activeSessionId) {
+            // We've been matched! Get the session details
+            const sessionResponse = await fetch(`/api/live/sessions?sessionId=${lobbyData.activeSessionId}`);
+            const sessionData = await sessionResponse.json();
+            
+            if (sessionData.session) {
+              // Find the other user
+              const otherUserId = sessionData.session.repUserId === userId 
+                ? sessionData.session.prospectUserId 
+                : sessionData.session.repUserId;
+              
+              // Find their username from lobby
+              const otherUser = lobbyData.users.find((u: LobbyUser) => u.userId === otherUserId);
+              
+              if (otherUser) {
+                setMatchFound(otherUser);
+                
+                analytics.track({
+                  eventType: 'live_match_found',
+                  scenarioId: sessionData.session.scenarioId,
+                  metadata: {
+                    matchUserId: otherUserId,
+                    preferredRole,
+                  },
+                });
+
+                onMatchFound?.(otherUser, lobbyData.activeSessionId);
+                setIsSearching(false);
+                return;
+              }
+            }
+          }
+          
+          // Also try to find a match by re-joining lobby
+          // This will trigger match detection
+          const matchResponse = await fetch('/api/live/lobby', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId,
+              username,
+              preferredRole,
+              scenarioId: selectedScenario && selectedScenario !== 'any' ? selectedScenario : undefined,
+            }),
+          });
+          
+          const matchData = await matchResponse.json();
+          
+          // If a match is found, create session
+          if (matchData.match && !matchFound) {
+            setMatchFound(matchData.match);
+            
+            // Create session
+            const sessionResponse = await fetch('/api/live/sessions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                repUserId: preferredRole === 'rep' ? userId : matchData.match.userId,
+                prospectUserId: preferredRole === 'prospect' ? userId : matchData.match.userId,
+                scenarioId: selectedScenario && selectedScenario !== 'any' ? selectedScenario : scenarios[0].id,
+              }),
+            });
+
+            const sessionData = await sessionResponse.json();
+            
+            analytics.track({
+              eventType: 'live_match_found',
+              scenarioId: selectedScenario && selectedScenario !== 'any' ? selectedScenario : scenarios[0].id,
+              metadata: {
+                matchUserId: matchData.match.userId,
+                preferredRole,
+              },
+            });
+
+            onMatchFound?.(matchData.match, sessionData.session.id);
+            setIsSearching(false);
+          }
         } catch (error) {
           console.error('Failed to fetch lobby users:', error);
         }
@@ -46,7 +126,7 @@ export default function LiveRoleplayLobby({ userId, username, onMatchFound }: Li
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isSearching]);
+  }, [isSearching, userId, username, preferredRole, selectedScenario, matchFound, onMatchFound]);
 
   const startSearch = async () => {
     setIsSearching(true);

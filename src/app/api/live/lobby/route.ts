@@ -21,8 +21,30 @@ export async function POST(request: NextRequest) {
       scenarioId: scenarioId ? sanitizeInput(scenarioId, 100) : undefined,
     });
 
-    // Try to find a match
-    const match = sessionManager.findMatch(userId);
+    // Try to find a match for this user
+    let match = sessionManager.findMatch(userId);
+    
+    // If no match found, check if any other waiting users can match with this user
+    // This ensures bidirectional matching
+    if (!match) {
+      const allLobbyUsers = sessionManager.getLobbyUsers();
+      for (const otherUser of allLobbyUsers) {
+        if (otherUser.userId === userId || otherUser.status !== 'waiting') continue;
+        
+        // Check if this user matches with the other user
+        const rolesCompatible =
+          (user.preferredRole === 'any' || otherUser.preferredRole === 'any') ||
+          (user.preferredRole !== otherUser.preferredRole);
+        
+        const scenariosCompatible =
+          !user.scenarioId || !otherUser.scenarioId || user.scenarioId === otherUser.scenarioId;
+        
+        if (rolesCompatible && scenariosCompatible) {
+          match = otherUser;
+          break;
+        }
+      }
+    }
 
     return NextResponse.json({
       user,
@@ -63,8 +85,21 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    
     const users = sessionManager.getLobbyUsers();
-    return NextResponse.json({ users });
+    
+    // If userId is provided, also check if they have an active session
+    let activeSessionId = null;
+    if (userId) {
+      activeSessionId = sessionManager.getUserSessionId(userId);
+    }
+    
+    return NextResponse.json({ 
+      users,
+      activeSessionId: activeSessionId || null,
+    });
   } catch (error: any) {
     console.error('Lobby list error:', error);
     return NextResponse.json(

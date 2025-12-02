@@ -61,9 +61,17 @@ export default function LiveRoleplaySession({
   const startPolling = () => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`/api/live/messages?sessionId=${sessionId}`);
-        const data = await response.json();
-        setMessages(data.messages || []);
+        // Poll for messages
+        const messagesResponse = await fetch(`/api/live/messages?sessionId=${sessionId}`);
+        const messagesData = await messagesResponse.json();
+        setMessages(messagesData.messages || []);
+        
+        // Also refresh session data to ensure we have latest state
+        const sessionResponse = await fetch(`/api/live/sessions?sessionId=${sessionId}`);
+        const sessionData = await sessionResponse.json();
+        if (sessionData.session) {
+          setSession(sessionData.session);
+        }
       } catch (error) {
         console.error('Failed to poll messages:', error);
       }

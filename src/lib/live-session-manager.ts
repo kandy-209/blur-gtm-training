@@ -7,6 +7,18 @@ class LiveSessionManager {
   private userToSession: Map<string, string> = new Map(); // userId -> sessionId
 
   createSession(repUserId: string, prospectUserId: string, scenarioId: string): LiveSession {
+    // Check if session already exists for these users
+    const existingRepSession = this.userToSession.get(repUserId);
+    const existingProspectSession = this.userToSession.get(prospectUserId);
+    
+    // If both users are already in the same session, return it
+    if (existingRepSession && existingRepSession === existingProspectSession) {
+      const existingSession = this.sessions.get(existingRepSession);
+      if (existingSession && existingSession.status === 'active') {
+        return existingSession;
+      }
+    }
+    
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     const session: LiveSession = {
@@ -26,9 +38,15 @@ class LiveSessionManager {
     this.userToSession.set(repUserId, sessionId);
     this.userToSession.set(prospectUserId, sessionId);
 
-    // Remove users from lobby
-    this.lobby.delete(repUserId);
-    this.lobby.delete(prospectUserId);
+    // Remove users from lobby and mark as in-session
+    const repUser = this.lobby.get(repUserId);
+    const prospectUser = this.lobby.get(prospectUserId);
+    if (repUser) {
+      repUser.status = 'in-session';
+    }
+    if (prospectUser) {
+      prospectUser.status = 'in-session';
+    }
 
     return session;
   }
@@ -78,7 +96,7 @@ class LiveSessionManager {
 
   findMatch(userId: string): LobbyUser | null {
     const user = this.lobby.get(userId);
-    if (!user) return null;
+    if (!user || user.status !== 'waiting') return null;
 
     // Find compatible match
     const lobbyEntries = Array.from(this.lobby.entries());
@@ -87,15 +105,25 @@ class LiveSessionManager {
       if (otherUser.status !== 'waiting') continue;
 
       // Check role compatibility
+      // Users match if:
+      // - Either wants "any" role, OR
+      // - They want different roles (one rep, one prospect)
       const rolesCompatible =
         (user.preferredRole === 'any' || otherUser.preferredRole === 'any') ||
         (user.preferredRole !== otherUser.preferredRole);
 
       // Check scenario compatibility
+      // Users match if:
+      // - Neither specified a scenario, OR
+      // - One didn't specify (any scenario), OR
+      // - Both want the same scenario
       const scenariosCompatible =
         !user.scenarioId || !otherUser.scenarioId || user.scenarioId === otherUser.scenarioId;
 
       if (rolesCompatible && scenariosCompatible) {
+        // Mark both users as matched to prevent double-matching
+        user.status = 'matched';
+        otherUser.status = 'matched';
         return otherUser;
       }
     }
@@ -128,6 +156,10 @@ class LiveSessionManager {
 
   getLobbyUsers(): LobbyUser[] {
     return Array.from(this.lobby.values());
+  }
+
+  getUserSessionId(userId: string): string | null {
+    return this.userToSession.get(userId) || null;
   }
 
   cleanup(): void {
