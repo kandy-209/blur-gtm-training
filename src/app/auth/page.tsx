@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [showGuestForm, setShowGuestForm] = useState(true); // Show guest form by default
+  const [showGuestForm, setShowGuestForm] = useState(false); // Show signin/signup form by default
   const [guestUsername, setGuestUsername] = useState('');
   const [guestRole, setGuestRole] = useState('Sales Rep');
   const router = useRouter();
@@ -182,20 +183,39 @@ export default function AuthPage() {
           </CardContent>
         </Card>
         
-        {mode === 'signin' && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Cursor employee?{' '}
-              <button
-                type="button"
-                onClick={() => setShowGuestForm(true)}
-                className="text-blue-600 hover:text-blue-700 font-semibold underline"
-              >
-                Start without signing up
-              </button>
-            </p>
-          </div>
-        )}
+        <div className="mt-6 space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            {mode === 'signin' ? (
+              <>
+                Cursor employee?{' '}
+                <button
+                  type="button"
+                  onClick={() => setShowGuestForm(true)}
+                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                >
+                  Start without signing up
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => setMode('signin')}
+                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                >
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Need admin access?{' '}
+            <Link href="/admin/signup" className="text-red-600 hover:text-red-700 font-semibold underline">
+              Create admin account
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

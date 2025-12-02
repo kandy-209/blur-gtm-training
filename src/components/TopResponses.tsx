@@ -3,8 +3,11 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, MessageSquare, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, MessageSquare, Award, Trash2 } from 'lucide-react';
 import MessageFeedbackWidget from '@/components/MessageFeedbackWidget';
+import { useAuth } from '@/hooks/useAuth';
+import { getUserRole } from '@/lib/permissions';
 
 interface ResponseAnalytics {
   response: string;
@@ -22,8 +25,12 @@ interface TopResponsesProps {
 }
 
 export default function TopResponses({ scenarioId, objectionCategory, limit = 10 }: TopResponsesProps) {
+  const { user } = useAuth();
   const [topResponses, setTopResponses] = useState<ResponseAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+  
+  const isAdmin = user ? getUserRole(user) === 'admin' : false;
 
   useEffect(() => {
     const fetchTopResponses = async () => {
@@ -50,6 +57,61 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
 
     fetchTopResponses();
   }, [scenarioId, objectionCategory, limit]);
+
+  const handleDeleteResponse = async (response: ResponseAnalytics, index: number) => {
+    if (!isAdmin) {
+      alert('Only admins can delete top responses');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete this top response?\n\n"${response.response.substring(0, 100)}${response.response.length > 100 ? '...' : ''}"`)) {
+      return;
+    }
+
+    setDeletingIndex(index);
+
+    try {
+      // Get session token for auth
+      const sessionStr = localStorage.getItem('supabase_session');
+      const session = sessionStr ? JSON.parse(sessionStr) : null;
+      const token = session?.access_token || '';
+
+      const deleteResponse = await fetch('/api/analytics/top-responses', {
+        method: 'DELETE',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+        },
+        body: JSON.stringify({
+          response: response.response,
+          scenarioId: response.scenarioId,
+          objectionCategory: response.objectionCategory,
+        }),
+      });
+
+      if (!deleteResponse.ok) {
+        const errorData = await deleteResponse.json();
+        throw new Error(errorData.error || 'Failed to delete response');
+      }
+
+      // Refresh top responses
+      const params = new URLSearchParams();
+      if (scenarioId) params.append('scenarioId', scenarioId);
+      if (objectionCategory) params.append('objectionCategory', objectionCategory);
+      params.append('limit', String(limit));
+
+      const refreshResponse = await fetch(`/api/analytics/top-responses?${params}`);
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        setTopResponses(data.topResponses || []);
+      }
+    } catch (error: any) {
+      console.error('Failed to delete response:', error);
+      alert(error.message || 'Failed to delete response. Please try again.');
+    } finally {
+      setDeletingIndex(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -106,9 +168,23 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
             <div key={idx} className="border border-gray-200 rounded-xl p-5 space-y-3 hover:border-gray-300 transition-smooth hover-lift">
               <div className="flex items-start justify-between gap-3">
                 <p className="text-sm flex-1 leading-relaxed text-foreground">{item.response}</p>
-                <Badge variant="outline" className="ml-2 shrink-0 border-gray-300">
-                  #{idx + 1}
-                </Badge>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Badge variant="outline" className="border-gray-300">
+                    #{idx + 1}
+                  </Badge>
+                  {isAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteResponse(item, idx)}
+                      disabled={deletingIndex === idx}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Delete this top response (Admin only)"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t border-gray-100">
                 <div className="flex items-center gap-1.5">

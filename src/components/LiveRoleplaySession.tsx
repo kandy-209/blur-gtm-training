@@ -31,6 +31,7 @@ export default function LiveRoleplaySession({
   const [isLoading, setIsLoading] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const peerRef = useRef<any>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
 
@@ -107,9 +108,13 @@ export default function LiveRoleplaySession({
     }
   };
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = useCallback(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    } else if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
 
   const sendMessage = async () => {
     if (!messageText.trim() || isLoading || !session) return;
@@ -280,9 +285,18 @@ export default function LiveRoleplaySession({
       </Card>
 
       {/* Messages */}
-      <Card className="flex-1 border-gray-200">
-        <CardContent className="p-6">
-          <div className="space-y-4 h-[400px] overflow-y-auto">
+      <Card className="flex-1 border-gray-200 flex flex-col">
+        <CardContent className="p-6 flex-1 flex flex-col min-h-0">
+          <div 
+            ref={messagesContainerRef}
+            className="space-y-4 flex-1 overflow-y-auto overflow-x-hidden pr-2"
+            style={{ 
+              maxHeight: '500px',
+              scrollBehavior: 'smooth',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#cbd5e1 #f1f5f9'
+            }}
+          >
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <MessageSquare className="h-12 w-12 mx-auto mb-2 opacity-50" />
