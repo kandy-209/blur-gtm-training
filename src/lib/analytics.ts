@@ -1,13 +1,3 @@
-import { 
-  trackTrainingEvent as vercelTrackTraining,
-  trackRoleplayEvent as vercelTrackRoleplay,
-  trackLiveSessionEvent as vercelTrackLive,
-  trackChatEvent as vercelTrackChat,
-  trackAuthEvent as vercelTrackAuth,
-  trackAnalyticsEvent as vercelTrackAnalytics,
-  trackLeaderboardEvent as vercelTrackLeaderboard,
-} from './vercel-analytics';
-
 export interface TrainingEvent {
   eventType: 'scenario_start' | 'scenario_complete' | 'turn_submit' | 'feedback_view' | 'module_complete' | 'live_match_found' | 'live_message_sent' | 'live_voice_enabled' | 'live_session_ended';
   userId?: string;
