@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Send, Bot, User, Loader2, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { hasPermission, canAccessChat, getUserRole, getPermissions, Permission } from '@/lib/permissions';
+import { trackChatEvent } from '@/lib/vercel-analytics';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';

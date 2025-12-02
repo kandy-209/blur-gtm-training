@@ -8,16 +8,6 @@ import {
   trackLeaderboardEvent as vercelTrackLeaderboard,
 } from './vercel-analytics';
 
-import { 
-  trackTrainingEvent as vercelTrackTraining,
-  trackRoleplayEvent as vercelTrackRoleplay,
-  trackLiveSessionEvent as vercelTrackLive,
-  trackChatEvent as vercelTrackChat,
-  trackAuthEvent as vercelTrackAuth,
-  trackAnalyticsEvent as vercelTrackAnalytics,
-  trackLeaderboardEvent as vercelTrackLeaderboard,
-} from './vercel-analytics';
-
 export interface TrainingEvent {
   eventType: 'scenario_start' | 'scenario_complete' | 'turn_submit' | 'feedback_view' | 'module_complete' | 'live_match_found' | 'live_message_sent' | 'live_voice_enabled' | 'live_session_ended';
   userId?: string;
@@ -78,38 +68,49 @@ class Analytics {
 
     this.events.push(fullEvent);
 
-    // Track with Vercel Analytics
+    // Track with Vercel Analytics (async, don't block)
     if (typeof window !== 'undefined') {
-      try {
-        // Map to Vercel Analytics events
-        switch (event.eventType) {
-          case 'scenario_start':
-          case 'scenario_complete':
-          case 'turn_submit':
-          case 'feedback_view':
-          case 'module_complete':
-            vercelTrackTraining(event.eventType, {
-              scenarioId: event.scenarioId,
-              turnNumber: event.turnNumber,
-              score: event.score,
-              userId: fullEvent.userId,
-            });
-            break;
-          case 'live_match_found':
-          case 'live_message_sent':
-          case 'live_voice_enabled':
-          case 'live_session_ended':
-            vercelTrackLive(event.eventType, {
-              sessionId: event.metadata?.sessionId,
-              participantCount: event.metadata?.participantCount,
-              duration: event.metadata?.duration,
-              rating: event.metadata?.rating,
-            });
-            break;
+      // Use dynamic import to avoid issues in tests and server-side rendering
+      import('./vercel-analytics').then(({ 
+        trackTrainingEvent,
+        trackLiveSessionEvent,
+      }) => {
+        try {
+          // Map to Vercel Analytics events
+          switch (event.eventType) {
+            case 'scenario_start':
+            case 'scenario_complete':
+            case 'turn_submit':
+            case 'feedback_view':
+            case 'module_complete':
+              trackTrainingEvent(event.eventType, {
+                scenarioId: event.scenarioId,
+                turnNumber: event.turnNumber,
+                score: event.score,
+                userId: fullEvent.userId,
+              });
+              break;
+            case 'live_match_found':
+            case 'live_message_sent':
+            case 'live_voice_enabled':
+            case 'live_session_ended':
+              trackLiveSessionEvent(event.eventType, {
+                sessionId: event.metadata?.sessionId,
+                participantCount: event.metadata?.participantCount,
+                duration: event.metadata?.duration,
+                rating: event.metadata?.rating,
+              });
+              break;
+          }
+        } catch (error) {
+          // Silently fail in tests or if module not available
+          if (process.env.NODE_ENV !== 'test') {
+            console.error('Vercel Analytics tracking error:', error);
+          }
         }
-      } catch (error) {
-        console.error('Vercel Analytics tracking error:', error);
-      }
+      }).catch(() => {
+        // Ignore import errors (e.g., in tests)
+      });
     }
 
     // Send to API endpoint
