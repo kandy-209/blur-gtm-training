@@ -50,23 +50,38 @@ export default function AuthPage() {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-md mx-auto">
+          {/* Cursor Employee Banner */}
+          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">C</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-1">For Cursor Employees</h3>
+                <p className="text-sm text-blue-800">
+                  No signup required! Start training immediately. You can create an account later if you want to save progress.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Continue as Guest</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Quick Start - No Signup</h1>
             <p className="text-muted-foreground">
-              Start practicing immediately without creating an account
+              Enter your name and start practicing right away
             </p>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Guest Access</CardTitle>
+          <Card className="border-2 border-gray-200 shadow-lg">
+            <CardHeader className="bg-gray-50">
+              <CardTitle className="text-xl">Start Training Now</CardTitle>
               <CardDescription>
-                You can always create an account later to save your progress
+                No email or password needed. Perfect for Cursor team members!
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <form onSubmit={handleGuestSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="guest-username">Your Name</Label>
+                  <Label htmlFor="guest-username" className="text-base font-medium">Your Name</Label>
                   <Input
                     id="guest-username"
                     name="username"
@@ -74,13 +89,14 @@ export default function AuthPage() {
                     onChange={(e) => setGuestUsername(e.target.value)}
                     placeholder="Enter your name"
                     required
-                    className="mt-1"
+                    className="mt-2 h-12 text-base"
+                    autoFocus
                   />
                 </div>
                 <div>
-                  <Label htmlFor="guest-role">Role at Cursor</Label>
+                  <Label htmlFor="guest-role" className="text-base font-medium">Your Role at Cursor</Label>
                   <Select value={guestRole} onValueChange={setGuestRole}>
-                    <SelectTrigger id="guest-role" className="mt-1">
+                    <SelectTrigger id="guest-role" className="mt-2 h-12 text-base">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -93,17 +109,20 @@ export default function AuthPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex gap-2">
+                <div className="space-y-3 pt-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full h-12 text-base bg-black hover:bg-gray-900 text-white font-semibold"
+                  >
+                    Start Training Now →
+                  </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     onClick={() => setShowGuestForm(false)}
-                    className="flex-1"
+                    className="w-full text-sm text-muted-foreground"
                   >
-                    Back
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-black hover:bg-gray-900 text-white">
-                    Continue as Guest
+                    Need to create an account? Click here
                   </Button>
                 </div>
               </form>
@@ -115,39 +134,64 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-md mx-auto">
+        {/* Prominent Guest Access Banner */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-sm">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+              <UserPlus className="h-5 w-5 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-blue-900 text-lg mb-1">Cursor Employee? Skip Signup!</h3>
+              <p className="text-sm text-blue-800">
+                Start training immediately without creating an account
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            onClick={() => setShowGuestForm(true)}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11"
+          >
+            Quick Start - No Signup Required →
+          </Button>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Cursor Enterprise GTM Training</h1>
           <p className="text-muted-foreground">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account to start practicing'}
           </p>
         </div>
-        <AuthForm
-          mode={mode}
-          onSuccess={handleSuccess}
-          onSwitchMode={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-        />
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">Or</span>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full mt-6"
-            onClick={() => setShowGuestForm(true)}
-          >
-            <UserPlus className="h-4 w-4 mr-2" />
-            Continue as Guest
-          </Button>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            No email required. Start practicing immediately.
+        <Card>
+          <CardHeader>
+            <CardTitle>{mode === 'signin' ? 'Sign In' : 'Create Account'}</CardTitle>
+            <CardDescription>
+              {mode === 'signin' 
+                ? 'Sign in to access your saved progress' 
+                : 'Create an account to save your training progress'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AuthForm
+              mode={mode}
+              onSuccess={handleSuccess}
+              onSwitchMode={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+            />
+          </CardContent>
+        </Card>
+        
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Cursor employee?{' '}
+            <button
+              type="button"
+              onClick={() => setShowGuestForm(true)}
+              className="text-blue-600 hover:text-blue-700 font-semibold underline"
+            >
+              Start without signing up
+            </button>
           </p>
         </div>
       </div>
