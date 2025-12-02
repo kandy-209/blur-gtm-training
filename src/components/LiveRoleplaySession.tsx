@@ -59,18 +59,39 @@ export default function LiveRoleplaySession({
   };
 
   const startPolling = () => {
+    let lastMessageCount = messages.length;
+    
     const interval = setInterval(async () => {
       try {
         // Poll for messages
         const messagesResponse = await fetch(`/api/live/messages?sessionId=${sessionId}`);
-        const messagesData = await messagesResponse.json();
-        setMessages(messagesData.messages || []);
+        if (!messagesResponse.ok) {
+          console.error('Failed to fetch messages:', messagesResponse.status);
+          return;
+        }
         
-        // Also refresh session data to ensure we have latest state
-        const sessionResponse = await fetch(`/api/live/sessions?sessionId=${sessionId}`);
-        const sessionData = await sessionResponse.json();
-        if (sessionData.session) {
-          setSession(sessionData.session);
+        const messagesData = await messagesResponse.json();
+        const newMessages = messagesData.messages || [];
+        
+        // Only update if messages changed (avoid unnecessary re-renders)
+        if (newMessages.length !== lastMessageCount || 
+            JSON.stringify(newMessages.map((m: LiveMessage) => m.id)) !== JSON.stringify(messages.map((m: LiveMessage) => m.id))) {
+          setMessages(newMessages);
+          lastMessageCount = newMessages.length;
+          
+          // Scroll to bottom when new messages arrive
+          setTimeout(() => scrollToBottom(), 100);
+        }
+        
+        // Also refresh session data periodically (less frequently)
+        if (Math.random() < 0.1) { // 10% chance each poll
+          const sessionResponse = await fetch(`/api/live/sessions?sessionId=${sessionId}`);
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json();
+            if (sessionData.session) {
+              setSession(sessionData.session);
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to poll messages:', error);
@@ -91,14 +112,14 @@ export default function LiveRoleplaySession({
   };
 
   const sendMessage = async () => {
-    if (!messageText.trim() || isLoading) return;
+    if (!messageText.trim() || isLoading || !session) return;
 
     const text = messageText.trim();
     setMessageText('');
     setIsLoading(true);
 
     try {
-      const role = session?.repUserId === userId ? 'rep' : 'prospect';
+      const role = session.repUserId === userId ? 'rep' : 'prospect';
       
       const response = await fetch('/api/live/messages', {
         method: 'POST',
@@ -114,16 +135,26 @@ export default function LiveRoleplaySession({
 
       if (response.ok) {
         const data = await response.json();
-        setMessages((prev) => [...prev, data.message]);
+        // Use the full messages array from server to ensure sync
+        if (data.messages && Array.isArray(data.messages)) {
+          setMessages(data.messages);
+        } else if (data.message) {
+          // Fallback: add single message
+          setMessages((prev) => [...prev, data.message]);
+        }
         
         analytics.track({
           eventType: 'live_message_sent',
-          scenarioId: session?.scenarioId,
+          scenarioId: session.scenarioId,
           metadata: { role },
         });
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to send message' }));
+        alert(errorData.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Failed to send message:', error);
+      alert('Failed to send message. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -242,11 +273,13 @@ export default function LiveRoleplaySession({
                       }`}
                     >
                       <div className="text-xs opacity-70 mb-1">
-                        {isOwnMessage ? username : partnerRole === 'rep' ? 'Sales Rep' : 'Prospect'}
+                        {isOwnMessage ? username : (msg.role === 'rep' ? 'Sales Rep' : 'Prospect')}
                       </div>
-                      <div className="text-sm">{msg.message}</div>
+                      <div className="text-sm whitespace-pre-wrap break-words">{msg.message}</div>
                       <div className="text-xs opacity-60 mt-1">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
+                        {typeof msg.timestamp === 'string' 
+                          ? new Date(msg.timestamp).toLocaleTimeString()
+                          : msg.timestamp.toLocaleTimeString()}
                       </div>
                     </div>
                   </div>
