@@ -57,8 +57,8 @@ export default function NavUser() {
             <Button variant="ghost" className="text-sm font-medium">Sign In</Button>
           </Link>
         )}
-        <Link href="/admin/scenarios">
-          <Button variant="ghost" className="text-sm font-medium">Admin</Button>
+        <Link href="/scenario-builder">
+          <Button variant="ghost" className="text-sm font-medium">Scenario Builder</Button>
         </Link>
       </div>
 
@@ -118,11 +118,11 @@ export default function NavUser() {
                 </Link>
               )}
               <Link
-                href="/admin/scenarios"
+                href="/scenario-builder"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block px-4 py-2 text-sm font-medium hover:bg-gray-50 rounded-lg"
               >
-                Admin
+                Scenario Builder
               </Link>
             </div>
           </div>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { scenarios } from '@/data/scenarios';
-import { PlayCircle, BarChart3, Users, Trophy, BookOpen, MessageSquare, Building2, ArrowRight } from 'lucide-react';
+import { PlayCircle, BarChart3, Users, Trophy, BookOpen, MessageSquare, Building2, ArrowRight, Wrench } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { PermissionAwareChat } from '@/components/PermissionAwareChat';
 
@@ -151,6 +151,28 @@ export default function HomePage() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
                     Explore Enterprise
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/scenario-builder" className="group">
+              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                      <Wrench className="h-5 w-5 text-white" />
+                    </div>
+                    <CardTitle className="text-lg font-semibold">Scenario Builder</CardTitle>
+                  </div>
+                  <CardDescription className="text-sm text-gray-600">
+                    Create and manage custom training scenarios for role-play practice
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
+                    Build Scenarios
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </CardContent>

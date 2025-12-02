@@ -64,7 +64,7 @@ export default function AdminSignupPage() {
       }
 
       // Redirect to admin dashboard
-      router.push('/admin/scenarios');
+      router.push('/scenario-builder');
     } catch (err: any) {
       setError(err.message || 'An error occurred');
     } finally {
