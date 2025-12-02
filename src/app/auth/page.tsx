@@ -13,7 +13,7 @@ import { UserPlus } from 'lucide-react';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [showGuestForm, setShowGuestForm] = useState(false);
+  const [showGuestForm, setShowGuestForm] = useState(true); // Show guest form by default
   const [guestUsername, setGuestUsername] = useState('');
   const [guestRole, setGuestRole] = useState('Sales Rep');
   const router = useRouter();
