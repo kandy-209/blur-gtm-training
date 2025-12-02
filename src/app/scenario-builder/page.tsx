@@ -42,8 +42,10 @@ export default function ScenarioBuilderPage() {
   const [newKeyPoint, setNewKeyPoint] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Load scenarios from localStorage on mount
+  // Load scenarios from localStorage on mount (client-side only)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -57,8 +59,10 @@ export default function ScenarioBuilderPage() {
     }
   }, []);
 
-  // Save scenarios to localStorage whenever they change
+  // Save scenarios to localStorage whenever they change (client-side only)
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (localScenarios.length > 0) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(localScenarios));
@@ -145,7 +149,9 @@ export default function ScenarioBuilderPage() {
     setEditingId(scenario.id);
     setIsCreating(false);
     setFormErrors({});
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleDelete = (id: string) => {
