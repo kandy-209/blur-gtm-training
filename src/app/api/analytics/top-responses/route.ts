@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       });
 
       // Enrich top responses with user ownership info
-      const enrichedResponses = topResponses.map((topResp) => {
+      const enrichedResponses = topResponses.map((topResp: { response: string; count: number; averageScore: number; successRate: number; scenarioId: string; objectionCategory: string }) => {
         const matchingResponses = allResponses.filter((r: { userMessage: string }) => 
           r.userMessage.toLowerCase().trim() === topResp.response.toLowerCase().trim()
         );
