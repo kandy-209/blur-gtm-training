@@ -155,7 +155,7 @@ export default function AuthPage() {
             onClick={() => setShowGuestForm(true)}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11"
           >
-            Quick Start - No Signup Required →
+            Quick Start →
           </Button>
         </div>
 
