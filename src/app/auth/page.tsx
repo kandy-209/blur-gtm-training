@@ -144,7 +144,7 @@ export default function AuthPage() {
               <UserPlus className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-blue-900 text-lg mb-1">Cursor Employee? Skip Signup!</h3>
+              <h3 className="font-bold text-blue-900 text-lg mb-1">Looking to poke around.</h3>
               <p className="text-sm text-blue-800">
                 Start training immediately without creating an account
               </p>
