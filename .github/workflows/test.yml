@@ -33,9 +33,7 @@ jobs:
       continue-on-error: true
 
     - name: Run unit tests
-      # Exclude route/page tests and routes-404 tests - these run in separate steps
-      # Note: Each Jest invocation is independent, so ignore patterns don't carry over between steps
-      run: npm test -- --coverage --maxWorkers=2 --testPathIgnorePatterns='(.*/__tests__/(routes|pages)\.test\.(ts|tsx|js|jsx)$|.*routes-404\.test\.(ts|tsx|js|jsx)$)' --passWithNoTests
+      run: npm test -- --coverage --maxWorkers=2 --testPathIgnorePatterns='(__tests__/(routes|pages)|routes-404\.test)' --passWithNoTests
       env:
         CI: true
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'sk-ant-test-key-for-ci' }}
@@ -43,8 +41,7 @@ jobs:
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'test-key' }}
 
     - name: Run route tests
-      # Explicitly include route tests - this is a separate Jest invocation, so ignore patterns from step 1 don't apply
-      run: npm test -- --testPathPattern='(.*/__tests__/routes\.test|.*routes-404\.test)\.(ts|tsx|js|jsx)$' --passWithNoTests
+      run: npm test -- --testPathPattern='routes' --passWithNoTests
       env:
         CI: true
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'sk-ant-test-key-for-ci' }}
@@ -52,7 +49,7 @@ jobs:
         SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'test-key' }}
 
     - name: Run page rendering tests
-      run: npm test -- --testPathPattern='__tests__/pages\.test' --passWithNoTests
+      run: npm test -- --testPathPattern='pages' --passWithNoTests
       env:
         CI: true
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || 'sk-ant-test-key-for-ci' }}
@@ -68,6 +65,14 @@ jobs:
         ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY || 'test-key' }}
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN || 'test-token' }}
         SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID || 'test-channel' }}
+
+    - name: Check for build errors
+      run: |
+        if [ -f ".next/error.log" ]; then
+          echo "Build errors found:"
+          cat .next/error.log
+          exit 1
+        fi
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3

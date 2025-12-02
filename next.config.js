@@ -8,7 +8,6 @@ const nextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [],
-    minimumCacheTTL: 60, // Cache images for 60 seconds
   },
   
   // Experimental features for better performance
@@ -45,24 +44,6 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
-          },
-        ],
-      },
-      {
-        source: '/logos/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // Cache logos for 1 year
-          },
-        ],
-      },
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable', // Cache static assets for 1 year
           },
         ],
       },
