@@ -43,9 +43,13 @@ CREATE TABLE IF NOT EXISTS live_sessions (
   status TEXT NOT NULL CHECK (status IN ('waiting', 'active', 'completed', 'cancelled')),
   rep_score INTEGER DEFAULT 0,
   prospect_score INTEGER DEFAULT 0,
+  conversation_data JSONB, -- Store all messages as one JSON object
+  conversation_text TEXT, -- Store all messages as plain text
+  message_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   started_at TIMESTAMP WITH TIME ZONE,
-  completed_at TIMESTAMP WITH TIME ZONE
+  completed_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- ============================================

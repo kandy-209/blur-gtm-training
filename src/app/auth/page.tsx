@@ -182,18 +182,20 @@ export default function AuthPage() {
           </CardContent>
         </Card>
         
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Cursor employee?{' '}
-            <button
-              type="button"
-              onClick={() => setShowGuestForm(true)}
-              className="text-blue-600 hover:text-blue-700 font-semibold underline"
-            >
-              Start without signing up
-            </button>
-          </p>
-        </div>
+        {mode === 'signin' && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Cursor employee?{' '}
+              <button
+                type="button"
+                onClick={() => setShowGuestForm(true)}
+                className="text-blue-600 hover:text-blue-700 font-semibold underline"
+              >
+                Start without signing up
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

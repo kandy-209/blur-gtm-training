@@ -198,9 +198,40 @@ export default function LiveRoleplaySession({
   };
 
   const endSession = async () => {
-    if (confirm('Are you sure you want to end this session?')) {
+    if (confirm('Are you sure you want to end this session? All messages will be saved.')) {
       cleanupVoice();
       stopPolling();
+      
+      // Save all messages from the session as one file
+      if (sessionId) {
+        try {
+          const saveResponse = await fetch('/api/live/sessions/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+
+          if (saveResponse.ok) {
+            const saveData = await saveResponse.json();
+            
+            // If download URL is provided, offer download
+            if (saveData.downloadUrl && !saveData.saved) {
+              const link = document.createElement('a');
+              link.href = saveData.downloadUrl;
+              link.download = `live-session-${sessionId}.json`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+            
+            console.log('Session saved:', saveData.message);
+          }
+        } catch (error) {
+          console.error('Failed to save session:', error);
+          // Still end session even if save fails
+        }
+      }
+      
       onEndSession?.();
       
       analytics.track({

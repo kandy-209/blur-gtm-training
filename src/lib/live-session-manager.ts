@@ -131,7 +131,7 @@ class LiveSessionManager {
     return null;
   }
 
-  completeSession(sessionId: string): void {
+  completeSession(sessionId: string): LiveSession | undefined {
     const session = this.sessions.get(sessionId);
     if (session) {
       session.status = 'completed';
@@ -140,7 +140,10 @@ class LiveSessionManager {
       // Clean up user mappings
       this.userToSession.delete(session.repUserId);
       this.userToSession.delete(session.prospectUserId);
+      
+      return session;
     }
+    return undefined;
   }
 
   cancelSession(sessionId: string): void {
