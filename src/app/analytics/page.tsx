@@ -1,0 +1,29 @@
+'use client';
+
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import TopResponses from '@/components/TopResponses';
+import TechnicalQuestions from '@/components/TechnicalQuestions';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
+export default function AnalyticsPage() {
+  return (
+    <ProtectedRoute>
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Training Analytics</h1>
+        <p className="text-muted-foreground">Track your progress and performance metrics</p>
+      </div>
+      <div className="space-y-8">
+        <AnalyticsDashboard />
+        
+        <div className="grid gap-6 md:grid-cols-2">
+          <TopResponses limit={10} />
+          <TechnicalQuestions limit={10} />
+        </div>
+      </div>
+    </div>
+    </ProtectedRoute>
+  );
+}
+

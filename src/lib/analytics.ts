@@ -1,0 +1,101 @@
+export interface TrainingEvent {
+  eventType: 'scenario_start' | 'scenario_complete' | 'turn_submit' | 'feedback_view' | 'module_complete' | 'live_match_found' | 'live_message_sent' | 'live_voice_enabled' | 'live_session_ended';
+  userId?: string;
+  scenarioId?: string;
+  turnNumber?: number;
+  score?: number;
+  timestamp: Date;
+  metadata?: Record<string, any>;
+}
+
+class Analytics {
+  private events: TrainingEvent[] = [];
+  private userId: string | null = null;
+
+  setUserId(userId: string) {
+    this.userId = userId;
+    // Store in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('training_user_id', userId);
+    }
+  }
+
+  getUserId(): string {
+    if (this.userId) return this.userId;
+    if (typeof window !== 'undefined') {
+      // Check for guest user first
+      const guestData = localStorage.getItem('guest_user');
+      if (guestData) {
+        try {
+          const guestUser = JSON.parse(guestData);
+          if (guestUser.id) {
+            this.userId = guestUser.id;
+            return guestUser.id;
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      }
+      // Check for stored user ID
+      const stored = localStorage.getItem('training_user_id');
+      if (stored) {
+        this.userId = stored;
+        return stored;
+      }
+    }
+    // Generate new ID
+    const newId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    this.setUserId(newId);
+    return newId;
+  }
+
+  track(event: Omit<TrainingEvent, 'timestamp' | 'userId'>) {
+    const fullEvent: TrainingEvent = {
+      ...event,
+      userId: this.getUserId(),
+      timestamp: new Date(),
+    };
+
+    this.events.push(fullEvent);
+
+    // Send to API endpoint
+    if (typeof window !== 'undefined') {
+      fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fullEvent),
+      }).catch((err) => console.error('Analytics error:', err));
+    }
+
+    // Store in localStorage as backup
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('training_events');
+      const events = stored ? JSON.parse(stored) : [];
+      events.push(fullEvent);
+      // Keep only last 100 events
+      const recentEvents = events.slice(-100);
+      localStorage.setItem('training_events', JSON.stringify(recentEvents));
+    }
+  }
+
+  getEvents(): TrainingEvent[] {
+    return this.events;
+  }
+
+  getStats() {
+    const events = this.getEvents();
+    const scenarioCompletions = events.filter(e => e.eventType === 'scenario_complete');
+    const avgScore = scenarioCompletions.length > 0
+      ? scenarioCompletions.reduce((sum, e) => sum + (e.score || 0), 0) / scenarioCompletions.length
+      : 0;
+
+    return {
+      totalScenarios: scenarioCompletions.length,
+      averageScore: Math.round(avgScore),
+      totalTurns: events.filter(e => e.eventType === 'turn_submit').length,
+    };
+  }
+}
+
+export const analytics = new Analytics();
+

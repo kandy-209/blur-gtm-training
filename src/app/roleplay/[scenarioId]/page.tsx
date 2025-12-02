@@ -1,0 +1,96 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { scenarios } from '@/data/scenarios';
+import RoleplayEngine from '@/components/RoleplayEngine';
+import ElevenLabsConvAI from '@/components/ElevenLabsConvAI';
+import TopResponses from '@/components/TopResponses';
+import TechnicalQuestions from '@/components/TechnicalQuestions';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { notFound } from 'next/navigation';
+
+export default function RoleplayPage() {
+  const params = useParams();
+  const scenarioId = Array.isArray(params?.scenarioId) 
+    ? params.scenarioId[0] 
+    : (params?.scenarioId as string);
+  const [scenario, setScenario] = useState(
+    scenarioId ? scenarios.find((s) => s.id === scenarioId) : undefined
+  );
+
+  useEffect(() => {
+    if (scenarioId && !scenario) {
+      const found = scenarios.find((s) => s.id === scenarioId);
+      if (!found) {
+        notFound();
+      } else {
+        setScenario(found);
+      }
+    }
+  }, [scenarioId, scenario]);
+
+  if (!scenario) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  // Get ElevenLabs agent ID from environment or use default
+  const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'agent_9101kb9t1120fjb84wgcem44dey2';
+
+  return (
+    <ProtectedRoute>
+      <ErrorBoundary>
+          <div className="min-h-screen py-8">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+              <div className="mb-8 text-center">
+                <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Sales Role-Play Training</h1>
+                <p className="text-muted-foreground">Practice your sales skills with AI-powered scenarios</p>
+              </div>
+              <div className="grid gap-8 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <ErrorBoundary>
+                    <RoleplayEngine
+                      scenario={scenario}
+                      onComplete={(score) => {
+                        console.log('Final score:', score);
+                      }}
+                    />
+                  </ErrorBoundary>
+                </div>
+                <div className="space-y-6">
+                  <ErrorBoundary>
+                    <TopResponses
+                      scenarioId={scenario.id}
+                      objectionCategory={scenario.objection_category}
+                      limit={5}
+                    />
+                  </ErrorBoundary>
+                  <ErrorBoundary>
+                    <TechnicalQuestions
+                      scenarioId={scenario.id}
+                      category={scenario.objection_category}
+                      limit={5}
+                    />
+                  </ErrorBoundary>
+                </div>
+              </div>
+              {/* ElevenLabs Conversational AI Widget */}
+              {agentId && (
+                <ErrorBoundary>
+                  <ElevenLabsConvAI agentId={agentId} scenario={scenario} />
+                </ErrorBoundary>
+              )}
+            </div>
+          </div>
+        </ErrorBoundary>
+      </ProtectedRoute>
+  );
+}
+
