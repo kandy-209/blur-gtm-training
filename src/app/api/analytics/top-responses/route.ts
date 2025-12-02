@@ -3,8 +3,6 @@ import { db } from '@/lib/db';
 import { sanitizeInput } from '@/lib/security';
 import { getUserRole } from '@/lib/permissions';
 import { createClient } from '@supabase/supabase-js';
-import { CACHE_TAGS, CACHE_DURATIONS, getCacheHeaders, invalidateCache } from '@/lib/cache';
-import { unstable_cache } from 'next/cache';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -48,29 +46,12 @@ export async function GET(request: NextRequest) {
     const user = await getCurrentUser(request);
     const userId = user?.id;
 
-    // Cached top responses fetch
-    const getCachedTopResponses = unstable_cache(
-      async (scenarioId?: string, objectionCategory?: string, minScore: number, limit: number) => {
-        return await db.getTopResponses({
-          scenarioId,
-          objectionCategory,
-          minScore,
-          limit,
-        });
-      },
-      ['top-responses'],
-      {
-        tags: [CACHE_TAGS.RESPONSES, CACHE_TAGS.ANALYTICS],
-        revalidate: CACHE_DURATIONS.MEDIUM,
-      }
-    );
-
-    const topResponses = await getCachedTopResponses(
-      scenarioId || undefined,
-      objectionCategory || undefined,
+    const topResponses = await db.getTopResponses({
+      scenarioId: scenarioId || undefined,
+      objectionCategory: objectionCategory || undefined,
       minScore,
-      Math.min(limit, 100)
-    );
+      limit: Math.min(limit, 100),
+    });
 
     // If includeUserIds is true, add user IDs to each response
     if (includeUserIds && userId) {
@@ -92,31 +73,10 @@ export async function GET(request: NextRequest) {
         };
       });
 
-      return NextResponse.json(
-        { topResponses: enrichedResponses },
-        {
-          headers: getCacheHeaders({
-            maxAge: CACHE_DURATIONS.MEDIUM,
-            sMaxAge: CACHE_DURATIONS.MEDIUM,
-            staleWhileRevalidate: CACHE_DURATIONS.LONG,
-            tags: [CACHE_TAGS.RESPONSES, CACHE_TAGS.ANALYTICS],
-            private: !!userId, // Private cache for user-specific data
-          }),
-        }
-      );
+      return NextResponse.json({ topResponses: enrichedResponses });
     }
 
-    return NextResponse.json(
-      { topResponses },
-      {
-        headers: getCacheHeaders({
-          maxAge: CACHE_DURATIONS.MEDIUM,
-          sMaxAge: CACHE_DURATIONS.MEDIUM,
-          staleWhileRevalidate: CACHE_DURATIONS.LONG,
-          tags: [CACHE_TAGS.RESPONSES, CACHE_TAGS.ANALYTICS],
-        }),
-      }
-    );
+    return NextResponse.json({ topResponses });
   } catch (error) {
     console.error('Get top responses error:', error);
     return NextResponse.json(
@@ -195,10 +155,6 @@ export async function DELETE(request: NextRequest) {
         console.error(`Failed to delete response ${resp.id}:`, error);
       }
     }
-
-    // Invalidate cache when responses are deleted
-    await invalidateCache(CACHE_TAGS.RESPONSES);
-    await invalidateCache(CACHE_TAGS.ANALYTICS);
 
     return NextResponse.json({ 
       success: true, 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 
 interface AuthFormProps {
@@ -97,17 +98,17 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
   };
 
   return (
-    <Card className="max-w-md mx-auto border-gray-200 shadow-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-2xl">{mode === 'signin' ? 'Sign In' : 'Create Account'}</CardTitle>
-        <CardDescription className="text-base mt-2">
+    <Card className="max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>{mode === 'signin' ? 'Sign In' : 'Sign Up'}</CardTitle>
+        <CardDescription>
           {mode === 'signin'
-            ? 'Welcome back! Sign in to continue your training.'
-            : 'Fill in the required fields below to get started'}
+            ? 'Sign in to your Cursor Enterprise GTM Training account'
+            : 'Create your account to start practicing Enterprise sales'}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
               {error}
@@ -128,60 +129,32 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
             </div>
           )}
           {mode === 'signup' && (
-            <>
-              <div>
-                <Label htmlFor="username">Username *</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Choose a username"
-                  required
-                  minLength={3}
-                  maxLength={30}
-                  disabled={isLoading}
-                  className="mt-1"
-                  autoFocus
-                />
-                <p className="text-xs text-gray-500 mt-1">3-30 characters</p>
-              </div>
-
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com (optional)"
-                  disabled={isLoading}
-                  className="mt-1"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {username 
-                    ? `Optional - we'll use ${username}@cursor.local if not provided`
-                    : 'Optional - email will be auto-generated from your username'}
-                </p>
-              </div>
-            </>
+            <div>
+              <Label htmlFor="email">Email (Optional)</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Optional - will use username@cursor.local if not provided"
+                disabled={isLoading}
+              />
+            </div>
           )}
 
           <div>
-            <Label htmlFor="password">Password {mode === 'signup' && '*'}</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter your password'}
               required
               minLength={8}
               disabled={isLoading}
-              className="mt-1"
             />
             {mode === 'signup' && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Must be at least 8 characters
               </p>
             )}
@@ -190,22 +163,34 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
           {mode === 'signup' && (
             <>
               <div>
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  minLength={3}
+                  maxLength={30}
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="fullName">Full Name (Optional)</Label>
                 <Input
                   id="fullName"
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your full name (optional)"
                   disabled={isLoading}
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="roleAtCursor">Your Role at Cursor *</Label>
+                <Label htmlFor="roleAtCursor">Your Role at Cursor</Label>
                 <Select value={roleAtCursor} onValueChange={setRoleAtCursor} required>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -223,7 +208,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
               </div>
 
               <div>
-                <Label htmlFor="jobTitle">Job Title *</Label>
+                <Label htmlFor="jobTitle">Job Title</Label>
                 <Input
                   id="jobTitle"
                   type="text"
@@ -232,7 +217,18 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
                   placeholder="e.g., Senior Account Executive"
                   required
                   disabled={isLoading}
-                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="department">Department (Optional)</Label>
+                <Input
+                  id="department"
+                  type="text"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  placeholder="e.g., Enterprise Sales"
+                  disabled={isLoading}
                 />
               </div>
             </>

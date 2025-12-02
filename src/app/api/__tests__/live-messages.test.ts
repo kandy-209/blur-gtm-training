@@ -20,26 +20,14 @@ jest.mock('@/lib/security', () => ({
 
 describe('POST /api/live/messages', () => {
   let mockAddMessage: jest.Mock;
-  let mockGetSession: jest.Mock;
 
   beforeAll(() => {
     const sessionManagerModule = require('@/lib/live-session-manager');
     mockAddMessage = (sessionManagerModule as any).__mockAddMessage;
-    mockGetSession = (sessionManagerModule as any).__mockGetSession;
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Mock session that exists
-    const mockSession = {
-      id: 'session_123',
-      repUserId: 'user_1',
-      prospectUserId: 'user_2',
-      conversationHistory: [],
-    };
-    
-    mockGetSession.mockReturnValue(mockSession);
     mockAddMessage.mockReturnValue({
       id: 'msg_123',
       sessionId: 'session_123',

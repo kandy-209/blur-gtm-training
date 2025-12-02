@@ -37,9 +37,9 @@ export default function LiveRoleplaySession({
 
   useEffect(() => {
     loadSession();
-    startRealTimeStream();
+    startPolling();
     return () => {
-      stopRealTimeStream();
+      stopPolling();
       cleanupVoice();
     };
   }, [sessionId]);
@@ -59,66 +59,52 @@ export default function LiveRoleplaySession({
     }
   };
 
-  // Real-time streaming using Server-Sent Events (SSE) - Next.js 16 feature
-  const startRealTimeStream = () => {
-    const eventSource = new EventSource(`/api/live/stream?sessionId=${sessionId}`);
+  const startPolling = () => {
+    let lastMessageCount = messages.length;
     
-    eventSource.onmessage = (event) => {
+    const interval = setInterval(async () => {
       try {
-        const data = JSON.parse(event.data);
+        // Poll for messages
+        const messagesResponse = await fetch(`/api/live/messages?sessionId=${sessionId}`);
+        if (!messagesResponse.ok) {
+          console.error('Failed to fetch messages:', messagesResponse.status);
+          return;
+        }
         
-        switch (data.type) {
-          case 'connected':
-            console.log('Connected to real-time stream');
-            break;
-            
-          case 'message':
-            // Add new message to the list
-            setMessages((prev) => {
-              // Avoid duplicates
-              if (prev.some((m) => m.id === data.message.id)) {
-                return prev;
-              }
-              return [...prev, data.message];
-            });
-            setTimeout(() => scrollToBottom(), 100);
-            break;
-            
-          case 'session_update':
-            // Update session data
-            setSession((prev) => ({
-              ...prev,
-              ...data.session,
-            }));
-            break;
-            
-          case 'error':
-            console.error('Stream error:', data.message);
-            break;
+        const messagesData = await messagesResponse.json();
+        const newMessages = messagesData.messages || [];
+        
+        // Only update if messages changed (avoid unnecessary re-renders)
+        if (newMessages.length !== lastMessageCount || 
+            JSON.stringify(newMessages.map((m: LiveMessage) => m.id)) !== JSON.stringify(messages.map((m: LiveMessage) => m.id))) {
+          setMessages(newMessages);
+          lastMessageCount = newMessages.length;
+          
+          // Scroll to bottom when new messages arrive
+          setTimeout(() => scrollToBottom(), 100);
+        }
+        
+        // Also refresh session data periodically (less frequently)
+        if (Math.random() < 0.1) { // 10% chance each poll
+          const sessionResponse = await fetch(`/api/live/sessions?sessionId=${sessionId}`);
+          if (sessionResponse.ok) {
+            const sessionData = await sessionResponse.json();
+            if (sessionData.session) {
+              setSession(sessionData.session);
+            }
+          }
         }
       } catch (error) {
-        console.error('Failed to parse SSE message:', error);
+        console.error('Failed to poll messages:', error);
       }
-    };
-    
-    eventSource.onerror = (error) => {
-      console.error('SSE connection error:', error);
-      // Reconnect after a delay
-      setTimeout(() => {
-        if (eventSource.readyState === EventSource.CLOSED) {
-          startRealTimeStream();
-        }
-      }, 3000);
-    };
-    
-    (window as any).__liveRoleplayEventSource = eventSource;
+    }, 1000); // Poll every second
+
+    (window as any).__liveRoleplayPollInterval = interval;
   };
 
-  const stopRealTimeStream = () => {
-    const eventSource = (window as any).__liveRoleplayEventSource as EventSource;
-    if (eventSource) {
-      eventSource.close();
-      delete (window as any).__liveRoleplayEventSource;
+  const stopPolling = () => {
+    if ((window as any).__liveRoleplayPollInterval) {
+      clearInterval((window as any).__liveRoleplayPollInterval);
     }
   };
 
@@ -219,7 +205,7 @@ export default function LiveRoleplaySession({
   const endSession = async () => {
     if (confirm('Are you sure you want to end this session? All messages will be saved.')) {
       cleanupVoice();
-      stopRealTimeStream();
+      stopPolling();
       
       // Save all messages from the session as one file
       if (sessionId) {

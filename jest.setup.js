@@ -1,12 +1,5 @@
 import '@testing-library/jest-dom'
 
-// Polyfill for TextEncoder/TextDecoder (required for Next.js 16)
-if (typeof global.TextEncoder === 'undefined') {
-  const { TextEncoder, TextDecoder } = require('util');
-  global.TextEncoder = TextEncoder;
-  global.TextDecoder = TextDecoder;
-}
-
 // Mock environment variables
 process.env.OPENAI_API_KEY = 'test-openai-key'
 process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID = 'test-agent-id'
