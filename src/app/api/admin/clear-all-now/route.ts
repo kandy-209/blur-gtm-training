@@ -51,9 +51,10 @@ export async function POST(request: NextRequest) {
           .delete()
           .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
         
-        if (!error && data) {
+        if (!error) {
           // Supabase delete returns the deleted rows
-          supabaseDeleted = Array.isArray(data) ? data.length : 0;
+          const deletedRows = data as unknown as any[];
+          supabaseDeleted = Array.isArray(deletedRows) ? deletedRows.length : 0;
         }
       } catch (error) {
         console.log('Supabase clear error (table may not exist):', error);
