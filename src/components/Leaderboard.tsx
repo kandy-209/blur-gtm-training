@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trophy, Medal, Award, TrendingUp } from 'lucide-react';
 // Simple loading skeleton
 const LoadingSkeleton = ({ count }: { count: number }) => (
@@ -38,10 +39,14 @@ export default function Leaderboard() {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/leaderboard?category=${category}&limit=100`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
+      }
       const data = await response.json();
       setLeaderboard(data.leaderboard || []);
     } catch (error) {
-      console.error('Failed to fetch leaderboard:', error);
+      console.error('Failed to fetch leaderboard:', error instanceof Error ? error.message : String(error));
+      setLeaderboard([]);
     } finally {
       setIsLoading(false);
     }
@@ -71,17 +76,18 @@ export default function Leaderboard() {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          >
-            <option value="overall">Overall</option>
-            <option value="communication">Communication</option>
-            <option value="product_knowledge">Product Knowledge</option>
-            <option value="objection_handling">Objection Handling</option>
-            <option value="closing">Closing</option>
-          </select>
+          <Select value={category} onValueChange={(value) => setCategory(value)}>
+            <SelectTrigger className="w-full sm:w-[200px] border-gray-200 bg-white">
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="overall">Overall</SelectItem>
+              <SelectItem value="communication">Communication</SelectItem>
+              <SelectItem value="product_knowledge">Product Knowledge</SelectItem>
+              <SelectItem value="objection_handling">Objection Handling</SelectItem>
+              <SelectItem value="closing">Closing</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

@@ -21,7 +21,12 @@ import {
   Clock,
   Target,
   ChevronRight,
-  BookOpen
+  BookOpen,
+  ExternalLink,
+  Youtube,
+  FileText,
+  PlayCircle,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,14 +36,6 @@ const categoryIcons: Record<string, any> = {
   security: Shield,
   'code-quality': Sparkles,
   'developer-experience': Code,
-};
-
-const categoryColors: Record<string, string> = {
-  productivity: 'bg-blue-100 text-blue-700 border-blue-200',
-  collaboration: 'bg-purple-100 text-purple-700 border-purple-200',
-  security: 'bg-red-100 text-red-700 border-red-200',
-  'code-quality': 'bg-green-100 text-green-700 border-green-200',
-  'developer-experience': 'bg-orange-100 text-orange-700 border-orange-200',
 };
 
 export default function FeaturesPage() {
@@ -65,67 +62,69 @@ export default function FeaturesPage() {
     return <Icon className="h-4 w-4" />;
   };
 
-  const getCategoryColor = (category: string) => {
-    return categoryColors[category] || 'bg-gray-100 text-gray-700 border-gray-200';
-  };
-
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-lg bg-black flex items-center justify-center">
-              <BookOpen className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Cursor Features</h1>
-              <p className="text-muted-foreground mt-1">
-                Learn how Cursor features impact engineering teams and ROI
-              </p>
-            </div>
+      <div className="min-h-screen bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+          {/* Header */}
+          <div className="mb-12">
+            <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3">
+              Cursor Features
+            </h1>
+            <p className="text-lg text-gray-600">
+              Learn how Cursor features impact engineering teams and ROI
+            </p>
           </div>
 
           {/* View Toggle */}
-          <div className="flex gap-2 mb-6">
-            <Button
-              variant={selectedView === 'overview' ? 'default' : 'outline'}
+          <div className="flex flex-wrap gap-2 mb-8">
+            <button
               onClick={() => setSelectedView('overview')}
-              className={selectedView === 'overview' ? 'bg-black hover:bg-gray-900 text-white' : ''}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedView === 'overview'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
               Overview
-            </Button>
-            <Button
-              variant={selectedView === 'leadership' ? 'default' : 'outline'}
+            </button>
+            <button
               onClick={() => setSelectedView('leadership')}
-              className={selectedView === 'leadership' ? 'bg-black hover:bg-gray-900 text-white' : ''}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                selectedView === 'leadership'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
-              <DollarSign className="h-4 w-4 mr-2" />
+              <DollarSign className="h-4 w-4" />
               Leadership ROI
-            </Button>
-            <Button
-              variant={selectedView === 'ic' ? 'default' : 'outline'}
+            </button>
+            <button
               onClick={() => setSelectedView('ic')}
-              className={selectedView === 'ic' ? 'bg-black hover:bg-gray-900 text-white' : ''}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                selectedView === 'ic'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
-              <Users className="h-4 w-4 mr-2" />
+              <Users className="h-4 w-4" />
               IC Impact
-            </Button>
+            </button>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search features..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 border-gray-200 focus:border-gray-400"
               />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px] border-gray-200">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -137,104 +136,112 @@ export default function FeaturesPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Feature Chat Assistant */}
-        <div className="mb-8">
-          <FeatureChat />
-        </div>
-
-        {/* Features Grid */}
-        {filteredFeatures.length === 0 ? (
-          <EmptyState
-            icon={Search}
-            title="No features found"
-            description="Try adjusting your search or filter"
-          />
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredFeatures.map((feature) => {
-              const CategoryIcon = categoryIcons[feature.category] || Code;
-              const categoryColor = getCategoryColor(feature.category);
-
-              return (
-                <Card
-                  key={feature.id}
-                  className="hover-lift border-gray-200 transition-smooth cursor-pointer"
-                  onClick={() => setSelectedFeature(feature)}
-                >
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <CardTitle className="text-lg font-semibold pr-2">{feature.name}</CardTitle>
-                      <Badge className={categoryColor}>
-                        <CategoryIcon className="h-3 w-3 mr-1" />
-                        {feature.category.replace('-', ' ')}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-sm line-clamp-2">
-                      {feature.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* ROI Preview based on view */}
-                    {selectedView === 'leadership' && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <DollarSign className="h-4 w-4 text-green-700" />
-                          <span className="text-xs font-semibold text-green-900">ROI:</span>
-                        </div>
-                        <p className="text-xs text-green-800">{feature.impactOnTeams.leadership.roi}</p>
-                      </div>
-                    )}
-
-                    {selectedView === 'ic' && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Clock className="h-4 w-4 text-blue-700" />
-                          <span className="text-xs font-semibold text-blue-900">Time Saved:</span>
-                        </div>
-                        <p className="text-xs text-blue-800">{feature.impactOnTeams.ic.timeSaved}</p>
-                      </div>
-                    )}
-
-                    {/* Key Benefits */}
-                    <div>
-                      <p className="text-xs font-semibold mb-2">Key Benefits:</p>
-                      <ul className="text-xs text-muted-foreground space-y-1">
-                        {feature.keyBenefits.slice(0, 3).map((benefit, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-gray-400 mt-0.5">•</span>
-                            <span className="line-clamp-1">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedFeature(feature);
-                      }}
-                    >
-                      Learn More <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          {/* Feature Chat Assistant */}
+          <div className="mb-12">
+            <FeatureChat initialRole={selectedView} />
           </div>
-        )}
 
-        {/* Feature Detail Modal */}
-        {selectedFeature && (
-          <FeatureDetailModal
-            feature={selectedFeature}
-            view={selectedView}
-            onClose={() => setSelectedFeature(null)}
-          />
-        )}
+          {/* Features Grid */}
+          {filteredFeatures.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              title="No features found"
+              description="Try adjusting your search or filter"
+            />
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredFeatures.map((feature) => {
+                const CategoryIcon = categoryIcons[feature.category] || Code;
+
+                return (
+                  <Card
+                    key={feature.id}
+                    className="border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg cursor-pointer group"
+                    onClick={() => setSelectedFeature(feature)}
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <CategoryIcon className="h-5 w-5 text-gray-600" />
+                          <CardTitle className="text-lg font-semibold">{feature.name}</CardTitle>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {(feature.impactOnTeams.leadership.videoLinks?.length || 
+                            feature.impactOnTeams.leadership.youtubeLinks?.length ||
+                            feature.impactOnTeams.leadership.blogLinks?.length ||
+                            feature.impactOnTeams.ic.videoLinks?.length ||
+                            feature.impactOnTeams.ic.youtubeLinks?.length ||
+                            feature.impactOnTeams.ic.blogLinks?.length) && (
+                            <Badge variant="outline" className="text-xs border-blue-200 text-blue-700">
+                              <PlayCircle className="h-3 w-3 mr-1" />
+                              Media
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="text-xs border-gray-200">
+                            {feature.category.replace('-', ' ')}
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardDescription className="text-sm text-gray-600 line-clamp-2">
+                        {feature.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* ROI Preview based on view */}
+                      {selectedView === 'leadership' && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <DollarSign className="h-4 w-4 text-gray-600" />
+                            <span className="text-xs font-medium text-gray-900">ROI:</span>
+                          </div>
+                          <p className="text-xs text-gray-700">{feature.impactOnTeams.leadership.roi}</p>
+                        </div>
+                      )}
+
+                      {selectedView === 'ic' && (
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Clock className="h-4 w-4 text-gray-600" />
+                            <span className="text-xs font-medium text-gray-900">Time Saved:</span>
+                          </div>
+                          <p className="text-xs text-gray-700">{feature.impactOnTeams.ic.timeSaved}</p>
+                        </div>
+                      )}
+
+                      {/* Key Benefits */}
+                      <div>
+                        <p className="text-xs font-medium text-gray-900 mb-2">Key Benefits:</p>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          {feature.keyBenefits.slice(0, 3).map((benefit, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="text-gray-400 mt-0.5">•</span>
+                              <span className="line-clamp-1">{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all pt-2">
+                        Learn More
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Feature Detail Modal */}
+          {selectedFeature && (
+            <FeatureDetailModal
+              feature={selectedFeature}
+              view={selectedView}
+              onClose={() => setSelectedFeature(null)}
+            />
+          )}
+        </div>
       </div>
     </ProtectedRoute>
   );
@@ -250,43 +257,46 @@ function FeatureDetailModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative z-50 bg-white rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold">{feature.name}</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>×</Button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="relative z-50 bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between bg-white">
+          <h2 className="text-2xl font-bold text-gray-900">{feature.name}</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-600" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-8">
           {/* Description */}
           <div>
-            <h3 className="font-semibold mb-2">Description</h3>
-            <p className="text-sm text-muted-foreground">{feature.description}</p>
+            <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+            <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
           </div>
 
           {/* Leadership View */}
           {(view === 'overview' || view === 'leadership') && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
               <div className="flex items-center gap-2 mb-4">
-                <DollarSign className="h-5 w-5 text-green-700" />
-                <h3 className="text-lg font-semibold text-green-900">Leadership ROI</h3>
+                <DollarSign className="h-5 w-5 text-gray-700" />
+                <h3 className="text-lg font-semibold text-gray-900">Leadership ROI</h3>
               </div>
               
               <div className="mb-4">
-                <p className="font-medium text-green-900 mb-2">ROI Summary:</p>
-                <p className="text-sm text-green-800">{feature.impactOnTeams.leadership.roi}</p>
+                <p className="font-medium text-gray-900 mb-2">ROI Summary:</p>
+                <p className="text-sm text-gray-700">{feature.impactOnTeams.leadership.roi}</p>
               </div>
 
               <div className="mb-4">
-                <p className="font-medium text-green-900 mb-2">Key Metrics:</p>
-                <ul className="space-y-1">
+                <p className="font-medium text-gray-900 mb-2">Key Metrics:</p>
+                <ul className="space-y-2">
                   {feature.impactOnTeams.leadership.metrics.map((metric, idx) => (
-                    <li key={idx} className="text-sm text-green-800 flex items-start gap-2">
-                      <span className="text-green-600 mt-0.5">✓</span>
+                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                      <span className="text-gray-400 mt-0.5">•</span>
                       <span>{metric}</span>
                     </li>
                   ))}
@@ -294,38 +304,111 @@ function FeatureDetailModal({
               </div>
 
               <div>
-                <p className="font-medium text-green-900 mb-2">Business Value:</p>
-                <ul className="space-y-1">
+                <p className="font-medium text-gray-900 mb-2">Business Value:</p>
+                <ul className="space-y-2">
                   {feature.impactOnTeams.leadership.businessValue.map((value, idx) => (
-                    <li key={idx} className="text-sm text-green-800 flex items-start gap-2">
-                      <Target className="h-4 w-4 text-green-600 mt-0.5" />
+                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                      <Target className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <span>{value}</span>
                     </li>
                   ))}
                 </ul>
               </div>
+
+              {/* Blog Links */}
+              {feature.impactOnTeams.leadership.blogLinks && feature.impactOnTeams.leadership.blogLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Related Blog Posts:
+                  </p>
+                  <div className="space-y-2">
+                    {feature.impactOnTeams.leadership.blogLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 hover:underline transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        <span>{link.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* YouTube Links */}
+              {feature.impactOnTeams.leadership.youtubeLinks && feature.impactOnTeams.leadership.youtubeLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Youtube className="h-4 w-4" />
+                    Related Videos:
+                  </p>
+                  <div className="space-y-2">
+                    {feature.impactOnTeams.leadership.youtubeLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 hover:underline transition-colors"
+                      >
+                        <Youtube className="h-3 w-3" />
+                        <span>{link.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Video Links */}
+              {feature.impactOnTeams.leadership.videoLinks && feature.impactOnTeams.leadership.videoLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" />
+                    Demo Videos:
+                  </p>
+                  <div className="space-y-4">
+                    {feature.impactOnTeams.leadership.videoLinks.map((video, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <p className="text-sm font-medium text-gray-900">{video.title}</p>
+                        <video
+                          controls
+                          className="w-full rounded-lg border border-gray-200"
+                          preload="metadata"
+                        >
+                          <source src={video.url} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* IC View */}
           {(view === 'overview' || view === 'ic') && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+            <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
               <div className="flex items-center gap-2 mb-4">
-                <Users className="h-5 w-5 text-blue-700" />
-                <h3 className="text-lg font-semibold text-blue-900">Individual Contributor Impact</h3>
+                <Users className="h-5 w-5 text-gray-700" />
+                <h3 className="text-lg font-semibold text-gray-900">Individual Contributor Impact</h3>
               </div>
 
               <div className="mb-4">
-                <p className="font-medium text-blue-900 mb-2">Productivity Impact:</p>
-                <p className="text-sm text-blue-800">{feature.impactOnTeams.ic.productivity}</p>
+                <p className="font-medium text-gray-900 mb-2">Productivity Impact:</p>
+                <p className="text-sm text-gray-700">{feature.impactOnTeams.ic.productivity}</p>
               </div>
 
               <div className="mb-4">
-                <p className="font-medium text-blue-900 mb-2">Daily Impact:</p>
-                <ul className="space-y-1">
+                <p className="font-medium text-gray-900 mb-2">Daily Impact:</p>
+                <ul className="space-y-2">
                   {feature.impactOnTeams.ic.dailyImpact.map((impact, idx) => (
-                    <li key={idx} className="text-sm text-blue-800 flex items-start gap-2">
-                      <Clock className="h-4 w-4 text-blue-600 mt-0.5" />
+                    <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
+                      <Clock className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <span>{impact}</span>
                     </li>
                   ))}
@@ -333,18 +416,91 @@ function FeatureDetailModal({
               </div>
 
               <div>
-                <p className="font-medium text-blue-900 mb-2">Time Saved:</p>
-                <p className="text-sm text-blue-800 font-semibold">{feature.impactOnTeams.ic.timeSaved}</p>
+                <p className="font-medium text-gray-900 mb-2">Time Saved:</p>
+                <p className="text-sm text-gray-700 font-semibold">{feature.impactOnTeams.ic.timeSaved}</p>
               </div>
+
+              {/* Blog Links */}
+              {feature.impactOnTeams.ic.blogLinks && feature.impactOnTeams.ic.blogLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Related Blog Posts:
+                  </p>
+                  <div className="space-y-2">
+                    {feature.impactOnTeams.ic.blogLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 hover:underline transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        <span>{link.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* YouTube Links */}
+              {feature.impactOnTeams.ic.youtubeLinks && feature.impactOnTeams.ic.youtubeLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Youtube className="h-4 w-4" />
+                    Related Videos:
+                  </p>
+                  <div className="space-y-2">
+                    {feature.impactOnTeams.ic.youtubeLinks.map((link, idx) => (
+                      <a
+                        key={idx}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 hover:underline transition-colors"
+                      >
+                        <Youtube className="h-3 w-3" />
+                        <span>{link.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Video Links */}
+              {feature.impactOnTeams.ic.videoLinks && feature.impactOnTeams.ic.videoLinks.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <PlayCircle className="h-4 w-4" />
+                    Demo Videos:
+                  </p>
+                  <div className="space-y-4">
+                    {feature.impactOnTeams.ic.videoLinks.map((video, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <p className="text-sm font-medium text-gray-900">{video.title}</p>
+                        <video
+                          controls
+                          className="w-full rounded-lg border border-gray-200"
+                          preload="metadata"
+                        >
+                          <source src={video.url} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           {/* Key Benefits */}
           <div>
-            <h3 className="font-semibold mb-3">Key Benefits</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Key Benefits</h3>
             <ul className="space-y-2">
               {feature.keyBenefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm">
+                <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
                   <span className="text-gray-400 mt-0.5">•</span>
                   <span>{benefit}</span>
                 </li>
@@ -354,10 +510,10 @@ function FeatureDetailModal({
 
           {/* Use Cases */}
           <div>
-            <h3 className="font-semibold mb-3">Use Cases</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <h3 className="font-semibold text-gray-900 mb-3">Use Cases</h3>
+            <div className="grid grid-cols-2 gap-3">
               {feature.useCases.map((useCase, idx) => (
-                <div key={idx} className="bg-gray-50 rounded-lg p-3 text-sm">
+                <div key={idx} className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700 border border-gray-100">
                   {useCase}
                 </div>
               ))}
@@ -368,4 +524,3 @@ function FeatureDetailModal({
     </div>
   );
 }
-

@@ -9,11 +9,17 @@ export interface CursorFeature {
       roi: string;
       metrics: string[];
       businessValue: string[];
+      blogLinks?: Array<{ title: string; url: string }>;
+      youtubeLinks?: Array<{ title: string; url: string }>;
+      videoLinks?: Array<{ title: string; url: string }>;
     };
     ic: {
       productivity: string;
       dailyImpact: string[];
       timeSaved: string;
+      blogLinks?: Array<{ title: string; url: string }>;
+      youtubeLinks?: Array<{ title: string; url: string }>;
+      videoLinks?: Array<{ title: string; url: string }>;
     };
   };
   useCases: string[];
@@ -46,7 +52,12 @@ export const cursorFeatures: CursorFeature[] = [
           'Reduced technical debt',
           'Better knowledge transfer',
           'Lower support costs'
-        ]
+        ],
+        blogLinks: [
+          { title: 'Cursor Enterprise Blog', url: 'https://cursor.com/blog/enterprise' },
+          { title: 'Introducing Cursor 2.0', url: 'https://cursor.com/blog/2-0' }
+        ],
+        youtubeLinks: []
       },
       ic: {
         productivity: 'Spend less time reading code, more time writing',
@@ -56,7 +67,12 @@ export const cursorFeatures: CursorFeature[] = [
           'Faster debugging with full codebase awareness',
           'Confidence in making changes to unfamiliar code'
         ],
-        timeSaved: '2-3 hours per day on average'
+        timeSaved: '2-3 hours per day on average',
+        blogLinks: [
+          { title: 'Cursor Enterprise Blog', url: 'https://cursor.com/blog/enterprise' },
+          { title: 'Cloud Agents', url: 'https://cursor.com/blog/cloud-agents' }
+        ],
+        youtubeLinks: []
       }
     },
     useCases: [
@@ -360,6 +376,204 @@ export const cursorFeatures: CursorFeature[] = [
       'Documentation generation',
       'API development',
       'Feature implementation'
+    ]
+  },
+  {
+    id: 'plan-mode',
+    name: 'Plan Mode',
+    category: 'productivity',
+    description: 'Create comprehensive plans for complex features and refactoring. Cursor responds with clarifying questions to improve plan quality, and provides an interactive UI to easily answer questions. Search plans with ⌘+F.',
+    keyBenefits: [
+      'Interactive clarifying questions',
+      'Improved plan quality',
+      'Searchable plans (⌘+F)',
+      'Comprehensive feature planning',
+      'Better project organization'
+    ],
+    impactOnTeams: {
+      leadership: {
+        roi: '30-40% reduction in planning time, better project outcomes',
+        metrics: [
+          'Faster project kickoff',
+          'Reduced planning overhead',
+          'Better project success rates',
+          'Clearer project scope',
+          'Improved team alignment'
+        ],
+        businessValue: [
+          'Faster time-to-market',
+          'Reduced project risk',
+          'Better resource allocation',
+          'Improved project outcomes',
+          'Higher team productivity'
+        ],
+        blogLinks: [],
+        youtubeLinks: [],
+        videoLinks: [
+          { title: 'Improved Plan Mode Demo', url: 'https://cdn.sanity.io/files/2hv88549/production/3e43d59b79f4e400fa3412e99fa87427a025cf0b.mp4' }
+        ]
+      },
+      ic: {
+        productivity: 'Plan complex features faster with AI assistance',
+        dailyImpact: [
+          'Interactive planning with clarifying questions',
+          'Searchable plans for quick reference',
+          'Better project organization',
+          'Clearer implementation path',
+          'Reduced planning overhead'
+        ],
+        timeSaved: '2-3 hours per week on planning',
+        blogLinks: [],
+        youtubeLinks: [],
+        videoLinks: [
+          { title: 'Improved Plan Mode Demo', url: 'https://cdn.sanity.io/files/2hv88549/production/3e43d59b79f4e400fa3412e99fa87427a025cf0b.mp4' }
+        ]
+      }
+    },
+    useCases: [
+      'Planning complex features',
+      'Large-scale refactoring',
+      'Multi-file implementations',
+      'Project kickoff',
+      'Technical design documents'
+    ],
+    technicalDetails: [
+      'Interactive UI for answering questions',
+      'Search functionality (⌘+F)',
+      'Clarifying questions improve plan quality',
+      'Comprehensive plan generation'
+    ]
+  },
+  {
+    id: 'ai-code-review',
+    name: 'AI Code Review in Editor',
+    category: 'code-quality',
+    description: 'Find and fix bugs directly in Cursor with AI code reviews. It analyzes your changes and finds issues which you can see in the sidepanel. This is in addition to Bugbot, which runs on your source control provider like GitHub (including Enterprise Server), GitLab, and more.',
+    keyBenefits: [
+      'Find bugs directly in editor',
+      'Issues shown in sidepanel',
+      'Catch issues before commit',
+      'Works alongside Bugbot',
+      'GitHub/GitLab integration',
+      'Enterprise Server support'
+    ],
+    impactOnTeams: {
+      leadership: {
+        roi: '40-50% reduction in code review time, higher code quality',
+        metrics: [
+          'Faster code review cycles',
+          'Higher code quality',
+          'Reduced bug rates',
+          'Better code consistency',
+          'Faster PR reviews'
+        ],
+        businessValue: [
+          'Faster shipping velocity',
+          'Lower bug rates',
+          'Better code quality',
+          'Reduced technical debt',
+          'Improved developer satisfaction'
+        ],
+        blogLinks: [],
+        youtubeLinks: [],
+        videoLinks: [
+          { title: 'AI Code Review in Editor Demo', url: 'https://cdn.sanity.io/files/2hv88549/production/f92b6ce94b56a8df4e38a3ccad7d992a5ec20093.mp4' }
+        ]
+      },
+      ic: {
+        productivity: 'Get instant feedback on code quality without waiting for reviews',
+        dailyImpact: [
+          'Instant code review feedback',
+          'Catch issues early',
+          'Learn best practices',
+          'Improve code quality',
+          'Faster iteration cycles'
+        ],
+        timeSaved: '3-5 hours per week on code review',
+        blogLinks: [],
+        youtubeLinks: [],
+        videoLinks: [
+          { title: 'AI Code Review in Editor Demo', url: 'https://cdn.sanity.io/files/2hv88549/production/f92b6ce94b56a8df4e38a3ccad7d992a5ec20093.mp4' }
+        ]
+      }
+    },
+    useCases: [
+      'Pre-commit code review',
+      'Code quality checks',
+      'Learning best practices',
+      'Catching bugs early',
+      'Improving code consistency',
+      'GitHub Enterprise Server integration',
+      'GitLab integration'
+    ],
+    technicalDetails: [
+      'In-editor code review',
+      'Sidepanel issue display',
+      'Instant feedback',
+      'Quality suggestions',
+      'Issue detection',
+      'Bugbot integration',
+      'Source control provider support'
+    ]
+  },
+  {
+    id: 'instant-grep',
+    name: 'Instant Grep',
+    category: 'developer-experience',
+    description: 'Lightning-fast code search across your entire codebase. Find code, functions, and patterns instantly without waiting for search results.',
+    keyBenefits: [
+      'Lightning-fast search',
+      'Search entire codebase',
+      'Find code patterns',
+      'Instant results',
+      'Better code navigation'
+    ],
+    impactOnTeams: {
+      leadership: {
+        roi: '20-30% reduction in time spent searching code',
+        metrics: [
+          'Faster code navigation',
+          'Reduced context switching',
+          'Better code discovery',
+          'Improved productivity',
+          'Faster onboarding'
+        ],
+        businessValue: [
+          'Faster development cycles',
+          'Better code reuse',
+          'Reduced onboarding time',
+          'Improved productivity',
+          'Lower development costs'
+        ],
+        blogLinks: [],
+        youtubeLinks: []
+      },
+      ic: {
+        productivity: 'Find code instantly, spend less time searching',
+        dailyImpact: [
+          'Instant code search results',
+          'Find patterns quickly',
+          'Better code navigation',
+          'Discover existing code',
+          'Faster debugging'
+        ],
+        timeSaved: '1-2 hours per day on code search',
+        blogLinks: [],
+        youtubeLinks: []
+      }
+    },
+    useCases: [
+      'Finding code patterns',
+      'Code navigation',
+      'Discovering existing code',
+      'Debugging',
+      'Onboarding to new codebases'
+    ],
+    technicalDetails: [
+      'Lightning-fast search',
+      'Full codebase search',
+      'Pattern matching',
+      'Instant results'
     ]
   }
 ];

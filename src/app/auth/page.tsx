@@ -138,60 +138,48 @@ export default function AuthPage() {
     <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-md mx-auto">
         {/* Prominent Guest Access Banner */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-sm">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
+        <div className="mb-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl shadow-sm">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
               <UserPlus className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-blue-900 text-lg mb-1">Looking to poke around.</h3>
-              <p className="text-sm text-blue-800">
-                Start training immediately without creating an account
+              <h3 className="font-bold text-blue-900 text-lg mb-1">Looking to poke around?</h3>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                Start training immediately without creating an account. Perfect for quick exploration!
               </p>
             </div>
           </div>
           <Button
             type="button"
             onClick={() => setShowGuestForm(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 text-base shadow-md hover:shadow-lg transition-all"
           >
             Quick Start →
           </Button>
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Cursor Enterprise GTM Training</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold mb-2">Cursor Enterprise GTM Training</h1>
+          <p className="text-gray-600 text-lg">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account to start practicing'}
           </p>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>{mode === 'signin' ? 'Sign In' : 'Create Account'}</CardTitle>
-            <CardDescription>
-              {mode === 'signin' 
-                ? 'Sign in to access your saved progress' 
-                : 'Create an account to save your training progress'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AuthForm
-              mode={mode}
-              onSuccess={handleSuccess}
-              onSwitchMode={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-            />
-          </CardContent>
-        </Card>
+        <AuthForm
+          mode={mode}
+          onSuccess={handleSuccess}
+          onSwitchMode={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+        />
         
-        <div className="mt-6 space-y-2 text-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-8 space-y-3 text-center">
+          <p className="text-sm text-gray-600">
             {mode === 'signin' ? (
               <>
                 Cursor employee?{' '}
                 <button
                   type="button"
                   onClick={() => setShowGuestForm(true)}
-                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                  className="text-blue-600 hover:text-blue-700 font-semibold underline transition-colors"
                 >
                   Start without signing up
                 </button>
@@ -202,16 +190,16 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => setMode('signin')}
-                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
+                  className="text-blue-600 hover:text-blue-700 font-semibold underline transition-colors"
                 >
-                  Sign in
+                  Sign in instead
                 </button>
               </>
             )}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             Need admin access?{' '}
-            <Link href="/admin/signup" className="text-red-600 hover:text-red-700 font-semibold underline">
+            <Link href="/admin/signup" className="text-gray-700 hover:text-gray-900 font-medium underline transition-colors">
               Create admin account
             </Link>
           </p>

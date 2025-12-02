@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/auth';
+import { CACHE_TAGS, CACHE_DURATIONS, getCacheHeaders, cacheKeys } from '@/lib/cache';
+import { unstable_cache } from 'next/cache';
 
-export async function GET(request: NextRequest) {
-  try {
+// Cached leaderboard fetch function
+const getCachedLeaderboard = unstable_cache(
+  async (category: string, limit: number) => {
     if (!supabase) {
-      return NextResponse.json(
-        { error: 'Database not configured' },
-        { status: 500 }
-      );
+      return { leaderboard: [] };
     }
-
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '100');
-    const category = searchParams.get('category') || 'overall';
 
     // Get all user ratings with user profiles
     const { data: ratings, error: ratingsError } = await supabase
@@ -22,8 +18,7 @@ export async function GET(request: NextRequest) {
 
     if (ratingsError) {
       console.error('Leaderboard ratings error:', ratingsError);
-      // Return empty leaderboard instead of throwing error
-      return NextResponse.json({ leaderboard: [] });
+      return { leaderboard: [] };
     }
 
     // Calculate leaderboard stats
@@ -60,7 +55,6 @@ export async function GET(request: NextRequest) {
 
     if (sessionsError) {
       console.error('Leaderboard sessions error:', sessionsError);
-      // Continue without session data
     }
 
     if (sessions) {
@@ -69,7 +63,6 @@ export async function GET(request: NextRequest) {
           const repId = session.rep_user_id;
           const prospectId = session.prospect_user_id;
 
-          // Update total sessions
           if (userStats.has(repId)) {
             userStats.get(repId)!.totalSessions++;
           }
@@ -77,7 +70,6 @@ export async function GET(request: NextRequest) {
             userStats.get(prospectId)!.totalSessions++;
           }
 
-          // Determine winner based on scores
           if (session.rep_score && session.prospect_score) {
             if (session.rep_score > session.prospect_score) {
               if (userStats.has(repId)) {
@@ -102,7 +94,7 @@ export async function GET(request: NextRequest) {
         const winRate = stats.totalSessions > 0
           ? (stats.wins / stats.totalSessions) * 100
           : 0;
-        const totalScore = averageRating * 100 + winRate; // Combined score
+        const totalScore = averageRating * 100 + winRate;
 
         return {
           userId: stats.userId,
@@ -113,7 +105,7 @@ export async function GET(request: NextRequest) {
           totalRatings: stats.ratings.length,
           winRate: Math.round(winRate * 10) / 10,
           totalScore: Math.round(totalScore * 10) / 10,
-          rank: 0, // Will be set after sorting
+          rank: 0,
         };
       })
       .sort((a, b) => b.totalScore - a.totalScore)
@@ -123,7 +115,36 @@ export async function GET(request: NextRequest) {
         rank: index + 1,
       }));
 
-    return NextResponse.json({ leaderboard });
+    return { leaderboard };
+  },
+  ['leaderboard'],
+  {
+    tags: [CACHE_TAGS.LEADERBOARD],
+    revalidate: CACHE_DURATIONS.SHORT, // Revalidate every minute
+  }
+);
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const category = searchParams.get('category') || 'overall';
+
+    // Use cached leaderboard function
+    const { leaderboard } = await getCachedLeaderboard(category, limit);
+
+    // Return with cache headers
+    return NextResponse.json(
+      { leaderboard },
+      {
+        headers: getCacheHeaders({
+          maxAge: CACHE_DURATIONS.SHORT,
+          sMaxAge: CACHE_DURATIONS.MEDIUM,
+          staleWhileRevalidate: CACHE_DURATIONS.LONG,
+          tags: [CACHE_TAGS.LEADERBOARD, `${CACHE_TAGS.LEADERBOARD}:${category}`],
+        }),
+      }
+    );
   } catch (error: any) {
     console.error('Leaderboard error:', error);
     return NextResponse.json(

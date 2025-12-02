@@ -56,11 +56,25 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   :root {
     --font-geist-sans: var(--geist-sans);
     --font-geist-mono: var(--geist-mono);
+  }
+
+  /* Image optimization */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Prevent layout shift */
+  img[src="/logos/cursor-logo.svg"] {
+    aspect-ratio: 1;
   }
 }
 

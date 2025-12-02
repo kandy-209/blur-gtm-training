@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sessionManager } from '@/lib/live-session-manager';
 import { sanitizeInput } from '@/lib/security';
+import { CACHE_TAGS, CACHE_DURATIONS, getCacheHeaders } from '@/lib/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,17 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         );
       }
-      return NextResponse.json({ session });
+      return NextResponse.json(
+        { session },
+        {
+          headers: getCacheHeaders({
+            maxAge: 0, // No cache for live sessions
+            sMaxAge: 0,
+            tags: [CACHE_TAGS.LIVE_SESSION, `${CACHE_TAGS.LIVE_SESSION}:${sessionId}`],
+            private: true, // Live sessions are user-specific
+          }),
+        }
+      );
     }
 
     if (userId) {
@@ -55,7 +66,17 @@ export async function GET(request: NextRequest) {
           { status: 404 }
         );
       }
-      return NextResponse.json({ session });
+      return NextResponse.json(
+        { session },
+        {
+          headers: getCacheHeaders({
+            maxAge: 0, // No cache for live sessions
+            sMaxAge: 0,
+            tags: [CACHE_TAGS.LIVE_SESSION, `${CACHE_TAGS.LIVE_SESSION}:${userId}`],
+            private: true,
+          }),
+        }
+      );
     }
 
     return NextResponse.json(

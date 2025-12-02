@@ -101,19 +101,23 @@ export default function AdminSignupPage() {
               )}
 
               <div>
-                <Label htmlFor="adminCode">Admin Code *</Label>
+                <Label htmlFor="adminCode">
+                  Admin Code {email && !email.toLowerCase().endsWith('@cursor.com') && '*'}
+                </Label>
                 <Input
                   id="adminCode"
                   type="password"
                   value={adminCode}
                   onChange={(e) => setAdminCode(e.target.value)}
                   placeholder="Enter admin invitation code"
-                  required
+                  required={!email || !email.toLowerCase().endsWith('@cursor.com')}
                   disabled={isLoading}
                   className="mt-2"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Contact your system administrator for the admin code
+                  {email && email.toLowerCase().endsWith('@cursor.com') 
+                    ? 'Admin code not required for @cursor.com email addresses'
+                    : 'Contact your system administrator for the admin code'}
                 </p>
               </div>
 
@@ -129,6 +133,11 @@ export default function AdminSignupPage() {
                   disabled={isLoading}
                   className="mt-2"
                 />
+                {email && email.toLowerCase().endsWith('@cursor.com') && (
+                  <p className="text-xs text-green-600 mt-1 font-medium">
+                    ✓ @cursor.com email detected - Admin code not required
+                  </p>
+                )}
               </div>
 
               <div>

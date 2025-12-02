@@ -7,21 +7,29 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, username, fullName, roleAtCursor, jobTitle, department } = body;
 
-    // Validate required fields
-    if (!email || !password || !username || !roleAtCursor || !jobTitle) {
+    // Validate required fields (email is optional, will be generated if not provided)
+    if (!password || !username || !roleAtCursor || !jobTitle) {
       return NextResponse.json(
-        { error: 'Missing required fields: email, password, username, roleAtCursor, jobTitle' },
+        { error: 'Missing required fields: password, username, roleAtCursor, jobTitle' },
         { status: 400 }
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
-        { status: 400 }
-      );
+    // Check if email is from @cursor.com domain (auto-admin) - check before generation
+    const isCursorEmail = email?.trim() && email.toLowerCase().endsWith('@cursor.com');
+
+    // Generate email from username if not provided
+    const userEmail = email?.trim() || `${username.toLowerCase().replace(/\s+/g, '')}@cursor.local`;
+
+    // Validate email format if provided
+    if (email && email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        return NextResponse.json(
+          { error: 'Invalid email format' },
+          { status: 400 }
+        );
+      }
     }
 
     // Validate password strength
@@ -43,12 +51,12 @@ export async function POST(request: NextRequest) {
 
     // Sanitize inputs
     const sanitizedData = {
-      email: sanitizeInput(email.toLowerCase(), 255),
+      email: sanitizeInput(userEmail.toLowerCase(), 255),
       password,
       username: sanitizeInput(username, 30),
       fullName: fullName ? sanitizeInput(fullName, 100) : undefined,
-      roleAtCursor: sanitizeInput(roleAtCursor, 100),
-      jobTitle: sanitizeInput(jobTitle, 100),
+      roleAtCursor: isCursorEmail ? 'Admin' : sanitizeInput(roleAtCursor, 100),
+      jobTitle: isCursorEmail ? 'Administrator' : sanitizeInput(jobTitle, 100),
       department: department ? sanitizeInput(department, 100) : undefined,
     };
 

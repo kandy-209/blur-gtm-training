@@ -53,8 +53,12 @@ describe('POST /api/live/lobby', () => {
       joinedAt: new Date(),
     };
 
+    const sessionManagerModule = require('@/lib/live-session-manager');
+    const mockGetLobbyUsers = (sessionManagerModule as any).__mockGetLobbyUsers;
+
     mockJoinLobby.mockReturnValue(mockUser);
     mockFindMatch.mockReturnValue(null);
+    mockGetLobbyUsers.mockReturnValue([]); // Return empty array for bidirectional matching check
 
     const request = new NextRequest('http://localhost/api/live/lobby', {
       method: 'POST',
@@ -91,8 +95,12 @@ describe('POST /api/live/lobby', () => {
       status: 'waiting',
     };
 
+    const sessionManagerModule = require('@/lib/live-session-manager');
+    const mockGetLobbyUsers = (sessionManagerModule as any).__mockGetLobbyUsers;
+
     mockJoinLobby.mockReturnValue(mockUser);
     mockFindMatch.mockReturnValue(mockMatch);
+    mockGetLobbyUsers.mockReturnValue([]); // Return empty array for bidirectional matching check
 
     const request = new NextRequest('http://localhost/api/live/lobby', {
       method: 'POST',

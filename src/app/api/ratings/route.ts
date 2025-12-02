@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/auth';
 import { sanitizeInput } from '@/lib/security';
+import { CACHE_TAGS, CACHE_DURATIONS, getCacheHeaders, invalidateCache } from '@/lib/cache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,6 +54,10 @@ export async function POST(request: NextRequest) {
       throw new Error(error.message);
     }
 
+    // Invalidate leaderboard cache when new rating is added
+    await invalidateCache(CACHE_TAGS.LEADERBOARD);
+    await invalidateCache(CACHE_TAGS.RATINGS);
+
     return NextResponse.json({ success: true, rating: data });
   } catch (error: any) {
     console.error('Rating creation error:', error);
@@ -92,7 +97,18 @@ export async function GET(request: NextRequest) {
       throw new Error(error.message);
     }
 
-    return NextResponse.json({ ratings: data || [] });
+    // Return with cache headers for GET requests
+    return NextResponse.json(
+      { ratings: data || [] },
+      {
+        headers: getCacheHeaders({
+          maxAge: CACHE_DURATIONS.SHORT,
+          sMaxAge: CACHE_DURATIONS.MEDIUM,
+          staleWhileRevalidate: CACHE_DURATIONS.LONG,
+          tags: [CACHE_TAGS.RATINGS, userId ? `${CACHE_TAGS.RATINGS}:${userId}` : CACHE_TAGS.RATINGS],
+        }),
+      }
+    );
   } catch (error: any) {
     console.error('Rating fetch error:', error);
     return NextResponse.json(

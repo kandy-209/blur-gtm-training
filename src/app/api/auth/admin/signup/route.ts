@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, username, fullName, adminCode } = body;
 
-    // Validate admin code first
-    if (!adminCode || adminCode !== ADMIN_CODE) {
+    // Check if email is from @cursor.com domain
+    const isCursorEmail = email && email.toLowerCase().endsWith('@cursor.com');
+
+    // Validate admin code only if not a @cursor.com email
+    if (!isCursorEmail && (!adminCode || adminCode !== ADMIN_CODE)) {
       return NextResponse.json(
         { error: 'Invalid admin code. Contact your system administrator.' },
         { status: 403 }

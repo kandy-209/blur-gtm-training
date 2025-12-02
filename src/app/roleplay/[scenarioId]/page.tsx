@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { scenarios } from '@/data/scenarios';
 import RoleplayEngine from '@/components/RoleplayEngine';
-import ElevenLabsConvAI from '@/components/ElevenLabsConvAI';
 import TopResponses from '@/components/TopResponses';
 import TechnicalQuestions from '@/components/TechnicalQuestions';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -40,9 +39,6 @@ export default function RoleplayPage() {
       </div>
     );
   }
-
-  // Get ElevenLabs agent ID from environment or use default
-  const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || 'agent_9101kb9t1120fjb84wgcem44dey2';
 
   return (
     <ProtectedRoute>
@@ -81,12 +77,7 @@ export default function RoleplayPage() {
                   </ErrorBoundary>
                 </div>
               </div>
-              {/* ElevenLabs Conversational AI Widget */}
-              {agentId && (
-                <ErrorBoundary>
-                  <ElevenLabsConvAI agentId={agentId} scenario={scenario} />
-                </ErrorBoundary>
-              )}
+              {/* Note: GlobalVoiceAssistant is now available on all pages via layout */}
             </div>
           </div>
         </ErrorBoundary>

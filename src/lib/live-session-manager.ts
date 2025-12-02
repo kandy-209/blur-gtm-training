@@ -165,6 +165,10 @@ class LiveSessionManager {
     return this.userToSession.get(userId) || null;
   }
 
+  clearLobby(): void {
+    this.lobby.clear();
+  }
+
   cleanup(): void {
     // Remove old completed sessions (older than 1 hour)
     const oneHourAgo = Date.now() - 60 * 60 * 1000;

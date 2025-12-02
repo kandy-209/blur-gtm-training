@@ -30,10 +30,20 @@ export async function signUp(data: SignUpData) {
 
   const { email, password, username, fullName, roleAtCursor, jobTitle, department } = data;
 
-  // Sign up user
+  // Check if email is from @cursor.com domain (auto-admin)
+  const isCursorEmail = email.toLowerCase().endsWith('@cursor.com');
+
+  // Sign up user with admin role in metadata if @cursor.com email
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        username,
+        full_name: fullName,
+        role: isCursorEmail ? 'admin' : 'user', // Set admin role for @cursor.com emails
+      },
+    },
   });
 
   if (authError) {
