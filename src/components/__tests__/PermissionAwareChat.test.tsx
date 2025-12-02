@@ -47,8 +47,9 @@ describe('PermissionAwareChat', () => {
   it('should render chat interface', () => {
     render(<PermissionAwareChat initialChatType="general" />);
     
-    // Check for the title (General Chat)
-    expect(screen.getByText(/General Chat/i)).toBeInTheDocument();
+    // Check for the title (General Chat) - use getAllByText and check first one
+    const generalChatElements = screen.getAllByText(/General Chat/i);
+    expect(generalChatElements.length).toBeGreaterThan(0);
     // Check for placeholder text
     expect(screen.getByPlaceholderText(/Ask any question about Cursor/i)).toBeInTheDocument();
   });
@@ -66,7 +67,7 @@ describe('PermissionAwareChat', () => {
     render(<PermissionAwareChat initialChatType="general" />);
     
     const input = screen.getByPlaceholderText(/Ask any question about Cursor/i);
-    const sendButton = screen.getByRole('button', { name: /send/i });
+    const sendButton = screen.getByRole('button', { name: /send message/i });
 
     fireEvent.change(input, { target: { value: 'Test question' } });
     fireEvent.click(sendButton);
@@ -107,15 +108,25 @@ describe('PermissionAwareChat', () => {
       expect(screen.getByText(/General Chat/i)).toBeInTheDocument();
     });
     
-    const input = screen.getByPlaceholderText(/Ask any question about Cursor/i) || screen.getByPlaceholderText(/Ask any question/i) || screen.getByRole('textbox');
-    const sendButton = screen.getByRole('button', { name: /send/i });
+    // Try multiple ways to find the input
+    let input: HTMLElement;
+    try {
+      input = screen.getByPlaceholderText(/Ask any question about Cursor/i);
+    } catch {
+      try {
+        input = screen.getByPlaceholderText(/Ask any question/i);
+      } catch {
+        input = screen.getByRole('textbox');
+      }
+    }
+    const sendButton = screen.getByRole('button', { name: /send message/i });
 
     fireEvent.change(input, { target: { value: 'Test' } });
     fireEvent.click(sendButton);
 
     // Should show loading indicator (button disabled or loader visible)
     await waitFor(() => {
-      const button = screen.getByRole('button', { name: /send/i });
+      const button = screen.getByRole('button', { name: /send message/i });
       expect(button).toBeDisabled();
     });
   });

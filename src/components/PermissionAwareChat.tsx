@@ -322,6 +322,7 @@ export function PermissionAwareChat({ initialChatType = 'general' }: { initialCh
               onClick={handleSend}
               disabled={isLoading || !input.trim() || !hasAccess}
               className="bg-black hover:bg-gray-900 text-white"
+              aria-label="Send message"
             >
               <Send className="h-4 w-4" />
             </Button>
