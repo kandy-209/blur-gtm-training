@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactElement } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { trackAnalyticsEvent } from '@/lib/vercel-analytics';
 
 function getEventTypeConfig(eventType: string) {
-  const configs: Record<string, { label: string; icon: JSX.Element; bgColor: string }> = {
+  const configs: Record<string, { label: string; icon: ReactElement; bgColor: string }> = {
     scenario_start: {
       label: 'Scenario Started',
       icon: <Target className="h-4 w-4 text-blue-600" />,
