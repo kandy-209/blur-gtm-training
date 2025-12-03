@@ -47,3 +47,33 @@ Thumbs.db
 
 # Lighthouse reports
 lighthouse-reports/
+
+# Temporary documentation files (keep important ones, ignore status/temp docs)
+*_STATUS.md
+*_NOW.md
+*_TEMPLATE.md
+EXECUTE_*.md
+NEXT_ACTIONS_*.md
+QUICK_*.md
+START_*.md
+*_CHECKLIST.md
+*_GUIDE.md
+*_INSTRUCTIONS.md
+*_RESULTS_*.md
+*_STARTED.md
+*_IN_PROGRESS.md
+TROUBLESHOOT_*.md
+MANUAL_*.md
+LOCAL_*.md
+SERVER_*.md
+RUN_*.md
+TEST_STARTED.md
+TESTING_IN_PROGRESS.md
+
+# Keep important documentation
+!README.md
+!TESTING_AND_ITERATION_PLAN.md
+!MOVE_PROJECT.md
+!HOW_TO_RUN_TESTS.md
+!TEST_RUNNER.md
+!START_HERE_TESTING.md

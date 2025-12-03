@@ -558,7 +558,14 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
                 disabled={isLoading}
                 autoComplete="off"
                 autoFocus
+                aria-label="Type your response to the prospect"
+                aria-describedby="roleplay-input-help"
+                aria-invalid={error ? 'true' : 'false'}
+                aria-required="true"
               />
+              <div id="roleplay-input-help" className="sr-only">
+                Enter your response to handle the prospect's objection. Press Ctrl+Enter to send.
+              </div>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="text-xs text-muted-foreground">
                   <span className="font-medium">Turn {state.turnNumber}</span>
@@ -569,6 +576,8 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
                   onClick={sendMessage} 
                   disabled={isLoading || !repMessage.trim()}
                   className="bg-black hover:bg-gray-900 text-white w-full sm:w-auto"
+                  aria-label={isLoading ? 'Sending response...' : 'Send your response'}
+                  aria-busy={isLoading}
                 >
                   {isLoading ? 'Sending...' : 'Send Response'}
                 </Button>

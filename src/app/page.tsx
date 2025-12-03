@@ -24,11 +24,11 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function HomePage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        {/* Hero Section - Public Friendly */}
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50/50">
+        {/* Hero Section - Premium Design */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
           <div className="text-center space-y-6 mb-16">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 text-shine">
               Master Enterprise Sales with AI-Powered Training
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
@@ -50,12 +50,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Value Proposition Cards */}
+          {/* Value Proposition Cards - Premium Glass Effect */}
           <div className="grid gap-6 md:grid-cols-3 mb-16">
-            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+            <Card className="card-premium border-2 border-gray-200/50">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-white" />
+                <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center mb-4 shadow-glow hover:shadow-glow-lg transition-all duration-300 gloss-overlay">
+                  <Target className="h-6 w-6 text-white relative z-10" />
                 </div>
                 <CardTitle>Real-World Practice</CardTitle>
                 <CardDescription>
@@ -64,10 +64,10 @@ export default function HomePage() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+            <Card className="card-premium border-2 border-gray-200/50">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-white" />
+                <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center mb-4 shadow-glow hover:shadow-glow-lg transition-all duration-300 gloss-overlay">
+                  <TrendingUp className="h-6 w-6 text-white relative z-10" />
                 </div>
                 <CardTitle>Instant Feedback</CardTitle>
                 <CardDescription>
@@ -76,10 +76,10 @@ export default function HomePage() {
               </CardHeader>
             </Card>
 
-            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+            <Card className="card-premium border-2 border-gray-200/50">
               <CardHeader>
-                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
-                  <Trophy className="h-6 w-6 text-white" />
+                <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center mb-4 shadow-glow hover:shadow-glow-lg transition-all duration-300 gloss-overlay">
+                  <Trophy className="h-6 w-6 text-white relative z-10" />
                 </div>
                 <CardTitle>Track Progress</CardTitle>
                 <CardDescription>
@@ -89,14 +89,14 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {/* Main Feature Cards */}
+          {/* Main Feature Cards - Premium Glass Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-16">
             <Link href="/scenarios" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
+              <Card className="h-full card-premium border border-gray-200/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <PlayCircle className="h-6 w-6 text-white" />
+                    <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 shadow-glow group-hover:shadow-glow-lg gloss-overlay">
+                      <PlayCircle className="h-6 w-6 text-white relative z-10" />
                     </div>
                     <CardTitle className="text-lg font-semibold">Practice Scenarios</CardTitle>
                   </div>
@@ -107,18 +107,18 @@ export default function HomePage() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
                     Start Training
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/sales-skills" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
+              <Card className="h-full card-premium border border-gray-200/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <BookOpen className="h-6 w-6 text-white" />
+                    <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 shadow-glow group-hover:shadow-glow-lg gloss-overlay">
+                      <BookOpen className="h-6 w-6 text-white relative z-10" />
                     </div>
                     <CardTitle className="text-lg font-semibold">Sales Skills Training</CardTitle>
                   </div>
@@ -129,18 +129,18 @@ export default function HomePage() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
                     Learn Skills
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/roi-calculator" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
+              <Card className="h-full card-premium border border-gray-200/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Calculator className="h-6 w-6 text-white" />
+                    <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 shadow-glow group-hover:shadow-glow-lg gloss-overlay">
+                      <Calculator className="h-6 w-6 text-white relative z-10" />
                     </div>
                     <CardTitle className="text-lg font-semibold">ROI Calculator</CardTitle>
                   </div>
@@ -152,11 +152,11 @@ export default function HomePage() {
             </Link>
 
             <Link href="/company-lookup" className="group">
-              <Card className="h-full hover:shadow-lg transition-shadow">
+              <Card className="h-full card-premium border border-gray-200/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Search className="h-6 w-6 text-white" />
+                    <div className="relative h-12 w-12 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 shadow-glow group-hover:shadow-glow-lg gloss-overlay">
+                      <Search className="h-6 w-6 text-white relative z-10" />
                     </div>
                     <CardTitle className="text-lg font-semibold">Company Lookup</CardTitle>
                   </div>
@@ -167,7 +167,7 @@ export default function HomePage() {
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
                     Search Companies
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </div>
                 </CardContent>
               </Card>
@@ -189,7 +189,7 @@ export default function HomePage() {
                   href={`/roleplay/${scenario.id}`}
                   className="group"
                 >
-                  <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-lg transition-all duration-200">
+                  <Card className="h-full card-premium border border-gray-200/50">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors">
                         {scenario.persona.name}
@@ -201,7 +201,7 @@ export default function HomePage() {
                     <CardContent>
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
                         Start Scenario
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </div>
                     </CardContent>
                   </Card>
@@ -220,12 +220,12 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Help & Feedback Section */}
-          <Card className="border-2 border-gray-200 mt-12">
+          {/* Help & Feedback Section - Premium */}
+          <Card className="card-premium border-2 border-gray-200/50 mt-12">
             <CardHeader>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center">
-                  <HelpCircle className="h-5 w-5 text-white" />
+                <div className="relative h-10 w-10 rounded-xl bg-black flex items-center justify-center shadow-glow gloss-overlay">
+                  <HelpCircle className="h-5 w-5 text-white relative z-10" />
                 </div>
                 <div>
                   <CardTitle className="text-xl">Need Help? Share Feedback!</CardTitle>

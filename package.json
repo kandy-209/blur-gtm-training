@@ -10,6 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "test:windows": "powershell -ExecutionPolicy Bypass -File scripts/run-tests.ps1",
     "setup:production": "bash scripts/setup-production.sh",
     "setup:interactive": "node setup-production.js",
     "db:migrate": "echo 'Run scripts/create-supabase-tables.sql in Supabase SQL Editor'",
@@ -17,7 +19,11 @@
     "verify:supabase": "node scripts/verify-supabase-setup.js",
     "copy:migration": "bash scripts/copy-migration-sql.sh",
     "deploy": "bash deploy.sh",
-    "env:add": "node add-env-interactive.js"
+    "env:add": "node add-env-interactive.js",
+    "test:design-system": "bash scripts/test-design-system.sh",
+    "test:performance": "node scripts/test-performance.js",
+    "test:lighthouse": "npx lighthouse http://localhost:3000 --view",
+    "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.943.0",

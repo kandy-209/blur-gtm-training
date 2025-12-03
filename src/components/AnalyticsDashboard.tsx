@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, ReactElement } from 'react';
+import { useEffect, useState, ReactElement, memo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,13 @@ import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, 
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { trackAnalyticsEvent } from '@/lib/vercel-analytics';
+import { Skeleton, SkeletonStats, SkeletonList } from '@/components/ui/skeleton';
+import { ProgressiveSkeletonGroup } from '@/components/ui/progressive-skeleton';
+import { useLoadingState } from '@/hooks/useLoadingState';
+import { useOptimisticUpdate } from '@/hooks/useOptimisticUpdate';
+import { retryWithBackoff, isRetryableError } from '@/lib/error-recovery';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
+import { LiveRegion } from '@/components/ui/live-region';
 
 function getEventTypeConfig(eventType: string) {
   const configs: Record<string, { label: string; icon: ReactElement; bgColor: string }> = {
@@ -46,34 +53,90 @@ function getEventTypeConfig(eventType: string) {
   };
 }
 
-export default function AnalyticsDashboard() {
+function AnalyticsDashboard() {
   const { user } = useAuth();
-  const [stats, setStats] = useState(analytics.getStats());
+  
+  // Performance monitoring
+  usePerformanceMonitor({
+    componentName: 'AnalyticsDashboard',
+    threshold: 100,
+  });
 
-  // Track dashboard view
-  useEffect(() => {
-    trackAnalyticsEvent('dashboard_view', { viewType: 'training' });
+  // Advanced loading state management
+  const loadingState = useLoadingState({
+    minLoadingTime: 300,
+    maxLoadingTime: 10000,
+        onTimeout: () => {
+      announce('Loading is taking longer than expected. Please wait.');
+    },
+  });
+
+  // Live region for announcements
+  const announce = useCallback((message: string) => {
+    const region = document.getElementById('analytics-live-region');
+    if (region) {
+      region.textContent = '';
+      setTimeout(() => {
+        region.textContent = message;
+      }, 100);
+    }
   }, []);
+
+  // Optimistic updates for stats
+  const { data: stats, updateOptimistically: updateStatsOptimistically } = useOptimisticUpdate(
+    analytics.getStats(),
+    {
+      onUpdate: async (optimisticStats) => {
+        // In a real app, this would sync with server
+        return optimisticStats;
+      },
+      rollbackOnError: true,
+    }
+  );
+
   const [recentEvents, setRecentEvents] = useState<TrainingEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    const updateStats = () => {
+    const fetchData = async () => {
+      loadingState.startLoading();
+
       try {
-        setStats(analytics.getStats());
-        setRecentEvents(analytics.getEvents().slice(-10).reverse());
-        setIsLoading(false);
+        const result = await retryWithBackoff(
+          async () => {
+            const newStats = analytics.getStats();
+            const events = analytics.getEvents().slice(-10).reverse();
+            return { stats: newStats, events };
+          },
+          {
+            maxRetries: 3,
+            retryDelay: 1000,
+            shouldRetry: (error) => isRetryableError(error),
+            onRetry: (attempt) => {
+              announce(`Retrying... Attempt ${attempt}`);
+            },
+          }
+        );
+
+        if (result.success && result.data) {
+          updateStatsOptimistically(result.data.stats);
+          setRecentEvents(result.data.events);
+          announce('Analytics loaded successfully');
+        } else {
+          throw result.error || new Error('Failed to load analytics');
+        }
       } catch (error) {
         console.error('Error updating stats:', error);
-        setIsLoading(false);
+        announce('Failed to load analytics. Please refresh the page.');
+      } finally {
+        loadingState.stopLoading();
       }
     };
 
-    updateStats();
-    const interval = setInterval(updateStats, 5000);
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadingState, updateStatsOptimistically, announce]);
 
   const handleDeleteEvent = async (eventIndex: number, event: TrainingEvent) => {
     if (!user) {
@@ -111,7 +174,7 @@ export default function AnalyticsDashboard() {
 
       // Update local state
       setRecentEvents(prev => prev.filter((_, idx) => idx !== eventIndex));
-      setStats(analytics.getStats());
+      updateStatsOptimistically(analytics.getStats());
     } catch (error) {
       console.error('Error deleting event:', error);
       alert('Failed to delete event. Please try again.');
@@ -125,46 +188,98 @@ export default function AnalyticsDashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <>
+      <LiveRegion id="analytics-live-region" level="polite" />
+      {loadingState.isLoading ? (
+        <div className="space-y-8" role="status" aria-live="polite" aria-label="Loading analytics dashboard">
+          <ProgressiveSkeletonGroup
+            count={3}
+            delay={0}
+            stagger={100}
+            renderItem={(index) => (
+              <Card className="border-gray-200">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <Skeleton variant="rounded" height={16} width="60%" />
+                  <Skeleton variant="circular" width={40} height={40} />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton variant="rounded" height={32} width="40%" />
+                </CardContent>
+              </Card>
+            )}
+          />
+          <Card className="border-gray-200">
+            <CardHeader className="pb-4">
+              <Skeleton variant="rounded" height={24} width="40%" />
+              <Skeleton variant="text" height={16} width="60%" className="mt-2" />
+            </CardHeader>
+            <CardContent>
+              <ProgressiveSkeletonGroup
+                count={5}
+                delay={300}
+                stagger={50}
+                renderItem={() => (
+                  <div className="border border-gray-200 rounded-xl p-4 space-y-3 mb-3">
+                    <Skeleton variant="rounded" height={16} width="80%" />
+                    <Skeleton variant="text" height={12} width="60%" />
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+          {loadingState.progress !== undefined && (
+            <div className="text-center text-sm text-muted-foreground">
+              Loading... {loadingState.progress}%
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="border-gray-200 hover-lift transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Scenarios Completed</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center" aria-hidden="true">
               <Target className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{stats.totalScenarios}</div>
+            <div className="text-3xl font-bold tracking-tight" aria-label={`${stats.totalScenarios} scenarios completed`}>
+              {stats.totalScenarios}
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border-gray-200 hover-lift transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Average Score</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center" aria-hidden="true">
               <TrendingUp className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{stats.averageScore}<span className="text-xl text-muted-foreground">/100</span></div>
+            <div className="text-3xl font-bold tracking-tight" aria-label={`Average score: ${stats.averageScore} out of 100`}>
+              {stats.averageScore}<span className="text-xl text-muted-foreground">/100</span>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border-gray-200 hover-lift transition-smooth">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Turns</CardTitle>
-            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center" aria-hidden="true">
               <BarChart3 className="h-5 w-5 text-gray-700" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{stats.totalTurns}</div>
+            <div className="text-3xl font-bold tracking-tight" aria-label={`${stats.totalTurns} total turns`}>
+              {stats.totalTurns}
+            </div>
           </CardContent>
         </Card>
-      </div>
+          </div>
 
-      <Card className="border-gray-200">
+          <Card className="border-gray-200">
         <CardHeader className="pb-4">
           <CardTitle className="text-xl">Recent Activity</CardTitle>
           <CardDescription className="text-sm">Your latest training events</CardDescription>
@@ -230,8 +345,10 @@ export default function AnalyticsDashboard() {
                           disabled={isDeleting}
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                           title="Delete event"
+                          aria-label={`Delete ${eventTypeConfig.label} event`}
+                          aria-busy={isDeleting}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
                         </Button>
                       )}
                     </div>
@@ -240,9 +357,18 @@ export default function AnalyticsDashboard() {
               })
             )}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+        </div>
+      )}
+      {loadingState.error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700" role="alert">
+          {loadingState.error.message}
+        </div>
+      )}
+    </>
   );
 }
+
+export default memo(AnalyticsDashboard);
 

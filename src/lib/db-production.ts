@@ -2,7 +2,7 @@
 // This file will be used when SUPABASE environment variables are set
 
 import { createClient } from '@supabase/supabase-js';
-import type { UserResponse, TechnicalQuestion, ResponseAnalytics } from './db';
+import type { UserResponse, TechnicalQuestion, ResponseAnalytics, Feedback } from './db';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 // Support both SUPABASE_KEY and SUPABASE_SERVICE_ROLE_KEY for flexibility
@@ -408,6 +408,91 @@ export class ProductionDatabase {
       averageScore: Math.round(averageScore),
       usageCount: similarResponses.length,
     };
+  }
+
+  async saveFeedback(feedback: Omit<Feedback, 'id' | 'timestamp'>): Promise<Feedback> {
+    const client = this.ensureSupabase();
+    const id = `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const fullFeedback: Feedback = {
+      ...feedback,
+      id,
+      timestamp: new Date(),
+    };
+
+    // Try to save to feedback table if it exists
+    try {
+      const { error } = await client
+        .from('feedback')
+        .insert({
+          id: fullFeedback.id,
+          type: fullFeedback.type,
+          subject: fullFeedback.subject,
+          message: fullFeedback.message,
+          rating: fullFeedback.rating,
+          user_id: fullFeedback.userId,
+          email: fullFeedback.email,
+          created_at: fullFeedback.timestamp.toISOString(),
+        } as any);
+
+      if (error) {
+        // Table might not exist yet, log and continue
+        console.warn('Feedback table not found or error:', error.message);
+        console.log('Feedback logged (table may need to be created):', fullFeedback);
+      }
+    } catch (error) {
+      // Table doesn't exist yet, log feedback
+      console.warn('Feedback table does not exist. Please create it in Supabase.');
+      console.log('Feedback logged:', fullFeedback);
+    }
+
+    return fullFeedback;
+  }
+
+  async getFeedback(filters?: {
+    userId?: string;
+    type?: string;
+    limit?: number;
+  }): Promise<Feedback[]> {
+    const client = this.ensureSupabase();
+    
+    try {
+      let query = client
+        .from('feedback')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (filters?.userId) {
+        query = query.eq('user_id', filters.userId);
+      }
+      if (filters?.type) {
+        query = query.eq('type', filters.type);
+      }
+      if (filters?.limit) {
+        query = query.limit(filters.limit);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.warn('Error fetching feedback:', error.message);
+        return [];
+      }
+
+      return (data || []).map((row: any) => ({
+        id: row.id,
+        type: row.type,
+        subject: row.subject,
+        message: row.message,
+        rating: row.rating || 0,
+        userId: row.user_id,
+        email: row.email,
+        timestamp: new Date(row.created_at),
+      }));
+    } catch (error) {
+      // Table doesn't exist yet
+      console.warn('Feedback table does not exist.');
+      return [];
+    }
   }
 }
 

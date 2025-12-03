@@ -54,10 +54,19 @@ export async function POST(request: NextRequest) {
     db.extractTechnicalQuestions(response.id).catch(console.error);
 
     return NextResponse.json({ success: true, response });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Save response error:', error);
+    
+    // Provide more specific error messages
+    if (error?.message?.includes('validation') || error?.message?.includes('invalid')) {
+      return NextResponse.json(
+        { error: 'Invalid input data. Please check your request and try again.' },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to save response' },
+      { error: 'Failed to save response. Please try again later.' },
       { status: 500 }
     );
   }
@@ -79,10 +88,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ responses });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get responses error:', error);
     return NextResponse.json(
-      { error: 'Failed to retrieve responses' },
+      { error: 'Failed to retrieve responses. Please try again later.' },
       { status: 500 }
     );
   }
@@ -134,10 +143,10 @@ export async function DELETE(request: NextRequest) {
     await db.deleteUserResponse(sanitizedResponseId);
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Delete response error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete response' },
+      { error: 'Failed to delete response. Please try again later.' },
       { status: 500 }
     );
   }

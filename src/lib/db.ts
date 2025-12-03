@@ -34,6 +34,17 @@ export interface ResponseAnalytics {
   objectionCategory: string;
 }
 
+export interface Feedback {
+  id: string;
+  type: string;
+  subject: string;
+  message: string;
+  rating: number;
+  userId: string;
+  email: string;
+  timestamp: Date;
+}
+
 // Lazy database initialization to prevent SSR timeouts
 let dbInstance: any = null;
 let dbInitialized = false;
@@ -65,21 +76,17 @@ function getDatabase() {
   }
 
   // Use in-memory database for development
-  if (typeof console !== 'undefined' && !dbInitialized) {
-    console.warn('⚠️  Using in-memory database. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for production.');
-  }
-
   if (!dbInstance) {
-  // Use in-memory database for development
-  if (typeof console !== 'undefined') {
-    console.warn('⚠️  Using in-memory database. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for production.');
-  }
+    if (typeof console !== 'undefined' && !dbInitialized) {
+      console.warn('⚠️  Using in-memory database. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for production.');
+    }
 
   // In-memory database implementation
   class Database {
     private userResponses: Map<string, UserResponse> = new Map();
     private technicalQuestions: Map<string, TechnicalQuestion> = new Map();
     private responseIndex: Map<string, Set<string>> = new Map();
+    private feedback: Map<string, Feedback> = new Map();
 
     async saveUserResponse(response: Omit<UserResponse, 'id' | 'timestamp'>): Promise<UserResponse> {
       const id = `resp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -346,6 +353,40 @@ function getDatabase() {
         averageScore: Math.round(averageScore),
         usageCount,
       };
+    }
+
+    async saveFeedback(feedback: Omit<Feedback, 'id' | 'timestamp'>): Promise<Feedback> {
+      const id = `feedback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const fullFeedback: Feedback = {
+        ...feedback,
+        id,
+        timestamp: new Date(),
+      };
+      this.feedback.set(id, fullFeedback);
+      return fullFeedback;
+    }
+
+    async getFeedback(filters?: {
+      userId?: string;
+      type?: string;
+      limit?: number;
+    }): Promise<Feedback[]> {
+      let feedbacks = Array.from(this.feedback.values());
+
+      if (filters?.userId) {
+        feedbacks = feedbacks.filter(f => f.userId === filters.userId);
+      }
+      if (filters?.type) {
+        feedbacks = feedbacks.filter(f => f.type === filters.type);
+      }
+
+      feedbacks.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+      if (filters?.limit) {
+        feedbacks = feedbacks.slice(0, filters.limit);
+      }
+
+      return feedbacks;
     }
   }
 

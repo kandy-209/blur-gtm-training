@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { TrendingUp, MessageSquare, Award, Trash2 } from 'lucide-react';
 import MessageFeedbackWidget from '@/components/MessageFeedbackWidget';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserRole } from '@/lib/permissions';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 interface ResponseAnalytics {
   response: string;
@@ -25,7 +26,7 @@ interface TopResponsesProps {
   limit?: number;
 }
 
-export default function TopResponses({ scenarioId, objectionCategory, limit = 10 }: TopResponsesProps) {
+function TopResponses({ scenarioId, objectionCategory, limit = 10 }: TopResponsesProps) {
   const { user } = useAuth();
   const [topResponses, setTopResponses] = useState<ResponseAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,20 +143,8 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
             Top Responses
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="border border-gray-200 rounded-xl p-5 animate-pulse space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-                <div className="flex gap-4 pt-2 border-t border-gray-100">
-                  <div className="h-3 bg-gray-200 rounded w-16"></div>
-                  <div className="h-3 bg-gray-200 rounded w-20"></div>
-                  <div className="h-3 bg-gray-200 rounded w-24"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <CardContent role="status" aria-live="polite" aria-label="Loading top responses">
+          <SkeletonList items={limit || 5} />
         </CardContent>
       </Card>
     );
@@ -363,4 +352,6 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
     </Card>
   );
 }
+
+export default memo(TopResponses);
 

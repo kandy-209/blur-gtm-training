@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { scenarios } from '@/data/scenarios';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ScenarioPreviewModal } from '@/components/ScenarioPreviewModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Scenario } from '@/types/roleplay';
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
 import { 
   Search, 
   Filter, 
@@ -47,12 +48,19 @@ const categoryColors: Record<string, string> = {
   'Code_Quality': 'bg-indigo-100 text-indigo-700 border-indigo-200',
 };
 
-export default function ScenariosPage() {
+function ScenariosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'category' | 'difficulty'>('name');
   const [previewScenario, setPreviewScenario] = useState<Scenario | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+
+  // Simulate loading for scenarios (in real app, this would be API call)
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Get unique categories
   const categories = useMemo(() => {
@@ -172,7 +180,12 @@ export default function ScenariosPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
+                aria-label="Search scenarios"
+                aria-describedby="search-help"
               />
+              <div id="search-help" className="sr-only">
+                Search scenarios by persona name, objection statement, or key points
+              </div>
             </div>
 
             {/* Category Filter */}
@@ -234,7 +247,13 @@ export default function ScenariosPage() {
         </div>
 
         {/* Scenarios Grid */}
-        {filteredScenarios.length === 0 ? (
+        {isLoading ? (
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3" role="status" aria-live="polite" aria-label="Loading scenarios">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : filteredScenarios.length === 0 ? (
           <EmptyState
             icon={Search}
             title="No scenarios found"
@@ -327,13 +346,14 @@ export default function ScenariosPage() {
                         variant="outline"
                         className="flex-1"
                         onClick={() => setPreviewScenario(scenario)}
+                        aria-label={`Preview scenario: ${scenario.persona.name}`}
                       >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
                         Preview
                       </Button>
-                      <Link href={`/roleplay/${scenario.id}`} className="flex-1">
+                      <Link href={`/roleplay/${scenario.id}`} className="flex-1" aria-label={`Start scenario: ${scenario.persona.name}`}>
                         <Button className="w-full bg-black hover:bg-gray-900 text-white transition-smooth group-hover:shadow-lg">
-                          <PlayCircle className="h-4 w-4 mr-2" />
+                          <PlayCircle className="h-4 w-4 mr-2" aria-hidden="true" />
                           Start
                         </Button>
                       </Link>
@@ -367,3 +387,5 @@ export default function ScenariosPage() {
     </ProtectedRoute>
   );
 }
+
+export default memo(ScenariosPage);

@@ -6,7 +6,7 @@ import { scenarios } from '@/data/scenarios';
 import RoleplayEngine from '@/components/RoleplayEngine';
 import TopResponses from '@/components/TopResponses';
 import TechnicalQuestions from '@/components/TechnicalQuestions';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { notFound } from 'next/navigation';
 
@@ -42,7 +42,7 @@ export default function RoleplayPage() {
 
   return (
     <ProtectedRoute>
-      <ErrorBoundary>
+      <ErrorBoundaryWithContext component="RoleplayPage" severity="critical">
           <div className="min-h-screen py-8">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
               <div className="mb-8 text-center">
@@ -51,36 +51,36 @@ export default function RoleplayPage() {
               </div>
               <div className="grid gap-6 sm:gap-8 grid-cols-1 lg:grid-cols-3">
                 <div className="lg:col-span-2 order-1 lg:order-1">
-                  <ErrorBoundary>
+                  <ErrorBoundaryWithContext component="RoleplayEngine" severity="critical">
                     <RoleplayEngine
                       scenario={scenario}
                       onComplete={(score) => {
                         console.log('Final score:', score);
                       }}
                     />
-                  </ErrorBoundary>
+                  </ErrorBoundaryWithContext>
                 </div>
                 <div className="space-y-6 order-2 lg:order-2">
-                  <ErrorBoundary>
+                  <ErrorBoundaryWithContext component="TopResponses" severity="low">
                     <TopResponses
                       scenarioId={scenario.id}
                       objectionCategory={scenario.objection_category}
                       limit={5}
                     />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
+                  </ErrorBoundaryWithContext>
+                  <ErrorBoundaryWithContext component="TechnicalQuestions" severity="low">
                     <TechnicalQuestions
                       scenarioId={scenario.id}
                       category={scenario.objection_category}
                       limit={5}
                     />
-                  </ErrorBoundary>
+                  </ErrorBoundaryWithContext>
                 </div>
               </div>
               {/* Note: GlobalVoiceAssistant is now available on all pages via layout */}
             </div>
           </div>
-        </ErrorBoundary>
+        </ErrorBoundaryWithContext>
       </ProtectedRoute>
   );
 }

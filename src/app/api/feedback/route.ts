@@ -23,27 +23,40 @@ export async function POST(request: NextRequest) {
     const sanitizedEmail = email ? sanitizeInput(email, 200) : 'anonymous';
 
     // Store feedback in database
-    // Note: This assumes you have a feedback table in your database
-    // For now, we'll just log it and return success
-    console.log('Feedback received:', {
-      type: sanitizedType,
-      subject: sanitizedSubject,
-      message: sanitizedMessage,
-      rating: rating || 0,
-      userId: sanitizedUserId,
-      email: sanitizedEmail,
-      timestamp: new Date().toISOString(),
-    });
+    try {
+      const savedFeedback = await db.saveFeedback({
+        type: sanitizedType,
+        subject: sanitizedSubject,
+        message: sanitizedMessage,
+        rating: typeof rating === 'number' ? Math.max(0, Math.min(5, rating)) : 0,
+        userId: sanitizedUserId,
+        email: sanitizedEmail,
+      });
 
-    // TODO: Store in database when feedback table is created
-    // await db.saveFeedback({
-    //   type: sanitizedType,
-    //   subject: sanitizedSubject,
-    //   message: sanitizedMessage,
-    //   rating: rating || 0,
-    //   userId: sanitizedUserId,
-    //   email: sanitizedEmail,
-    // });
+      return NextResponse.json({ 
+        success: true,
+        message: 'Feedback submitted successfully',
+        feedbackId: savedFeedback.id
+      });
+    } catch (dbError) {
+      // Log error but still return success to user
+      console.error('Error saving feedback to database:', dbError);
+      // Fallback: log feedback if database save fails
+      console.log('Feedback received (fallback logging):', {
+        type: sanitizedType,
+        subject: sanitizedSubject,
+        message: sanitizedMessage,
+        rating: rating || 0,
+        userId: sanitizedUserId,
+        email: sanitizedEmail,
+        timestamp: new Date().toISOString(),
+      });
+      
+      return NextResponse.json({ 
+        success: true,
+        message: 'Feedback submitted successfully (logged)'
+      });
+    }
 
     return NextResponse.json({ 
       success: true,

@@ -1,18 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trophy, Medal, Award, TrendingUp } from 'lucide-react';
-// Simple loading skeleton
-const LoadingSkeleton = ({ count }: { count: number }) => (
-  <div className="space-y-2">
-    {Array.from({ length: count }).map((_, i) => (
-      <div key={i} className="h-16 bg-gray-200 rounded-lg animate-pulse" />
-    ))}
-  </div>
-);
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 interface LeaderboardEntry {
   userId: string;
@@ -26,7 +19,7 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-export default function Leaderboard() {
+function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [category, setCategory] = useState('overall');
@@ -60,7 +53,20 @@ export default function Leaderboard() {
   };
 
   if (isLoading) {
-    return <LoadingSkeleton count={10} />;
+    return (
+      <Card className="border-gray-200" role="status" aria-live="polite" aria-label="Loading leaderboard">
+        <CardHeader>
+          <Skeleton variant="rounded" height={28} width="40%" />
+          <Skeleton variant="text" height={16} width="60%" className="mt-2" />
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <Skeleton variant="rounded" height={40} width="200px" />
+          </div>
+          <SkeletonList items={10} />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -76,8 +82,15 @@ export default function Leaderboard() {
       </CardHeader>
       <CardContent>
         <div className="mb-4">
+          <label htmlFor="leaderboard-category" className="sr-only">
+            Filter leaderboard by category
+          </label>
           <Select value={category} onValueChange={(value) => setCategory(value)}>
-            <SelectTrigger className="w-full sm:w-[200px] border-gray-200 bg-white">
+            <SelectTrigger 
+              id="leaderboard-category"
+              className="w-full sm:w-[200px] border-gray-200 bg-white"
+              aria-label="Select leaderboard category"
+            >
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -90,15 +103,17 @@ export default function Leaderboard() {
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2" role="list" aria-label="Leaderboard entries">
           {leaderboard.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
+            <p className="text-sm text-muted-foreground text-center py-8" role="status">
               No leaderboard data yet. Be the first to practice!
             </p>
           ) : (
             leaderboard.map((entry) => (
               <div
                 key={entry.userId}
+                role="listitem"
+                aria-label={`Rank ${entry.rank}: ${entry.username} with score ${entry.totalScore.toFixed(1)}`}
                 className={`flex items-center justify-between p-4 rounded-lg border ${
                   entry.rank <= 3
                     ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200'
@@ -140,4 +155,6 @@ export default function Leaderboard() {
     </Card>
   );
 }
+
+export default memo(Leaderboard);
 

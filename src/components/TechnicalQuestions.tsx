@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { HelpCircle, ThumbsUp, ExternalLink } from 'lucide-react';
 import { analytics } from '@/lib/analytics';
+import { Skeleton, SkeletonList } from '@/components/ui/skeleton';
 
 interface TechnicalQuestion {
   id: string;
@@ -25,7 +26,7 @@ interface TechnicalQuestionsProps {
   limit?: number;
 }
 
-export default function TechnicalQuestions({ scenarioId, category, limit = 10 }: TechnicalQuestionsProps) {
+function TechnicalQuestions({ scenarioId, category, limit = 10 }: TechnicalQuestionsProps) {
   const [questions, setQuestions] = useState<TechnicalQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [upvotedIds, setUpvotedIds] = useState<Set<string>>(new Set());
@@ -88,18 +89,8 @@ export default function TechnicalQuestions({ scenarioId, category, limit = 10 }:
             Technical Questions
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="border border-gray-200 rounded-xl p-5 animate-pulse space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
-                <div className="flex justify-between pt-2 border-t border-gray-100">
-                  <div className="h-6 bg-gray-200 rounded w-24"></div>
-                  <div className="h-8 bg-gray-200 rounded w-12"></div>
-                </div>
-              </div>
-            ))}
-          </div>
+        <CardContent role="status" aria-live="polite" aria-label="Loading technical questions">
+          <SkeletonList items={limit || 5} />
         </CardContent>
       </Card>
     );
@@ -167,3 +158,4 @@ export default function TechnicalQuestions({ scenarioId, category, limit = 10 }:
   );
 }
 
+export default memo(TechnicalQuestions);
