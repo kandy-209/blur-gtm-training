@@ -628,6 +628,94 @@
     }
   }
   
+  /* Enhanced text shine effect */
+  .text-shine {
+    background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 1) 0%,
+      rgba(0, 0, 0, 0.8) 50%,
+      rgba(0, 0, 0, 1) 100%
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text-shine 3s linear infinite;
+  }
+  
+  /* Fade-in animation for staggered cards */
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .fade-in-up {
+    animation: fade-in-up 0.6s ease-out forwards;
+    opacity: 0;
+  }
+  
+  /* Smooth scale on hover for buttons */
+  .hover-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+  
+  .hover-scale:active {
+    transform: scale(0.98);
+  }
+  
+  /* Enhanced badge styling */
+  .badge-premium {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+  }
+  
+  .badge-premium:hover {
+    background: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  /* Stats section styling */
+  .stat-item {
+    @apply text-center;
+    transition: transform 0.2s ease;
+  }
+  
+  .stat-item:hover {
+    transform: translateY(-2px);
+  }
+  
+  .stat-number {
+    @apply text-3xl font-bold text-gray-900;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.7) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Section title enhancements */
+  .section-title {
+    @apply text-3xl sm:text-4xl font-bold text-gray-900 mb-3;
+    letter-spacing: -0.02em;
+  }
+  
+  .section-description {
+    @apply text-lg text-gray-600 max-w-2xl mx-auto;
+    line-height: 1.6;
+  }
+  
   /* Card depth variants */
   .card-depth-1 {
     @apply shadow-depth-1;
