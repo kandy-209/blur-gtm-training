@@ -1,9 +1,5 @@
+// Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
-
-// Mock environment variables
-process.env.OPENAI_API_KEY = 'test-openai-key'
-process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID = 'test-agent-id'
-process.env.ELEVENLABS_API_KEY = 'test-elevenlabs-key'
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -18,78 +14,22 @@ jest.mock('next/navigation', () => ({
       asPath: '/',
     }
   },
-  usePathname() {
-    return '/'
-  },
   useSearchParams() {
     return new URLSearchParams()
   },
+  usePathname() {
+    return '/'
+  },
 }))
 
-// Mock fetch globally
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve({}),
-    status: 200,
-  })
-)
+// Mock environment variables
+process.env.NODE_ENV = 'test'
+process.env.OPENAI_API_KEY = 'test-key'
+process.env.ANTHROPIC_API_KEY = 'test-key'
 
-// Mock Request and Response for Next.js API routes
-global.Request = class Request {
-  constructor(input, init) {
-    this.url = typeof input === 'string' ? input : input.url
-    this.method = init?.method || 'GET'
-    this.headers = new Headers(init?.headers)
-    this.body = init?.body
-  }
+// Suppress console errors in tests (optional - remove if you want to see them)
+global.console = {
+  ...console,
+  error: jest.fn(),
+  warn: jest.fn(),
 }
-
-global.Response = class Response {
-  constructor(body, init) {
-    this._body = body
-    this.status = init?.status || 200
-    this.statusText = init?.statusText || 'OK'
-    this.headers = new Headers(init?.headers)
-  }
-  json() {
-    return Promise.resolve(typeof this._body === 'string' ? JSON.parse(this._body) : this._body)
-  }
-  text() {
-    return Promise.resolve(typeof this._body === 'string' ? this._body : JSON.stringify(this._body))
-  }
-  static json(data, init) {
-    return new Response(JSON.stringify(data), init)
-  }
-}
-
-global.Headers = class Headers {
-  constructor(init) {
-    this._headers = {}
-    if (init) {
-      Object.entries(init).forEach(([key, value]) => {
-        this._headers[key.toLowerCase()] = value
-      })
-    }
-  }
-  get(name) {
-    return this._headers[name.toLowerCase()] || null
-  }
-  set(name, value) {
-    this._headers[name.toLowerCase()] = value
-  }
-}
-
-// Mock Vercel Analytics
-jest.mock('@vercel/analytics', () => ({
-  track: jest.fn(),
-}))
-
-jest.mock('@vercel/analytics/next', () => ({
-  Analytics: () => null,
-}))
-
-jest.mock('@vercel/speed-insights/next', () => ({
-  SpeedInsights: () => null,
-}))
-

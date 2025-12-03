@@ -44,7 +44,10 @@ jobs:
             --output=html,json \
             --output-path=./lighthouse-reports/mobile \
             --chrome-flags="--headless --no-sandbox --disable-gpu" \
-            --quiet
+            --quiet \
+            --throttling.cpuSlowdownMultiplier=4 \
+            --throttling.rttMs=150 \
+            --throttling.throughputKbps=1600
 
       - name: Run Lighthouse (Desktop)
         id: lighthouse-desktop
@@ -56,7 +59,85 @@ jobs:
             --output=html,json \
             --output-path=./lighthouse-reports/desktop \
             --chrome-flags="--headless --no-sandbox --disable-gpu" \
-            --quiet
+            --quiet \
+            --throttling.cpuSlowdownMultiplier=1 \
+            --throttling.rttMs=40 \
+            --throttling.throughputKbps=10240
+
+      - name: Extract Core Web Vitals
+        id: extract-vitals
+        continue-on-error: true
+        run: |
+          # Extract Core Web Vitals metrics from Lighthouse reports
+          extract_vital() {
+            local file_path=$1
+            local metric=$2
+            local result=""
+            
+            if [ ! -f "$file_path" ]; then
+              echo ""
+              return
+            fi
+            
+            result=$(node -e '
+              try {
+                const fs = require("fs");
+                const filePath = process.argv[1];
+                const metric = process.argv[2];
+                const data = fs.readFileSync(filePath, "utf8");
+                const report = JSON.parse(data);
+                
+                if (!report || !report.audits) {
+                  process.exit(1);
+                }
+                
+                const audit = report.audits[metric];
+                if (!audit || typeof audit.numericValue !== "number") {
+                  process.exit(1);
+                }
+                
+                console.log(Math.round(audit.numericValue));
+              } catch (error) {
+                process.exit(1);
+              }
+            ' "$file_path" "$metric" 2>/dev/null)
+            
+            if [ $? -eq 0 ] && [ -n "$result" ]; then
+              echo "$result"
+            else
+              echo ""
+            fi
+          }
+          
+          # Extract mobile Core Web Vitals
+          if [ -f "./lighthouse-reports/mobile.report.json" ]; then
+            MOBILE_LCP=$(extract_vital "./lighthouse-reports/mobile.report.json" "largest-contentful-paint")
+            MOBILE_FID=$(extract_vital "./lighthouse-reports/mobile.report.json" "max-potential-fid")
+            MOBILE_CLS=$(extract_vital "./lighthouse-reports/mobile.report.json" "cumulative-layout-shift")
+            MOBILE_FCP=$(extract_vital "./lighthouse-reports/mobile.report.json" "first-contentful-paint")
+            MOBILE_TTFB=$(extract_vital "./lighthouse-reports/mobile.report.json" "server-response-time")
+            
+            echo "mobile_lcp=$MOBILE_LCP" >> $GITHUB_OUTPUT
+            echo "mobile_fid=$MOBILE_FID" >> $GITHUB_OUTPUT
+            echo "mobile_cls=$MOBILE_CLS" >> $GITHUB_OUTPUT
+            echo "mobile_fcp=$MOBILE_FCP" >> $GITHUB_OUTPUT
+            echo "mobile_ttfb=$MOBILE_TTFB" >> $GITHUB_OUTPUT
+          fi
+          
+          # Extract desktop Core Web Vitals
+          if [ -f "./lighthouse-reports/desktop.report.json" ]; then
+            DESKTOP_LCP=$(extract_vital "./lighthouse-reports/desktop.report.json" "largest-contentful-paint")
+            DESKTOP_FID=$(extract_vital "./lighthouse-reports/desktop.report.json" "max-potential-fid")
+            DESKTOP_CLS=$(extract_vital "./lighthouse-reports/desktop.report.json" "cumulative-layout-shift")
+            DESKTOP_FCP=$(extract_vital "./lighthouse-reports/desktop.report.json" "first-contentful-paint")
+            DESKTOP_TTFB=$(extract_vital "./lighthouse-reports/desktop.report.json" "server-response-time")
+            
+            echo "desktop_lcp=$DESKTOP_LCP" >> $GITHUB_OUTPUT
+            echo "desktop_fid=$DESKTOP_FID" >> $GITHUB_OUTPUT
+            echo "desktop_cls=$DESKTOP_CLS" >> $GITHUB_OUTPUT
+            echo "desktop_fcp=$DESKTOP_FCP" >> $GITHUB_OUTPUT
+            echo "desktop_ttfb=$DESKTOP_TTFB" >> $GITHUB_OUTPUT
+          fi
 
       - name: Extract Scores
         id: extract-scores
@@ -130,6 +211,7 @@ jobs:
           }
           
           # Extract mobile scores
+          MOBILE_EXTRACTION_SUCCESS=false
           if [ -f "./lighthouse-reports/mobile.report.json" ]; then
             echo "📱 Extracting mobile scores..."
             MOBILE_PERF=$(extract_score "./lighthouse-reports/mobile.report.json" "performance")
@@ -137,10 +219,20 @@ jobs:
             MOBILE_BP=$(extract_score "./lighthouse-reports/mobile.report.json" "best-practices")
             MOBILE_SEO=$(extract_score "./lighthouse-reports/mobile.report.json" "seo")
             
-            echo "mobile_perf=$MOBILE_PERF" >> $GITHUB_OUTPUT
-            echo "mobile_a11y=$MOBILE_A11Y" >> $GITHUB_OUTPUT
-            echo "mobile_bp=$MOBILE_BP" >> $GITHUB_OUTPUT
-            echo "mobile_seo=$MOBILE_SEO" >> $GITHUB_OUTPUT
+            # Check if extraction was successful (non-empty and numeric)
+            if [ -n "$MOBILE_PERF" ] && [ "$MOBILE_PERF" -eq "$MOBILE_PERF" ] 2>/dev/null; then
+              MOBILE_EXTRACTION_SUCCESS=true
+              echo "mobile_perf=$MOBILE_PERF" >> $GITHUB_OUTPUT
+              echo "mobile_a11y=$MOBILE_A11Y" >> $GITHUB_OUTPUT
+              echo "mobile_bp=$MOBILE_BP" >> $GITHUB_OUTPUT
+              echo "mobile_seo=$MOBILE_SEO" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️  Mobile score extraction failed - scores not available"
+              echo "mobile_perf=" >> $GITHUB_OUTPUT
+              echo "mobile_a11y=" >> $GITHUB_OUTPUT
+              echo "mobile_bp=" >> $GITHUB_OUTPUT
+              echo "mobile_seo=" >> $GITHUB_OUTPUT
+            fi
           else
             echo "⚠️  Mobile report file not found: ./lighthouse-reports/mobile.report.json"
             echo "mobile_perf=" >> $GITHUB_OUTPUT
@@ -149,7 +241,11 @@ jobs:
             echo "mobile_seo=" >> $GITHUB_OUTPUT
           fi
           
+          # Set extraction status flag
+          echo "mobile_extraction_success=$MOBILE_EXTRACTION_SUCCESS" >> $GITHUB_OUTPUT
+          
           # Extract desktop scores
+          DESKTOP_EXTRACTION_SUCCESS=false
           if [ -f "./lighthouse-reports/desktop.report.json" ]; then
             echo "🖥️  Extracting desktop scores..."
             DESKTOP_PERF=$(extract_score "./lighthouse-reports/desktop.report.json" "performance")
@@ -157,10 +253,20 @@ jobs:
             DESKTOP_BP=$(extract_score "./lighthouse-reports/desktop.report.json" "best-practices")
             DESKTOP_SEO=$(extract_score "./lighthouse-reports/desktop.report.json" "seo")
             
-            echo "desktop_perf=$DESKTOP_PERF" >> $GITHUB_OUTPUT
-            echo "desktop_a11y=$DESKTOP_A11Y" >> $GITHUB_OUTPUT
-            echo "desktop_bp=$DESKTOP_BP" >> $GITHUB_OUTPUT
-            echo "desktop_seo=$DESKTOP_SEO" >> $GITHUB_OUTPUT
+            # Check if extraction was successful (non-empty and numeric)
+            if [ -n "$DESKTOP_PERF" ] && [ "$DESKTOP_PERF" -eq "$DESKTOP_PERF" ] 2>/dev/null; then
+              DESKTOP_EXTRACTION_SUCCESS=true
+              echo "desktop_perf=$DESKTOP_PERF" >> $GITHUB_OUTPUT
+              echo "desktop_a11y=$DESKTOP_A11Y" >> $GITHUB_OUTPUT
+              echo "desktop_bp=$DESKTOP_BP" >> $GITHUB_OUTPUT
+              echo "desktop_seo=$DESKTOP_SEO" >> $GITHUB_OUTPUT
+            else
+              echo "⚠️  Desktop score extraction failed - scores not available"
+              echo "desktop_perf=" >> $GITHUB_OUTPUT
+              echo "desktop_a11y=" >> $GITHUB_OUTPUT
+              echo "desktop_bp=" >> $GITHUB_OUTPUT
+              echo "desktop_seo=" >> $GITHUB_OUTPUT
+            fi
           else
             echo "⚠️  Desktop report file not found: ./lighthouse-reports/desktop.report.json"
             echo "desktop_perf=" >> $GITHUB_OUTPUT
@@ -168,6 +274,9 @@ jobs:
             echo "desktop_bp=" >> $GITHUB_OUTPUT
             echo "desktop_seo=" >> $GITHUB_OUTPUT
           fi
+          
+          # Set extraction status flag
+          echo "desktop_extraction_success=$DESKTOP_EXTRACTION_SUCCESS" >> $GITHUB_OUTPUT
           
           echo "✅ Score extraction completed"
 
@@ -182,11 +291,25 @@ jobs:
           echo "   Best Practices: ${{ steps.extract-scores.outputs.mobile_bp }}/100"
           echo "   SEO: ${{ steps.extract-scores.outputs.mobile_seo }}/100"
           echo ""
+          echo "   Core Web Vitals:"
+          echo "   LCP: ${{ steps.extract-vitals.outputs.mobile_lcp }}ms (target: <2500ms)"
+          echo "   FID: ${{ steps.extract-vitals.outputs.mobile_fid }}ms (target: <100ms)"
+          echo "   CLS: ${{ steps.extract-vitals.outputs.mobile_cls }} (target: <0.1)"
+          echo "   FCP: ${{ steps.extract-vitals.outputs.mobile_fcp }}ms (target: <1800ms)"
+          echo "   TTFB: ${{ steps.extract-vitals.outputs.mobile_ttfb }}ms (target: <800ms)"
+          echo ""
           echo "🖥️  Desktop:"
           echo "   Performance: ${{ steps.extract-scores.outputs.desktop_perf }}/100"
           echo "   Accessibility: ${{ steps.extract-scores.outputs.desktop_a11y }}/100"
           echo "   Best Practices: ${{ steps.extract-scores.outputs.desktop_bp }}/100"
           echo "   SEO: ${{ steps.extract-scores.outputs.desktop_seo }}/100"
+          echo ""
+          echo "   Core Web Vitals:"
+          echo "   LCP: ${{ steps.extract-vitals.outputs.desktop_lcp }}ms (target: <2500ms)"
+          echo "   FID: ${{ steps.extract-vitals.outputs.desktop_fid }}ms (target: <100ms)"
+          echo "   CLS: ${{ steps.extract-vitals.outputs.desktop_cls }} (target: <0.1)"
+          echo "   FCP: ${{ steps.extract-vitals.outputs.desktop_fcp }}ms (target: <1800ms)"
+          echo "   TTFB: ${{ steps.extract-vitals.outputs.desktop_ttfb }}ms (target: <800ms)"
 
       - name: Upload Lighthouse Reports
         uses: actions/upload-artifact@v4
@@ -199,50 +322,70 @@ jobs:
       - name: Check Performance Thresholds
         continue-on-error: true
         run: |
-          # Get scores with defaults, handling empty strings
-          MOBILE_PERF="${{ steps.extract-scores.outputs.mobile_perf }}"
-          DESKTOP_PERF="${{ steps.extract-scores.outputs.desktop_perf }}"
+          # Check if extraction was successful (not just if file exists)
+          MOBILE_EXTRACTION_SUCCESS="${{ steps.extract-scores.outputs.mobile_extraction_success }}"
+          DESKTOP_EXTRACTION_SUCCESS="${{ steps.extract-scores.outputs.desktop_extraction_success }}"
           
-          # Set defaults if empty
-          MOBILE_PERF=${MOBILE_PERF:-0}
-          DESKTOP_PERF=${DESKTOP_PERF:-0}
+          # Get scores only if extraction was successful
+          MOBILE_PERF=""
+          DESKTOP_PERF=""
           
-          # Check if scores are available (original output exists)
-          MOBILE_AVAILABLE=false
-          DESKTOP_AVAILABLE=false
-          
-          # Check if original output was provided (not empty)
-          if [ -n "${{ steps.extract-scores.outputs.mobile_perf }}" ]; then
-            MOBILE_AVAILABLE=true
+          if [ "$MOBILE_EXTRACTION_SUCCESS" = "true" ]; then
+            MOBILE_PERF="${{ steps.extract-scores.outputs.mobile_perf }}"
+            # Validate it's a number
+            if [ -n "$MOBILE_PERF" ] && [ "$MOBILE_PERF" -eq "$MOBILE_PERF" ] 2>/dev/null; then
+              MOBILE_AVAILABLE=true
+            else
+              MOBILE_AVAILABLE=false
+              echo "⚠️  Mobile performance score invalid: '$MOBILE_PERF'"
+            fi
           else
-            echo "⚠️  Mobile performance score not available"
+            MOBILE_AVAILABLE=false
+            echo "⚠️  Mobile performance score not available (extraction failed or file missing)"
           fi
           
-          if [ -n "${{ steps.extract-scores.outputs.desktop_perf }}" ]; then
-            DESKTOP_AVAILABLE=true
+          if [ "$DESKTOP_EXTRACTION_SUCCESS" = "true" ]; then
+            DESKTOP_PERF="${{ steps.extract-scores.outputs.desktop_perf }}"
+            # Validate it's a number
+            if [ -n "$DESKTOP_PERF" ] && [ "$DESKTOP_PERF" -eq "$DESKTOP_PERF" ] 2>/dev/null; then
+              DESKTOP_AVAILABLE=true
+            else
+              DESKTOP_AVAILABLE=false
+              echo "⚠️  Desktop performance score invalid: '$DESKTOP_PERF'"
+            fi
           else
-            echo "⚠️  Desktop performance score not available"
+            DESKTOP_AVAILABLE=false
+            echo "⚠️  Desktop performance score not available (extraction failed or file missing)"
           fi
           
-          # Only check thresholds if we have valid scores
+          # Only check thresholds if we have valid scores from successful extractions
           THRESHOLD_FAILED=false
           
-          if [ "$MOBILE_AVAILABLE" = true ] && [ "$MOBILE_PERF" -lt 90 ]; then
-            echo "⚠️  Mobile performance score below threshold (90): $MOBILE_PERF/100"
-            THRESHOLD_FAILED=true
+          if [ "$MOBILE_AVAILABLE" = true ]; then
+            if [ "$MOBILE_PERF" -lt 90 ]; then
+              echo "⚠️  Mobile performance score below threshold (90): $MOBILE_PERF/100"
+              THRESHOLD_FAILED=true
+            else
+              echo "✅ Mobile performance score meets threshold: $MOBILE_PERF/100"
+            fi
           fi
           
-          if [ "$DESKTOP_AVAILABLE" = true ] && [ "$DESKTOP_PERF" -lt 90 ]; then
-            echo "⚠️  Desktop performance score below threshold (90): $DESKTOP_PERF/100"
-            THRESHOLD_FAILED=true
+          if [ "$DESKTOP_AVAILABLE" = true ]; then
+            if [ "$DESKTOP_PERF" -lt 90 ]; then
+              echo "⚠️  Desktop performance score below threshold (90): $DESKTOP_PERF/100"
+              THRESHOLD_FAILED=true
+            else
+              echo "✅ Desktop performance score meets threshold: $DESKTOP_PERF/100"
+            fi
           fi
           
           if [ "$THRESHOLD_FAILED" = true ]; then
             echo "::warning::Performance scores below threshold. Review Lighthouse reports for optimization opportunities."
             exit 1
           elif [ "$MOBILE_AVAILABLE" = true ] || [ "$DESKTOP_AVAILABLE" = true ]; then
-            echo "✅ Performance scores meet threshold (≥90)"
+            echo "✅ All available performance scores meet threshold (≥90)"
           else
-            echo "⚠️  No performance scores available to check"
+            echo "⚠️  No performance scores available to check (reports missing or extraction failed)"
+            echo "::notice::Lighthouse reports were not available. This may indicate a build or extraction issue."
           fi
 

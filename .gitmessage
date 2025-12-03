@@ -1,0 +1,27 @@
+# Conventional Commits Format
+# 
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# Types:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation only changes
+#   style:    Changes that do not affect the meaning of the code
+#   refactor: A code change that neither fixes a bug nor adds a feature
+#   perf:     A code change that improves performance
+#   test:     Adding missing tests or correcting existing tests
+#   build:    Changes that affect the build system or external dependencies
+#   ci:       Changes to CI configuration files and scripts
+#   chore:    Other changes that don't modify src or test files
+#
+# Examples:
+#   feat(api): add user authentication endpoint
+#   fix(ui): resolve button styling issue on mobile
+#   docs: update README with setup instructions
+#   perf(cache): improve caching strategy for better performance
+#   ci: add GitHub Actions workflow for security scanning
+

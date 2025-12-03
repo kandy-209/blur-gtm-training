@@ -63,13 +63,14 @@ export class CompanyIntelligenceAgent {
       const clearbitData = await enrichCompanyClearbit(info.domain);
       if (clearbitData.company) {
         data.company = {
-          ...data.company,
-          name: clearbitData.company.name || data.company.name,
-          industry: clearbitData.company.industry || data.company.industry,
-          sector: clearbitData.company.sector || data.company.sector,
-          size: clearbitData.company.employees ? this.inferSize(clearbitData.company.employees) : (data.company?.size || 'startup'),
-          founded: clearbitData.company.founded || data.company.founded,
-          headquarters: clearbitData.company.location || data.company.headquarters,
+          ...(data.company || {}),
+          domain: info.domain,
+          name: clearbitData.company.name || data.company?.name || '',
+          industry: clearbitData.company.industry || data.company?.industry || '',
+          sector: clearbitData.company.sector || data.company?.sector || '',
+          size: clearbitData.company.employeeCount ? this.inferSize(clearbitData.company.employeeCount) : (data.company?.size || 'startup'),
+          founded: clearbitData.company.founded || data.company?.founded || null,
+          headquarters: typeof clearbitData.company.location === 'string' ? clearbitData.company.location : (typeof data.company?.headquarters === 'string' ? data.company.headquarters : null),
         };
         sources.push('Clearbit');
       }
@@ -95,11 +96,23 @@ export class CompanyIntelligenceAgent {
       try {
         const financialData = await fetchAlphaVantageData(info.ticker);
         if (financialData) {
+          const existingFinancial = data.financial || {
+            revenue: null,
+            revenueGrowth: null,
+            employeeCount: null,
+            marketCap: null,
+            rndSpending: null,
+            estimatedEngineeringCost: null,
+            estimatedEngineeringHeadcount: null,
+          };
           data.financial = {
-            ...data.financial,
-            revenue: financialData.revenue || null,
-            revenueGrowth: financialData.revenueGrowth || null,
-            rndSpending: financialData.rndSpending || null,
+            revenue: (financialData as any).revenue ?? existingFinancial.revenue ?? null,
+            revenueGrowth: (financialData as any).revenueGrowth ?? existingFinancial.revenueGrowth ?? null,
+            rndSpending: (financialData as any).rndSpending ?? existingFinancial.rndSpending ?? null,
+            employeeCount: existingFinancial.employeeCount ?? null,
+            marketCap: existingFinancial.marketCap ?? null,
+            estimatedEngineeringCost: existingFinancial.estimatedEngineeringCost ?? null,
+            estimatedEngineeringHeadcount: existingFinancial.estimatedEngineeringHeadcount ?? null,
           };
           sources.push('Alpha Vantage');
         }
