@@ -44,7 +44,7 @@ export class MultiTierCache {
     return null;
   }
 
-  async set<T>(key: string, value: T, customTTL?: number): void {
+  async set<T>(key: string, value: T, customTTL?: number): Promise<void> {
     // Set in all tiers
     for (const tier of this.tiers) {
       const ttl = customTTL || tier.ttl;
@@ -144,6 +144,7 @@ export function createDefaultMultiTierCache(): MultiTierCache {
   });
 
   // Tier 2: IndexedDB cache (slower, larger)
+  const indexedDBCache = new IndexedDBCache('multi-tier-cache');
   cache.addTier({
     name: 'indexeddb',
     cache: indexedDBCache,

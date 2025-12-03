@@ -109,7 +109,10 @@ export class BackgroundSyncManager {
     if ('serviceWorker' in navigator && 'sync' in ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register(syncItem.id);
+        // Background Sync API - check if available
+        if ('sync' in registration) {
+          await (registration as any).sync.register(syncItem.id);
+        }
       } catch (error) {
         console.error('Background sync registration failed:', error);
       }

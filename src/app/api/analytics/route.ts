@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TrainingEvent } from '@/lib/analytics';
 import { sanitizeInput, validateJSONStructure } from '@/lib/security';
+import { persistAnalyticsEvent } from '@/lib/database/persistence';
+import { addJob, JobType } from '@/lib/jobs/queue';
+import { log } from '@/lib/logger';
+import { handleError } from '@/lib/error-handler';
 
-// In production, you'd save to a database
-// For now, we'll just log and return success
+// In-memory fallback (will be migrated to database)
 const events: TrainingEvent[] = [];
 
 export async function POST(request: NextRequest) {
@@ -54,11 +57,8 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Analytics API error:', error);
-    return NextResponse.json(
-      { error: 'Failed to track event' },
-      { status: 500 }
-    );
+    log.error('Analytics API error', error instanceof Error ? error : new Error(String(error)));
+    return handleError(error);
   }
 }
 

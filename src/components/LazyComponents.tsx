@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { ComponentType } from 'react';
+import React, { ComponentType } from 'react';
 import { LoadingState } from './ui/loading-state';
 
 // Lazy load heavy components with loading states
@@ -49,14 +49,26 @@ export const LazyRoleplayEngine = dynamic(
 export function withLazyLoad<T extends object>(
   Component: ComponentType<T>,
   options?: {
-    loadingComponent?: ComponentType;
+    loadingComponent?: ComponentType | (() => React.ReactElement);
     threshold?: number;
     rootMargin?: string;
   }
 ) {
   return function LazyLoadedComponent(props: T) {
+    // Convert ComponentType to a function that returns ReactNode for dynamic()
+    const loadingFn = options?.loadingComponent 
+      ? (() => {
+          // If it's a ComponentType (class component), wrap it
+          if (typeof options.loadingComponent === 'function' && 'prototype' in options.loadingComponent && options.loadingComponent.prototype?.render) {
+            return () => React.createElement(options.loadingComponent as ComponentType);
+          }
+          // If it's already a function component, use it directly
+          return options.loadingComponent as () => React.ReactElement;
+        })()
+      : () => <LoadingState />;
+    
     const LazyComponent = dynamic(() => Promise.resolve(Component), {
-      loading: options?.loadingComponent || (() => <LoadingState />),
+      loading: loadingFn,
       ssr: false,
     });
 

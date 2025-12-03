@@ -3,6 +3,10 @@ import { ScenarioInput, AgentResponse, Persona } from '@/types/roleplay';
 import { sanitizeInput, validateText, validateJSONStructure } from '@/lib/security';
 import { db } from '@/lib/db';
 import { getAIProvider } from '@/lib/ai-providers';
+import { handleError, withErrorHandler, generateRequestId } from '@/lib/error-handler';
+import { log } from '@/lib/logger';
+import { recordApiCall, roleplayTurnsTotal } from '@/lib/metrics';
+import { captureException } from '@/lib/sentry';
 
 function buildSystemPrompt(persona: Persona, scenarioInput: ScenarioInput): string {
   return `# 1. Agent Persona: The Enterprise Decision-Maker
@@ -86,7 +90,10 @@ You must only reply with a single JSON object. Do not include any preceding or t
 **CRITICAL**: Only set next_step_action to MEETING_BOOKED or ENTERPRISE_SALE when the rep has ACTUALLY booked a meeting or closed the sale. Keep the conversation going until then!`;
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandler(async function POST(request: NextRequest) {
+  const requestId = generateRequestId();
+  const startTime = Date.now();
+  
   try {
     // Validate content type
     const contentType = request.headers?.get('content-type') || '';
@@ -307,19 +314,42 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       // Don't fail the request if saving fails
-      console.error('Failed to save response for ML learning:', error);
+      log.warn('Failed to save response for ML learning', { error: error instanceof Error ? error.message : String(error), requestId });
     }
+
+    const duration = Date.now() - startTime;
+    
+    // Record metrics
+    recordApiCall('roleplay', 'generate_response', 'success', duration / 1000);
+    roleplayTurnsTotal.inc({ 
+      scenario_id: scenarioInput.scenario_id,
+      evaluation: agentResponse.response_evaluation || 'unknown'
+    });
+    
+    log.info('Roleplay response generated', {
+      scenarioId: scenarioInput.scenario_id,
+      turnNumber: scenarioInput.turn_number,
+      duration,
+      requestId,
+    });
 
     return NextResponse.json({ agentResponse }, {
       headers: {
         'Cache-Control': 'no-store, max-age=0',
+        'X-Request-ID': requestId,
       },
     });
   } catch (error: any) {
-    console.error('[Roleplay API] Error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to process roleplay request' },
-      { status: 500 }
-    );
+    const duration = Date.now() - startTime;
+    
+    // Record error metrics
+    recordApiCall('roleplay', 'generate_response', 'error', duration / 1000);
+    
+    // Log and track error
+    log.error('Roleplay API error', error instanceof Error ? error : new Error(String(error)), { requestId });
+    captureException(error instanceof Error ? error : new Error(String(error)), { requestId });
+    
+    // Use centralized error handler
+    return handleError(error, requestId);
   }
-}
+});

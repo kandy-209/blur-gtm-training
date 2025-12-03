@@ -352,18 +352,26 @@ export function auditLog(event: SecurityEvent): void {
     environment: process.env.NODE_ENV || 'development',
   };
 
-  // In production, send to logging service (e.g., Datadog, Splunk, CloudWatch)
-  if (process.env.NODE_ENV === 'production') {
-    // Send to external logging service
-    console.log('[SECURITY_AUDIT]', JSON.stringify(logEntry));
-    
-    // Could also send to:
-    // - CloudWatch Logs
-    // - Datadog
-    // - Splunk
-    // - Security Information and Event Management (SIEM)
-  } else {
-    console.log('[SECURITY_AUDIT]', logEntry);
+  // Use structured logger if available
+  try {
+    const { log } = require('./logger');
+    log.security(event.event, {
+      path: event.path,
+      method: event.method,
+      ip: event.ip,
+      userAgent: event.userAgent,
+      severity: event.severity,
+      ...(event.duration && { duration: event.duration }),
+      ...(event.reason && { reason: event.reason }),
+      ...(event.patterns && { patterns: event.patterns }),
+    });
+  } catch {
+    // Fallback to console if logger not available
+    if (process.env.NODE_ENV === 'production') {
+      console.log('[SECURITY_AUDIT]', JSON.stringify(logEntry));
+    } else {
+      console.log('[SECURITY_AUDIT]', logEntry);
+    }
   }
 
   // Store in database for compliance (if needed)

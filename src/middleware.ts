@@ -8,6 +8,10 @@ import {
   auditLog,
   SecurityEvent,
 } from '@/lib/enterprise-security';
+import { log, generateRequestId } from '@/lib/logger';
+import { recordHttpRequest } from '@/lib/metrics';
+import { distributedRateLimit } from '@/lib/redis';
+import { extractTraceContext, startTrace, injectTraceContext, setTraceContext } from '@/lib/tracing/tracer';
 
 // Enterprise security middleware
 export async function middleware(request: NextRequest) {
@@ -19,10 +23,17 @@ export async function middleware(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
     || request.headers.get('x-real-ip') 
     || 'unknown';
-
-  // Create response with security headers
-  const response = NextResponse.next();
+  const requestId = generateRequestId();
   
+  // Extract or create trace context
+  const traceContext = extractTraceContext(request.headers) || startTrace(`${method} ${path}`);
+  setTraceContext(traceContext);
+  
+  // Add request ID and trace context to headers
+  const response = NextResponse.next();
+  response.headers.set('X-Request-ID', requestId);
+  injectTraceContext(traceContext, response.headers);
+
   // Apply enterprise security headers
   const securityHeaders = getSecurityHeaders(request);
   Object.entries(securityHeaders).forEach(([key, value]) => {
@@ -70,12 +81,21 @@ export async function middleware(request: NextRequest) {
       );
     }
 
-    // Enhanced rate limiting per endpoint
+    // Enhanced rate limiting per endpoint (try distributed first, fallback to in-memory)
     const rateLimitConfig = getRateLimitConfig(path);
-    const rateLimitResult = rateLimit(request, {
-      identifier: `${ip}:${path}`,
-      ...rateLimitConfig,
-    });
+    const identifier = `${ip}:${path}`;
+    
+    let rateLimitResult;
+    try {
+      // Try distributed rate limiting first
+      rateLimitResult = await distributedRateLimit(identifier, rateLimitConfig.maxRequests, rateLimitConfig.windowMs);
+    } catch {
+      // Fallback to in-memory rate limiting
+      rateLimitResult = rateLimit(request, {
+        identifier,
+        ...rateLimitConfig,
+      });
+    }
 
     if (!rateLimitResult.allowed) {
       auditLog({
@@ -144,6 +164,14 @@ export async function middleware(request: NextRequest) {
   // Log successful requests for audit trail
   const duration = Date.now() - startTime;
   if (path.startsWith('/api/')) {
+    const status = 200; // Will be updated if error occurs
+    
+    // Log HTTP request
+    log.http(`${method} ${path}`, { method, url: path, ip });
+    
+    // Record metrics
+    recordHttpRequest(method, path, status, duration / 1000);
+    
     auditLog({
       event: 'api_request',
       path,
@@ -151,7 +179,7 @@ export async function middleware(request: NextRequest) {
       ip,
       userAgent,
       duration,
-      status: 200,
+      status,
       severity: 'low',
     });
   }

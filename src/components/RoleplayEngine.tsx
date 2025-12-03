@@ -322,7 +322,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   useKeyboardShortcuts([
     {
       key: 'Enter',
-      ctrlKey: true,
+      ctrl: true,
       handler: () => {
         if (!isLoading && repMessage.trim()) {
           sendMessage();
@@ -446,7 +446,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       </Card>
 
       {/* Conversation Metrics - Real-time */}
-      {state.conversationHistory.length > 2 && (
+      {state.conversationHistory.length >= 2 && (
         <ConversationMetrics
           conversationHistory={state.conversationHistory.map(h => ({
             role: h.role === 'rep' ? 'rep' : 'agent',
@@ -524,7 +524,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold">Turn Feedback</CardTitle>
               <div className="flex items-center gap-2">
-                {state.conversationHistory.length > 3 && (
+                {state.conversationHistory.length >= 2 && (
                   <Button
                     variant="outline"
                     size="sm"
