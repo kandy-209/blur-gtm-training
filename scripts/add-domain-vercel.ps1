@@ -68,7 +68,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "Then configure DNS:" -ForegroundColor Cyan
     Write-Host "   Type: CNAME" -ForegroundColor White
-    Write-Host "   Name: @" -ForegroundColor White
+    Write-Host "   Name: @ (root)" -ForegroundColor White
     Write-Host "   Value: cname.vercel-dns.com" -ForegroundColor White
 }
 
