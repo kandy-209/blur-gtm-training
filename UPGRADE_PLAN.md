@@ -1,55 +1,103 @@
 # 🚀 Dependency Upgrade Plan
 
 ## Current Status
-- Next.js: 15.5.6 → **16.0.6** available
-- React: 19.0.0 (latest)
-- TypeScript: 5.3.2 → **5.7.x** available
+
+From `npm outdated`, here are the packages that can be upgraded:
+
+### Safe Minor/Patch Updates (Low Risk)
+- ✅ **Next.js**: `16.0.6` → `16.0.7` (patch)
+- ✅ **eslint-config-next**: `16.0.6` → `16.0.7` (patch)
+
+### Major Version Updates (Requires Testing)
+- ⚠️ **OpenAI**: `4.104.0` → `6.9.1` (major - breaking changes likely)
+- ⚠️ **Tailwind CSS**: `3.4.18` → `4.1.17` (major - breaking changes)
+- ⚠️ **Jest**: `29.7.0` → `30.2.0` (major - breaking changes)
+- ⚠️ **@types/jest**: `29.5.14` → `30.0.0` (major - follows Jest)
+- ⚠️ **ESLint**: `8.57.1` → `9.39.1` (major - breaking changes)
+
+---
 
 ## Upgrade Strategy
 
-### Phase 1: Safe Minor/Patch Upgrades ✅
-- @vercel/analytics: 1.6.0 → 1.6.1
-- @vercel/speed-insights: 1.3.0 → 1.3.1
-- Other patch updates
+### Phase 1: Safe Updates (Do First)
+1. Next.js 16.0.7
+2. eslint-config-next 16.0.7
 
-### Phase 2: Type Definitions (Compatible) ✅
-- @types/react: 18 → 19 (for React 19)
-- @types/react-dom: 18 → 19 (for React 19)
-- @types/node: 20 → 24 (if compatible)
-
-### Phase 3: Major Upgrades (Requires Testing) ⚠️
-- Next.js: 15 → 16 (major changes)
-- Jest: 29 → 30 (testing framework)
-- ESLint: 8 → 9 (linting)
-- OpenAI: 4 → 6 (API changes)
-- Tailwind CSS: 3 → 4 (breaking changes)
-
-### Phase 4: Optional Upgrades
-- ElevenLabs: 0.8.2 → 1.59.0 (if needed)
+### Phase 2: Major Updates (Test Carefully)
+1. Jest 30 + @types/jest 30
+2. ESLint 9
+3. OpenAI 6 (check API changes)
+4. Tailwind CSS 4 (check migration guide)
 
 ---
 
-## Risks & Considerations
+## Upgrade Steps
 
-### Next.js 16
-- New features and improvements
-- May require code changes
-- Better performance
+### Step 1: Safe Updates
+```bash
+npm install next@latest eslint-config-next@latest
+```
 
-### Tailwind CSS 4
-- Major rewrite
-- Different configuration
-- Requires migration
+### Step 2: Test
+```bash
+npm run build
+npm test
+npm run lint
+```
 
-### OpenAI SDK 6
-- API changes
-- May require code updates
+### Step 3: Major Updates (One at a time)
+```bash
+# Jest first
+npm install jest@latest @types/jest@latest jest-environment-jsdom@latest
+
+# Then ESLint
+npm install eslint@latest
+
+# Then OpenAI (check breaking changes)
+npm install openai@latest
+
+# Finally Tailwind (check migration)
+npm install tailwindcss@latest
+```
 
 ---
 
-## Recommended Approach
-1. Start with safe upgrades (Phase 1)
-2. Update type definitions (Phase 2)
-3. Test thoroughly
-4. Consider major upgrades based on needs
+## Breaking Changes to Watch
 
+### OpenAI v6
+- API structure may have changed
+- Check: https://github.com/openai/openai-node/releases
+
+### Tailwind CSS v4
+- New configuration format
+- Check: https://tailwindcss.com/docs/upgrade-guide
+
+### Jest v30
+- New features and potential breaking changes
+- Check: https://jestjs.io/docs/upgrading-to-jest30
+
+### ESLint v9
+- Flat config format
+- Check: https://eslint.org/docs/latest/use/migrate-to-9.0.0
+
+---
+
+## Testing Checklist
+
+After each upgrade:
+- [ ] `npm run build` succeeds
+- [ ] `npm test` passes
+- [ ] `npm run lint` passes
+- [ ] Dev server starts: `npm run dev`
+- [ ] Manual testing of key features
+- [ ] Check for deprecation warnings
+
+---
+
+## Rollback Plan
+
+If issues occur:
+```bash
+git checkout package.json package-lock.json
+npm install
+```

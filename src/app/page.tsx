@@ -4,38 +4,104 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { scenarios } from '@/data/scenarios';
-import { PlayCircle, BarChart3, Users, Trophy, BookOpen, MessageSquare, Building2, ArrowRight, Wrench } from 'lucide-react';
+import { 
+  PlayCircle, 
+  BarChart3, 
+  Trophy, 
+  BookOpen, 
+  MessageSquare, 
+  Building2, 
+  ArrowRight, 
+  Calculator,
+  TrendingUp,
+  Target,
+  HelpCircle,
+  ThumbsUp,
+  Search
+} from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { PermissionAwareChat } from '@/components/PermissionAwareChat';
 
 export default function HomePage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          {/* Hero Section */}
-          <div className="text-center space-y-6 mb-20">
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
-              Cursor Enterprise GTM Training
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+        {/* Hero Section - Public Friendly */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+          <div className="text-center space-y-6 mb-16">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
+              Master Enterprise Sales with AI-Powered Training
             </h1>
-            <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto font-light">
-              Master Cursor Enterprise sales positioning and objection handling
+            <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
+              Practice real sales scenarios, get instant feedback, and improve your skills with AI-powered role-play training
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
+              <Link href="/scenarios">
+                <Button size="lg" className="w-full sm:w-auto">
+                  <PlayCircle className="mr-2 h-5 w-5" />
+                  Start Training Now
+                </Button>
+              </Link>
+              <Link href="/sales-skills">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Learn Sales Fundamentals
+                </Button>
+              </Link>
+            </div>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-20">
+          {/* Value Proposition Cards */}
+          <div className="grid gap-6 md:grid-cols-3 mb-16">
+            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                  <Target className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle>Real-World Practice</CardTitle>
+                <CardDescription>
+                  Practice with AI prospects that respond like real Enterprise buyers
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle>Instant Feedback</CardTitle>
+                <CardDescription>
+                  Get AI-powered evaluation and scoring after every interaction
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-2 border-gray-200 hover:border-gray-900 transition-all">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center mb-4">
+                  <Trophy className="h-6 w-6 text-white" />
+                </div>
+                <CardTitle>Track Progress</CardTitle>
+                <CardDescription>
+                  Monitor your improvement with detailed analytics and leaderboards
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+
+          {/* Main Feature Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-16">
             <Link href="/scenarios" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <PlayCircle className="h-5 w-5 text-white" />
+                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                      <PlayCircle className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-semibold">Practice Enterprise Sales</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Practice Scenarios</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-gray-600">
-                    Role-play with Enterprise prospects until you book meetings or close deals
+                    Role-play with AI prospects and practice objection handling
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -47,132 +113,60 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            <Link href="/analytics" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+            <Link href="/sales-skills" className="group">
+              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <BarChart3 className="h-5 w-5 text-white" />
+                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                      <BookOpen className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-semibold">View Analytics</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Sales Skills Training</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-gray-600">
-                    Track your progress and performance metrics
+                    Learn outbound and inbound sales fundamentals
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    View Dashboard
+                    Learn Skills
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </CardContent>
               </Card>
             </Link>
 
-            <Link href="/live" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+            <Link href="/roi-calculator" className="group">
+              <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-xl transition-all duration-200">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Users className="h-5 w-5 text-white" />
+                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                      <Calculator className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-semibold">Live Role-Play</CardTitle>
+                    <CardTitle className="text-lg font-semibold">ROI Calculator</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-gray-600">
-                    Practice with teammates in real-time competitive sessions
+                    Calculate the business impact and ROI of Cursor Enterprise
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    Start Live Session
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </CardContent>
               </Card>
             </Link>
 
-            <Link href="/leaderboard" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+            <Link href="/company-lookup" className="group">
+              <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Trophy className="h-5 w-5 text-white" />
+                    <div className="h-12 w-12 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                      <Search className="h-6 w-6 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-semibold">Leaderboard</CardTitle>
+                    <CardTitle className="text-lg font-semibold">Company Lookup</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-gray-600">
-                    See top performers and compete for the #1 spot
+                    Search companies and analyze financial data
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    View Leaderboard
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/features" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <BookOpen className="h-5 w-5 text-white" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold">Learn Cursor Features</CardTitle>
-                  </div>
-                  <CardDescription className="text-sm text-gray-600">
-                    Understand features, ROI for leadership, and impact for ICs
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    Explore Features
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/enterprise" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Building2 className="h-5 w-5 text-white" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold">Enterprise Features</CardTitle>
-                  </div>
-                  <CardDescription className="text-sm text-gray-600">
-                    Learn about security, compliance, and administrative controls
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    Explore Enterprise
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href="/scenario-builder" className="group">
-              <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
-                      <Wrench className="h-5 w-5 text-white" />
-                    </div>
-                    <CardTitle className="text-lg font-semibold">Scenario Builder</CardTitle>
-                  </div>
-                  <CardDescription className="text-sm text-gray-600">
-                    Create and manage custom training scenarios for role-play practice
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-900 group-hover:gap-3 transition-all">
-                    Build Scenarios
+                    Search Companies
                     <ArrowRight className="h-4 w-4" />
                   </div>
                 </CardContent>
@@ -180,38 +174,22 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Chat Assistant */}
-          <Card className="border border-gray-200 mb-12">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-gray-900" />
-                <CardTitle className="text-lg font-semibold">Ask Questions</CardTitle>
-              </div>
-              <CardDescription className="text-sm text-gray-600">
-                Get help with Cursor features, ROI, and technical questions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PermissionAwareChat initialChatType="general" />
-            </CardContent>
-          </Card>
-
-          {/* Scenarios Grid */}
+          {/* Quick Start Scenarios */}
           <div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Enterprise Sales Scenarios</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Quick Start Scenarios</h2>
               <p className="text-gray-600">
-                {scenarios.length} scenarios - Practice until you book meetings or close deals
+                Start practicing with these {scenarios.length} ready-to-use scenarios
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {scenarios.map((scenario) => (
+              {scenarios.slice(0, 6).map((scenario) => (
                 <Link 
                   key={scenario.id} 
                   href={`/roleplay/${scenario.id}`}
                   className="group"
                 >
-                  <Card className="h-full border border-gray-200 hover:border-gray-300 transition-all duration-200 hover:shadow-lg">
+                  <Card className="h-full border border-gray-200 hover:border-gray-900 hover:shadow-lg transition-all duration-200">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base font-semibold mb-1 group-hover:text-gray-900 transition-colors">
                         {scenario.persona.name}
@@ -230,7 +208,50 @@ export default function HomePage() {
                 </Link>
               ))}
             </div>
+            {scenarios.length > 6 && (
+              <div className="mt-6 text-center">
+                <Link href="/scenarios">
+                  <Button variant="outline">
+                    View All {scenarios.length} Scenarios
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
+
+          {/* Help & Feedback Section */}
+          <Card className="border-2 border-gray-200 mt-12">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <HelpCircle className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Need Help? Share Feedback!</CardTitle>
+                  <CardDescription>
+                    Help us improve by sharing your feedback or get help from the community
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Link href="/feedback">
+                  <Button variant="outline" className="w-full justify-start">
+                    <ThumbsUp className="mr-2 h-4 w-4" />
+                    Share Feedback
+                  </Button>
+                </Link>
+                <Link href="/help">
+                  <Button variant="outline" className="w-full justify-start">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    Get Help
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </ProtectedRoute>

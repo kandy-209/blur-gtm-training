@@ -70,10 +70,9 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
       return;
     }
 
-    // Check if user can delete (admin or owns the response)
-    const canDelete = isAdmin || response.userOwnsResponse;
-    if (!canDelete) {
-      alert('You can only delete your own responses');
+    // Only admins can delete top responses (public-friendly design)
+    if (!isAdmin) {
+      alert('Only administrators can delete top responses. Please provide feedback instead.');
       return;
     }
 
@@ -319,14 +318,15 @@ export default function TopResponses({ scenarioId, objectionCategory, limit = 10
                   <Badge variant="outline" className="border-gray-300">
                     #{idx + 1}
                   </Badge>
-                  {(isAdmin || item.userOwnsResponse) && (
+                  {/* Only admins can delete top responses (public-friendly) */}
+                  {isAdmin && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteResponse(item, idx)}
                       disabled={deletingIndex === idx}
                       className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title={isAdmin ? "Delete this top response (Admin - deletes all instances)" : "Delete your response"}
+                      title="Delete this top response (Admin only)"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

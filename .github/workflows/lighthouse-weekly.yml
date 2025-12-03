@@ -60,6 +60,7 @@ jobs:
 
       - name: Extract Scores
         id: extract-scores
+        continue-on-error: true
         run: |
           # Initialize default values
           MOBILE_PERF=""
@@ -71,37 +72,104 @@ jobs:
           DESKTOP_BP=""
           DESKTOP_SEO=""
           
+          # Helper function to safely extract score from JSON
+          extract_score() {
+            local file_path=$1
+            local category=$2
+            local result=""
+            
+            if [ ! -f "$file_path" ]; then
+              echo "⚠️  File not found: $file_path" >&2
+              echo ""
+              return
+            fi
+            
+            # Check if file is readable and not empty
+            if [ ! -s "$file_path" ]; then
+              echo "⚠️  File is empty: $file_path" >&2
+              echo ""
+              return
+            fi
+            
+            # Extract score with error handling
+            # Use single quotes to prevent shell variable expansion issues
+            result=$(node -e '
+              try {
+                const fs = require("fs");
+                const filePath = process.argv[1];
+                const category = process.argv[2];
+                const data = fs.readFileSync(filePath, "utf8");
+                const report = JSON.parse(data);
+                
+                if (!report || !report.categories) {
+                  console.error("ERROR: Invalid Lighthouse report structure - missing categories");
+                  process.exit(1);
+                }
+                
+                const categoryData = report.categories[category];
+                if (!categoryData || typeof categoryData.score !== "number") {
+                  console.error(`ERROR: Category "${category}" not found or invalid score`);
+                  process.exit(1);
+                }
+                
+                console.log(Math.round(categoryData.score * 100));
+              } catch (error) {
+                console.error("ERROR: Failed to parse Lighthouse JSON:", error.message);
+                process.exit(1);
+              }
+            ' "$file_path" "$category" 2>&1)
+            
+            local exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo "❌ Error extracting $category from $file_path: $result" >&2
+              echo ""
+              return
+            fi
+            
+            echo "$result"
+          }
+          
+          # Extract mobile scores
           if [ -f "./lighthouse-reports/mobile.report.json" ]; then
-            MOBILE_PERF=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.performance?.score||0)*100))")
-            MOBILE_A11Y=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.accessibility?.score||0)*100))")
-            MOBILE_BP=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.['best-practices']?.score||0)*100))")
-            MOBILE_SEO=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.seo?.score||0)*100))")
+            echo "📱 Extracting mobile scores..."
+            MOBILE_PERF=$(extract_score "./lighthouse-reports/mobile.report.json" "performance")
+            MOBILE_A11Y=$(extract_score "./lighthouse-reports/mobile.report.json" "accessibility")
+            MOBILE_BP=$(extract_score "./lighthouse-reports/mobile.report.json" "best-practices")
+            MOBILE_SEO=$(extract_score "./lighthouse-reports/mobile.report.json" "seo")
+            
             echo "mobile_perf=$MOBILE_PERF" >> $GITHUB_OUTPUT
             echo "mobile_a11y=$MOBILE_A11Y" >> $GITHUB_OUTPUT
             echo "mobile_bp=$MOBILE_BP" >> $GITHUB_OUTPUT
             echo "mobile_seo=$MOBILE_SEO" >> $GITHUB_OUTPUT
           else
+            echo "⚠️  Mobile report file not found: ./lighthouse-reports/mobile.report.json"
             echo "mobile_perf=" >> $GITHUB_OUTPUT
             echo "mobile_a11y=" >> $GITHUB_OUTPUT
             echo "mobile_bp=" >> $GITHUB_OUTPUT
             echo "mobile_seo=" >> $GITHUB_OUTPUT
           fi
           
+          # Extract desktop scores
           if [ -f "./lighthouse-reports/desktop.report.json" ]; then
-            DESKTOP_PERF=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/desktop.report.json'));console.log(Math.round((d.categories?.performance?.score||0)*100))")
-            DESKTOP_A11Y=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/desktop.report.json'));console.log(Math.round((d.categories?.accessibility?.score||0)*100))")
-            DESKTOP_BP=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/desktop.report.json'));console.log(Math.round((d.categories?.['best-practices']?.score||0)*100))")
-            DESKTOP_SEO=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/desktop.report.json'));console.log(Math.round((d.categories?.seo?.score||0)*100))")
+            echo "🖥️  Extracting desktop scores..."
+            DESKTOP_PERF=$(extract_score "./lighthouse-reports/desktop.report.json" "performance")
+            DESKTOP_A11Y=$(extract_score "./lighthouse-reports/desktop.report.json" "accessibility")
+            DESKTOP_BP=$(extract_score "./lighthouse-reports/desktop.report.json" "best-practices")
+            DESKTOP_SEO=$(extract_score "./lighthouse-reports/desktop.report.json" "seo")
+            
             echo "desktop_perf=$DESKTOP_PERF" >> $GITHUB_OUTPUT
             echo "desktop_a11y=$DESKTOP_A11Y" >> $GITHUB_OUTPUT
             echo "desktop_bp=$DESKTOP_BP" >> $GITHUB_OUTPUT
             echo "desktop_seo=$DESKTOP_SEO" >> $GITHUB_OUTPUT
           else
+            echo "⚠️  Desktop report file not found: ./lighthouse-reports/desktop.report.json"
             echo "desktop_perf=" >> $GITHUB_OUTPUT
             echo "desktop_a11y=" >> $GITHUB_OUTPUT
             echo "desktop_bp=" >> $GITHUB_OUTPUT
             echo "desktop_seo=" >> $GITHUB_OUTPUT
           fi
+          
+          echo "✅ Score extraction completed"
 
       - name: Display Scores
         run: |
