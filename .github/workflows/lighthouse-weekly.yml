@@ -61,6 +61,16 @@ jobs:
       - name: Extract Scores
         id: extract-scores
         run: |
+          # Initialize default values
+          MOBILE_PERF=""
+          MOBILE_A11Y=""
+          MOBILE_BP=""
+          MOBILE_SEO=""
+          DESKTOP_PERF=""
+          DESKTOP_A11Y=""
+          DESKTOP_BP=""
+          DESKTOP_SEO=""
+          
           if [ -f "./lighthouse-reports/mobile.report.json" ]; then
             MOBILE_PERF=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.performance?.score||0)*100))")
             MOBILE_A11Y=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('./lighthouse-reports/mobile.report.json'));console.log(Math.round((d.categories?.accessibility?.score||0)*100))")
@@ -70,6 +80,11 @@ jobs:
             echo "mobile_a11y=$MOBILE_A11Y" >> $GITHUB_OUTPUT
             echo "mobile_bp=$MOBILE_BP" >> $GITHUB_OUTPUT
             echo "mobile_seo=$MOBILE_SEO" >> $GITHUB_OUTPUT
+          else
+            echo "mobile_perf=" >> $GITHUB_OUTPUT
+            echo "mobile_a11y=" >> $GITHUB_OUTPUT
+            echo "mobile_bp=" >> $GITHUB_OUTPUT
+            echo "mobile_seo=" >> $GITHUB_OUTPUT
           fi
           
           if [ -f "./lighthouse-reports/desktop.report.json" ]; then
@@ -81,6 +96,11 @@ jobs:
             echo "desktop_a11y=$DESKTOP_A11Y" >> $GITHUB_OUTPUT
             echo "desktop_bp=$DESKTOP_BP" >> $GITHUB_OUTPUT
             echo "desktop_seo=$DESKTOP_SEO" >> $GITHUB_OUTPUT
+          else
+            echo "desktop_perf=" >> $GITHUB_OUTPUT
+            echo "desktop_a11y=" >> $GITHUB_OUTPUT
+            echo "desktop_bp=" >> $GITHUB_OUTPUT
+            echo "desktop_seo=" >> $GITHUB_OUTPUT
           fi
 
       - name: Display Scores
@@ -111,24 +131,50 @@ jobs:
       - name: Check Performance Thresholds
         continue-on-error: true
         run: |
-          MOBILE_PERF=${{ steps.extract-scores.outputs.mobile_perf || 0 }}
-          DESKTOP_PERF=${{ steps.extract-scores.outputs.desktop_perf || 0 }}
+          # Get scores with defaults, handling empty strings
+          MOBILE_PERF="${{ steps.extract-scores.outputs.mobile_perf }}"
+          DESKTOP_PERF="${{ steps.extract-scores.outputs.desktop_perf }}"
           
-          if [ -z "$MOBILE_PERF" ] || [ "$MOBILE_PERF" = "0" ]; then
+          # Set defaults if empty
+          MOBILE_PERF=${MOBILE_PERF:-0}
+          DESKTOP_PERF=${DESKTOP_PERF:-0}
+          
+          # Check if scores are available (original output exists)
+          MOBILE_AVAILABLE=false
+          DESKTOP_AVAILABLE=false
+          
+          # Check if original output was provided (not empty)
+          if [ -n "${{ steps.extract-scores.outputs.mobile_perf }}" ]; then
+            MOBILE_AVAILABLE=true
+          else
             echo "⚠️  Mobile performance score not available"
           fi
           
-          if [ -z "$DESKTOP_PERF" ] || [ "$DESKTOP_PERF" = "0" ]; then
+          if [ -n "${{ steps.extract-scores.outputs.desktop_perf }}" ]; then
+            DESKTOP_AVAILABLE=true
+          else
             echo "⚠️  Desktop performance score not available"
           fi
           
-          if [ "$MOBILE_PERF" -lt 90 ] || [ "$DESKTOP_PERF" -lt 90 ]; then
-            echo "⚠️  Performance score below threshold (90)!"
-            echo "Mobile: ${MOBILE_PERF:-N/A}/100"
-            echo "Desktop: ${DESKTOP_PERF:-N/A}/100"
+          # Only check thresholds if we have valid scores
+          THRESHOLD_FAILED=false
+          
+          if [ "$MOBILE_AVAILABLE" = true ] && [ "$MOBILE_PERF" -lt 90 ]; then
+            echo "⚠️  Mobile performance score below threshold (90): $MOBILE_PERF/100"
+            THRESHOLD_FAILED=true
+          fi
+          
+          if [ "$DESKTOP_AVAILABLE" = true ] && [ "$DESKTOP_PERF" -lt 90 ]; then
+            echo "⚠️  Desktop performance score below threshold (90): $DESKTOP_PERF/100"
+            THRESHOLD_FAILED=true
+          fi
+          
+          if [ "$THRESHOLD_FAILED" = true ]; then
             echo "::warning::Performance scores below threshold. Review Lighthouse reports for optimization opportunities."
             exit 1
-          else
+          elif [ "$MOBILE_AVAILABLE" = true ] || [ "$DESKTOP_AVAILABLE" = true ]; then
             echo "✅ Performance scores meet threshold (≥90)"
+          else
+            echo "⚠️  No performance scores available to check"
           fi
 
