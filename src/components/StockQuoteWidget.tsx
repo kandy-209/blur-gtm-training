@@ -31,17 +31,51 @@ export default function StockQuoteWidget() {
       return;
     }
 
+    const sanitizedSymbol = symbol.trim().toUpperCase();
+    
+    // #region debug log
+    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+      fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:28',message:'fetchQuote called',data:{symbol:sanitizedSymbol,originalSymbol:symbol},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    }
+    // #endregion
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/alphavantage/quote?symbol=${encodeURIComponent(symbol.toUpperCase())}`);
+      const url = `/api/alphavantage/quote?symbol=${encodeURIComponent(sanitizedSymbol)}`;
+      
+      // #region debug log
+      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:38',message:'Fetching quote',data:{url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      }
+      // #endregion
+      
+      const response = await fetch(url);
+      
+      // #region debug log
+      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:42',message:'Response received',data:{ok:response.ok,status:response.status,statusText:response.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      }
+      // #endregion
       
       if (!response.ok) {
-        throw new Error('Failed to fetch quote');
+        const errorText = await response.text();
+        // #region debug log
+        if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+          fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:47',message:'Response not ok',data:{status:response.status,errorText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        }
+        // #endregion
+        throw new Error(`Failed to fetch quote: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      // #region debug log
+      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:54',message:'Response data parsed',data:{hasError:!!data.error,hasQuote:!!data.quote,error:data.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      }
+      // #endregion
       
       if (data.error) {
         setError(data.error);
@@ -50,6 +84,11 @@ export default function StockQuoteWidget() {
         setQuote(data.quote);
       }
     } catch (err: any) {
+      // #region debug log
+      if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'StockQuoteWidget.tsx:62',message:'Error caught',data:{message:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      }
+      // #endregion
       setError(err.message || 'Failed to fetch quote');
       setQuote(null);
     } finally {

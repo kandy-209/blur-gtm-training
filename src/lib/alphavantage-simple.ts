@@ -3,6 +3,8 @@
  * Clean, easy-to-use functions for common financial data queries
  */
 
+import { appendFileSync } from 'fs';
+
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || '';
 const BASE_URL = 'https://www.alphavantage.co/query';
 
@@ -47,21 +49,65 @@ interface TimeSeriesData {
  * Get real-time quote for a stock symbol
  */
 export async function getQuote(symbol: string): Promise<QuoteData | null> {
+  // #region debug log
+  if (process.env.NODE_ENV !== 'test') {
+    try {
+      const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+      appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:49',message:'getQuote called',data:{symbol,hasApiKey:!!ALPHA_VANTAGE_API_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'K'})+'\n');
+    } catch {}
+  }
+  // #endregion
+
   if (!ALPHA_VANTAGE_API_KEY) {
     console.warn('Alpha Vantage API key not configured');
+    // #region debug log
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:53',message:'No API key',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})+'\n');
+      } catch {}
+    }
+    // #endregion
     return null;
   }
 
   try {
-    const response = await fetch(
-      `${BASE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
+    const url = `${BASE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
+    
+    // #region debug log
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:58',message:'Fetching from Alpha Vantage',data:{url:url.replace(ALPHA_VANTAGE_API_KEY,'REDACTED')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})+'\n');
+      } catch {}
+    }
+    // #endregion
+    
+    const response = await fetch(url);
+
+    // #region debug log
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:62',message:'Alpha Vantage response',data:{ok:response.ok,status:response.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})+'\n');
+      } catch {}
+    }
+    // #endregion
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // #region debug log
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:70',message:'Alpha Vantage data parsed',data:{hasNote:!!data.Note,hasError:!!data['Error Message'],hasGlobalQuote:!!data['Global Quote'],note:data.Note,errorMessage:data['Error Message']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})+'\n');
+      } catch {}
+    }
+    // #endregion
     
     if (data.Note || data['Error Message']) {
       console.error('Alpha Vantage error:', data.Note || data['Error Message']);
@@ -70,6 +116,14 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
 
     const quote = data['Global Quote'];
     if (!quote || !quote['05. price']) {
+      // #region debug log
+      if (process.env.NODE_ENV !== 'test') {
+        try {
+          const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+          appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:77',message:'Invalid quote data',data:{hasQuote:!!quote,hasPrice:!!quote?.['05. price']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})+'\n');
+        } catch {}
+      }
+      // #endregion
       return null;
     }
 
@@ -145,8 +199,16 @@ export async function getCompanyOverview(symbol: string): Promise<CompanyOvervie
  * Search for company symbols by keyword
  */
 export async function searchSymbol(keyword: string): Promise<Array<{ symbol: string; name: string }> | null> {
-  if (!ALPHA_VANTAGE_API_KEY) {
+  if (!ALPHA_VANTAGE_API_KEY || ALPHA_VANTAGE_API_KEY.trim() === '') {
     console.warn('Alpha Vantage API key not configured');
+    // #region debug log
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
+        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:147',message:'No API key for searchSymbol',data:{keyword,apiKeyExists:!!process.env.ALPHA_VANTAGE_API_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})+'\n');
+      } catch {}
+    }
+    // #endregion
     return null;
   }
 
