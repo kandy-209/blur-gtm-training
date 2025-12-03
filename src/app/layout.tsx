@@ -7,6 +7,81 @@ import NavUser from '@/components/NavUser';
 import GlobalVoiceAssistant from '@/components/GlobalVoiceAssistant';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import type { Metadata } from 'next';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
+const siteName = 'Cursor Enterprise GTM Training';
+const siteDescription = 'Master Cursor Enterprise sales positioning and objection handling with AI-powered role-play training, analytics, and comprehensive feature learning.';
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: siteName,
+    template: `%s | ${siteName}`,
+  },
+  description: siteDescription,
+  keywords: [
+    'Cursor Enterprise',
+    'GTM training',
+    'sales training',
+    'AI role-play',
+    'enterprise sales',
+    'objection handling',
+    'sales enablement',
+    'Cursor AI',
+    'sales positioning',
+  ],
+  authors: [{ name: 'Cursor GTM Team' }],
+  creator: 'Cursor',
+  publisher: 'Cursor',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: siteUrl,
+    siteName,
+    title: siteName,
+    description: siteDescription,
+    images: [
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteName,
+    description: siteDescription,
+    images: [`${siteUrl}/og-image.png`],
+    creator: '@cursor',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console verification when available
+    // google: 'your-google-verification-code',
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
+  category: 'Education',
+};
 
 export default function RootLayout({
   children,
@@ -18,6 +93,51 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content="#000000" />
+        <link rel="canonical" href={siteUrl} />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'EducationalOrganization',
+              name: siteName,
+              description: siteDescription,
+              url: siteUrl,
+              logo: `${siteUrl}/logos/cursor-logo.svg`,
+              sameAs: [
+                'https://cursor.com',
+                'https://twitter.com/cursor',
+              ],
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              name: siteName,
+              description: siteDescription,
+              url: siteUrl,
+              applicationCategory: 'EducationalApplication',
+              operatingSystem: 'Web',
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+              },
+            }),
+          }}
+        />
         {/* ElevenLabs widget loaded in component to avoid double-loading */}
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
