@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
 import { sanitizeInput } from '@/lib/security';
+
+// Use service_role key for server-side operations (bypasses RLS)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = supabaseUrl && supabaseKey
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 export async function POST(request: NextRequest) {
   try {
     if (!supabase) {
+      console.error('Supabase not configured. Missing NEXT_PUBLIC_SUPABASE_URL or API key.');
       return NextResponse.json(
         { error: 'Database not configured' },
         { status: 500 }
@@ -66,6 +75,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     if (!supabase) {
+      console.error('Supabase not configured. Missing NEXT_PUBLIC_SUPABASE_URL or API key.');
       return NextResponse.json(
         { error: 'Database not configured' },
         { status: 500 }

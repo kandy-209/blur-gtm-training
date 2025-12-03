@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/auth';
+import { createClient } from '@supabase/supabase-js';
+
+// Use service_role key for server-side operations (bypasses RLS)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = supabaseUrl && supabaseKey
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 export async function GET(request: NextRequest) {
   try {
     if (!supabase) {
+      console.error('Supabase not configured. Missing NEXT_PUBLIC_SUPABASE_URL or API key.');
       return NextResponse.json(
         { error: 'Database not configured' },
         { status: 500 }
@@ -22,6 +31,15 @@ export async function GET(request: NextRequest) {
 
     if (ratingsError) {
       console.error('Leaderboard ratings error:', ratingsError);
+      
+      // Check if it's an API key error
+      if (ratingsError.message?.includes('Invalid API key') || ratingsError.message?.includes('JWT')) {
+        console.error('⚠️ Invalid Supabase API key. Please check:');
+        console.error('   - NEXT_PUBLIC_SUPABASE_URL is set correctly');
+        console.error('   - SUPABASE_SERVICE_ROLE_KEY is set (preferred) or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+        console.error('   - API key matches your Supabase project');
+      }
+      
       // Return empty leaderboard instead of throwing error
       return NextResponse.json({ leaderboard: [] });
     }
