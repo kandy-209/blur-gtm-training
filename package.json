@@ -7,11 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:windows": "powershell -ExecutionPolicy Bypass -File scripts/run-tests.ps1",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest",
+    "test:domain": "jest src/__tests__/domain",
+    "test:agents": "jest src/__tests__/infrastructure/agents",
+    "test:api": "jest src/__tests__/api",
+    "test:verbose": "jest --verbose",
+    "test:ui": "jest src/__tests__/components",
     "setup:production": "bash scripts/setup-production.sh",
     "setup:interactive": "node setup-production.js",
     "db:migrate": "echo 'Run scripts/create-supabase-tables.sql in Supabase SQL Editor'",
@@ -53,7 +60,8 @@
     "simple-peer": "^9.11.1",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "web-vitals": "^4.2.4"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
