@@ -52,3 +52,4 @@ Vercel will show DNS instructions. At your domain registrar:
 
 *That's it! Just add the domain in Vercel dashboard.*
 
+

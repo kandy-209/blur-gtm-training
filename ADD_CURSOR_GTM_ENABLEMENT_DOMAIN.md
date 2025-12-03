@@ -140,3 +140,4 @@ Both domains will:
 
 *Add the domain in Vercel dashboard, then configure DNS at your registrar!*
 
+

@@ -84,3 +84,4 @@ Once DNS propagates:
 
 *Everything is ready! Just add the domain in Vercel and configure DNS.*
 
+

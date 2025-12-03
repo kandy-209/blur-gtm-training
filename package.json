@@ -30,7 +30,9 @@
     "test:design-system": "bash scripts/test-design-system.sh",
     "test:performance": "node scripts/test-performance.js",
     "test:lighthouse": "npx lighthouse http://localhost:3000 --view",
-    "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'"
+    "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'",
+    "sync": "powershell -ExecutionPolicy Bypass -File scripts/sync-git.ps1",
+    "sync:mac": "bash scripts/sync-git.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.943.0",
