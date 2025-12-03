@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DOMAIN="cursor-gtm-enablement-trainer.com"
+DOMAIN="cursorsalestrainer.com"
 
 echo "🔍 Checking domain status for: $DOMAIN"
 echo ""
