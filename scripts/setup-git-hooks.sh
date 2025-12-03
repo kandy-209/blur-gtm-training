@@ -39,20 +39,20 @@ echo "✅ Pre-commit checks passed!"
 exit 0
 EOF
 
-# Pre-push hook: Run tests before pushing
+# Pre-push hook: Run tests before pushing (warns but doesn't block)
 cat > .git/hooks/pre-push << 'EOF'
 #!/bin/bash
 
 echo "🧪 Running pre-push checks..."
 
-# Run tests
+# Run tests (allow failures - CI will catch them)
 echo "  → Running tests..."
 npm test -- --passWithNoTests --silent || {
-    echo "❌ Tests failed. Please fix failing tests before pushing."
-    exit 1
+    echo "⚠️  Some tests failed. Continuing push (CI will validate)."
+    echo "   Fix test failures before merging to main."
 }
 
-echo "✅ Pre-push checks passed!"
+echo "✅ Pre-push checks completed!"
 exit 0
 EOF
 
