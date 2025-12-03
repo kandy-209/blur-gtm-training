@@ -5,13 +5,10 @@ import Link from 'next/link';
 import BypassProtection from '@/components/BypassProtection';
 import NavUser from '@/components/NavUser';
 import GlobalVoiceAssistant from '@/components/GlobalVoiceAssistant';
-<<<<<<< HEAD
 import { SkipLinks } from '@/components/SkipLinks';
 import { LiveRegion } from '@/components/ui/live-region';
-=======
 import SEOHead from '@/components/SEOHead';
 import WebVitals from '@/components/WebVitals';
->>>>>>> e3391bef29af1d7b14006a205ab6d5b133a44ed7
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
@@ -247,11 +244,8 @@ export default function RootLayout({
         {/* ElevenLabs widget loaded in component to avoid double-loading */}
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
-<<<<<<< HEAD
         <SkipLinks />
-=======
         <SEOHead />
->>>>>>> e3391bef29af1d7b14006a205ab6d5b133a44ed7
         <BypassProtection />
         <nav id="navigation" className="sticky top-0 z-50 w-full glass-strong border-b border-gray-200/40" aria-label="Main navigation">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
