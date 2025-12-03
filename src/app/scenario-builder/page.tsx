@@ -677,9 +677,9 @@ export default function ScenarioBuilderPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-1">{scenario.persona.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2">
                         <Badge variant="outline">{scenario.objection_category.replace(/_/g, ' ')}</Badge>
-                      </CardDescription>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

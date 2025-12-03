@@ -65,12 +65,38 @@ export class FeedbackAgent {
       ? await this.generateLLMFeedback(conversationHistory, metrics, salesMethodology)
       : this.generateRuleBasedFeedback(conversationHistory, metrics, salesMethodology);
 
-    // Combine quantitative and qualitative
-    return {
-      ...quantitativeAnalysis,
-      ...qualitativeFeedback,
+    // Combine quantitative and qualitative with defaults
+    const combined = {
+      strengths: qualitativeFeedback.strengths || quantitativeAnalysis.strengths || [],
+      weaknesses: qualitativeFeedback.weaknesses || quantitativeAnalysis.weaknesses || [],
+      actionableFeedback: qualitativeFeedback.actionableFeedback || quantitativeAnalysis.actionableFeedback || [],
+      managerCoachingPoints: qualitativeFeedback.managerCoachingPoints || [],
+      talkToListenAnalysis: quantitativeAnalysis.talkToListenAnalysis || {
+        ratio: 0.5,
+        status: 'balanced' as const,
+        recommendation: 'Continue balanced conversation',
+      },
+      objectionHandling: quantitativeAnalysis.objectionHandling || {
+        handled: 0,
+        missed: 0,
+        quality: 'needs_improvement' as const,
+        examples: [],
+      },
+      discoveryQuestions: quantitativeAnalysis.discoveryQuestions || {
+        asked: 0,
+        quality: 'needs_improvement' as const,
+        examples: [],
+        recommendations: [],
+      },
+      closingAttempts: quantitativeAnalysis.closingAttempts || {
+        attempted: false,
+        quality: 'needs_improvement' as const,
+        recommendation: 'Try asking for next steps',
+      },
       overallScore: this.calculateOverallScore(quantitativeAnalysis, qualitativeFeedback),
     };
+
+    return combined;
   }
 
   private calculateQuantitativeMetrics(

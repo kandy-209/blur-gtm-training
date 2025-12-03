@@ -14,6 +14,9 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Volume2, VolumeX, Copy, RotateCcw } from 'lucide-react';
+import ConversationMetrics from '@/components/ConversationMetrics';
+import EnhancedFeedback from '@/components/EnhancedFeedback';
+import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -31,6 +34,8 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [repMessage, setRepMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showEnhancedFeedback, setShowEnhancedFeedback] = useState(false);
+  const [comprehensiveFeedback, setComprehensiveFeedback] = useState<FeedbackAnalysis | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -239,6 +244,30 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           score: agentResponse.confidence_score,
         });
 
+        // Generate comprehensive feedback
+        try {
+          const feedbackResponse = await fetch('/api/feedback/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversationHistory: finalHistory.map(h => ({
+                role: h.role,
+                message: h.message,
+                timestamp: h.timestamp.toISOString(),
+              })),
+              salesMethodology: null, // Can be made configurable
+            }),
+          });
+
+          if (feedbackResponse.ok) {
+            const { feedback } = await feedbackResponse.json();
+            setComprehensiveFeedback(feedback);
+            setShowEnhancedFeedback(true);
+          }
+        } catch (error) {
+          console.error('Failed to generate comprehensive feedback:', error);
+        }
+
         if (onComplete) {
           setTimeout(() => onComplete(agentResponse.confidence_score), 2000);
         }
@@ -416,6 +445,17 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         </CardHeader>
       </Card>
 
+      {/* Conversation Metrics - Real-time */}
+      {state.conversationHistory.length > 2 && (
+        <ConversationMetrics
+          conversationHistory={state.conversationHistory.map(h => ({
+            role: h.role === 'rep' ? 'rep' : 'agent',
+            message: h.message,
+            timestamp: h.timestamp,
+          }))}
+        />
+      )}
+
       {/* Conversation History */}
       <Card className="flex-1 border-gray-200 overflow-hidden">
         <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-6 min-h-[300px] sm:min-h-[400px] max-h-[500px] sm:max-h-[600px]">
@@ -462,8 +502,17 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         </div>
       </Card>
 
-      {/* Feedback Panel */}
-      {showFeedback && state.currentEvaluation && (
+      {/* Enhanced Feedback Panel */}
+      {showEnhancedFeedback && comprehensiveFeedback && (
+        <EnhancedFeedback
+          feedback={comprehensiveFeedback}
+          onClose={() => setShowEnhancedFeedback(false)}
+          showManagerView={true}
+        />
+      )}
+
+      {/* Basic Feedback Panel */}
+      {showFeedback && state.currentEvaluation && !showEnhancedFeedback && (
         <Card className={`border-2 transition-smooth ${
           state.currentEvaluation.response_evaluation === 'PASS'
             ? 'border-green-200 bg-green-50/50'
@@ -473,15 +522,51 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         }`}>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Evaluation Feedback</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFeedback(false)}
-                className="h-8 w-8 p-0"
-              >
-                ×
-              </Button>
+              <CardTitle className="text-base font-semibold">Turn Feedback</CardTitle>
+              <div className="flex items-center gap-2">
+                {state.conversationHistory.length > 3 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const feedbackResponse = await fetch('/api/feedback/analyze', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            conversationHistory: state.conversationHistory.map(h => ({
+                              role: h.role,
+                              message: h.message,
+                              timestamp: h.timestamp.toISOString(),
+                            })),
+                            salesMethodology: null,
+                          }),
+                        });
+
+                        if (feedbackResponse.ok) {
+                          const { feedback } = await feedbackResponse.json();
+                          setComprehensiveFeedback(feedback);
+                          setShowEnhancedFeedback(true);
+                          setShowFeedback(false);
+                        }
+                      } catch (error) {
+                        console.error('Failed to generate comprehensive feedback:', error);
+                      }
+                    }}
+                    className="text-xs"
+                  >
+                    Full Analysis
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFeedback(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
