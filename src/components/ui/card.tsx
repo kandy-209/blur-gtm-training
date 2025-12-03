@@ -4,16 +4,22 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "rounded-2xl border border-ultra-minimal bg-white/90 backdrop-blur-sm text-card-foreground shadow-depth-2 transition-smooth hover:shadow-depth-3 hover:border-subtle focus-ring-glow",
-      className
-    )}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  // If card-premium is in className, use it; otherwise use default premium styling
+  const hasPremiumClass = className?.includes('card-premium');
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        hasPremiumClass 
+          ? "" // card-premium class handles all styling
+          : "rounded-2xl border border-ultra-minimal bg-white/90 backdrop-blur-sm text-card-foreground shadow-depth-2 transition-smooth hover:shadow-depth-3 hover:border-subtle focus-ring-glow",
+        className
+      )}
+      {...props}
+    />
+  )
+})
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<
