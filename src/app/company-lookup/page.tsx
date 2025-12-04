@@ -1,12 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Search, Building2, TrendingUp, DollarSign, BarChart3 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
+import { Loader2, Search, Building2, TrendingUp, DollarSign, BarChart3, X, AlertCircle } from 'lucide-react';
 import StockQuoteWidget from '@/components/StockQuoteWidget';
 import CompanyAnalysisInsights from '@/components/CompanyAnalysisInsights';
+import { EmptyState } from '@/components/ui/empty-state';
 import Link from 'next/link';
 
 interface SearchResult {
@@ -47,36 +51,16 @@ export default function CompanyLookupPage() {
     setOverview(null);
     setSearchResults([]);
 
-    // #region debug log
-    fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:39',message:'handleSearch called',data:{searchTerm:searchTerm.trim()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-
     try {
       const url = `/api/alphavantage/search?keyword=${encodeURIComponent(searchTerm.trim())}`;
-      
-      // #region debug log
-      fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:52',message:'Fetching search API',data:{url},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-      
       const response = await fetch(url);
-      
-      // #region debug log
-      fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:56',message:'Search response received',data:{ok:response.ok,status:response.status,statusText:response.statusText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       
       if (!response.ok) {
         const errorText = await response.text();
-        // #region debug log
-        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:61',message:'Response not ok',data:{status:response.status,errorText},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         throw new Error(`Failed to search: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      
-      // #region debug log
-      fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:68',message:'Search data parsed',data:{hasError:!!data.error,resultsCount:data.results?.length||0,error:data.error},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       
       if (data.error) {
         // Show helpful error message
@@ -88,24 +72,16 @@ export default function CompanyLookupPage() {
         setSearchResults([]);
       } else {
         const results = data.results || [];
-        if (results.length === 0 && data.message) {
-          // Show helpful message when no results found
-          setError(null); // Clear error, show message instead
+        if (results.length === 0) {
+          setError(null);
           setSearchResults([]);
-          // Show info message in UI
         } else {
           setError(null);
+          setSearchResults(results);
         }
-        setSearchResults(results);
-        // #region debug log
-        fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:75',message:'Search results set',data:{resultsCount:results.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-        // #endregion
       }
     } catch (err: any) {
-      // #region debug log
-      fetch('http://127.0.0.1:7242/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'company-lookup/page.tsx:78',message:'Search error caught',data:{message:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
-      setError(err.message || 'Failed to search');
+      setError(err.message || 'Failed to search. Please check your connection and try again.');
       setSearchResults([]);
     } finally {
       setLoading(false);
@@ -149,112 +125,189 @@ export default function CompanyLookupPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Company Intelligence & ROI Analysis</h1>
-          <p className="text-gray-600">Discover how Cursor Enterprise can help companies based on their financial profile</p>
-        </div>
+    <ErrorBoundaryWithContext component="CompanyLookupPage" severity="medium">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-6xl mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold">Company Intelligence & ROI Analysis</h1>
+            <p className="text-gray-600">Discover how Cursor Enterprise can help companies based on their financial profile</p>
+          </div>
 
-        {/* Search Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Search Companies</CardTitle>
-            <CardDescription>Enter a company name or stock symbol to analyze ROI potential and generate sales insights</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="e.g., Apple, AAPL, Microsoft, MSFT, Coinbase"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !loading) {
-                    e.preventDefault();
-                    handleSearch();
-                  }
-                }}
-                className="flex-1"
-              />
-              <Button onClick={handleSearch} disabled={loading}>
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-
-            {error && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-sm font-semibold text-gray-700">Search Results:</div>
-                <div className="grid gap-2">
-                  {searchResults.map((result) => (
+          {/* Search Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Search Companies
+              </CardTitle>
+              <CardDescription>Enter a company name or stock symbol to analyze ROI potential and generate sales insights</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    placeholder="e.g., Apple, AAPL, Microsoft, MSFT, Coinbase"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !loading && searchTerm.trim()) {
+                        e.preventDefault();
+                        handleSearch();
+                      }
+                    }}
+                    className="pl-10 pr-10"
+                    disabled={loading}
+                  />
+                  {searchTerm && (
                     <button
-                      key={result.symbol}
-                      onClick={() => handleSelectSymbol(result.symbol)}
-                      className="text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label="Clear search"
                     >
-                      <div className="font-semibold">{result.symbol}</div>
-                      <div className="text-sm text-gray-600">{result.name}</div>
+                      <X className="h-4 w-4" />
                     </button>
-                  ))}
+                  )}
                 </div>
+                <Button onClick={handleSearch} disabled={loading || !searchTerm.trim()}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
 
-        {/* Company Overview - Collapsed Summary */}
-        {overview && (
-          <>
+              {error && (
+                <div className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-200">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">{error}</div>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-red-600 hover:text-red-800 flex-shrink-0"
+                    aria-label="Dismiss error"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              {loading && searchResults.length === 0 && !overview && (
+                <div className="space-y-2">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+              )}
+
+              {!loading && searchResults.length === 0 && searchTerm && !error && (
+                <EmptyState
+                  icon={Search}
+                  title="No companies found"
+                  description="Try a different search term or check the spelling"
+                />
+              )}
+
+              {searchResults.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-semibold text-gray-700">
+                      Search Results ({searchResults.length})
+                    </div>
+                    <Badge variant="secondary">{searchResults.length} found</Badge>
+                  </div>
+                  <div className="grid gap-2">
+                    {searchResults.map((result) => (
+                      <button
+                        key={result.symbol}
+                        onClick={() => handleSelectSymbol(result.symbol)}
+                        disabled={loading}
+                        className="text-left p-3 border rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="font-semibold flex items-center gap-2">
+                          {result.symbol}
+                          {loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                        </div>
+                        <div className="text-sm text-gray-600">{result.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Company Overview */}
+          {loading && overview && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  {overview.name} ({overview.symbol})
-                </CardTitle>
-                <CardDescription>{overview.sector} • {overview.industry}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <div className="text-gray-600">Market Cap</div>
-                    <div className="font-semibold">{formatCurrency(overview.marketCap)}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600">Revenue</div>
-                    <div className="font-semibold">{formatCurrency(overview.revenue)}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600">P/E Ratio</div>
-                    <div className="font-semibold">{overview.peRatio || 'N/A'}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-600">Profit Margin</div>
-                    <div className="font-semibold">{overview.profitMargin || 'N/A'}</div>
-                  </div>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            {/* Value-Added Analysis - This is the key differentiator */}
-            <CompanyAnalysisInsights
-              symbol={overview.symbol}
-              companyName={overview.name}
-              sector={overview.sector}
-              industry={overview.industry}
-            />
-          </>
-        )}
+          {overview && !loading && (
+            <Suspense fallback={
+              <Card>
+                <CardContent className="p-6">
+                  <Skeleton className="h-64 w-full" />
+                </CardContent>
+              </Card>
+            }>
+              <ErrorBoundaryWithContext component="CompanyOverview" severity="low">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="h-5 w-5" />
+                      {overview.name} ({overview.symbol})
+                    </CardTitle>
+                    <CardDescription>{overview.sector} • {overview.industry}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <div className="text-gray-600">Market Cap</div>
+                        <div className="font-semibold">{formatCurrency(overview.marketCap)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Revenue</div>
+                        <div className="font-semibold">{formatCurrency(overview.revenue)}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">P/E Ratio</div>
+                        <div className="font-semibold">{overview.peRatio || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600">Profit Margin</div>
+                        <div className="font-semibold">{overview.profitMargin || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Value-Added Analysis */}
+                <ErrorBoundaryWithContext component="CompanyAnalysisInsights" severity="low">
+                  <CompanyAnalysisInsights
+                    symbol={overview.symbol}
+                    companyName={overview.name}
+                    sector={overview.sector}
+                    industry={overview.industry}
+                  />
+                </ErrorBoundaryWithContext>
+              </ErrorBoundaryWithContext>
+            </Suspense>
+          )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundaryWithContext>
   );
 }
 

@@ -57,11 +57,6 @@ export async function POST(request: NextRequest) {
         message: 'Feedback submitted successfully (logged)'
       });
     }
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'Feedback submitted successfully' 
-    });
   } catch (error) {
     console.error('Feedback submission error:', error);
     return NextResponse.json(
