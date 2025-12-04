@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, XCircle, AlertCircle, Activity, Database, Server, Zap } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Activity, Database, Server, Zap, Loader2 } from 'lucide-react';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface HealthStatus {
   status: string;
@@ -34,6 +36,7 @@ export default function BackendStatusPage() {
   const [metrics, setMetrics] = useState<string>('');
   const [queueStats, setQueueStats] = useState<Record<string, QueueStats>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStatus();
@@ -42,21 +45,35 @@ export default function BackendStatusPage() {
   }, []);
 
   const fetchStatus = async () => {
+    setError(null);
     try {
-      // Fetch health
-      const healthRes = await fetch('/api/health');
-      const healthData = await healthRes.json();
+      // Fetch health with timeout
+      const healthPromise = fetch('/api/health').then(res => res.json());
+      const healthTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Health check timeout')), 5000)
+      );
+      const healthData = await Promise.race([healthPromise, healthTimeout]) as HealthStatus;
       setHealth(healthData);
 
-      // Fetch ready
-      const readyRes = await fetch('/api/ready');
-      const readyData = await readyRes.json();
-      setReady(readyData.status === 'ready');
+      // Fetch ready with timeout
+      try {
+        const readyRes = await fetch('/api/ready');
+        const readyData = await readyRes.json();
+        setReady(readyData.status === 'ready');
+      } catch (err) {
+        // Ready endpoint might not exist, that's ok
+        setReady(false);
+      }
 
-      // Fetch metrics (just a sample)
-      const metricsRes = await fetch('/api/metrics');
-      const metricsText = await metricsRes.text();
-      setMetrics(metricsText.substring(0, 500)); // First 500 chars
+      // Fetch metrics (just a sample) with timeout
+      try {
+        const metricsRes = await fetch('/api/metrics');
+        const metricsText = await metricsRes.text();
+        setMetrics(metricsText.substring(0, 500)); // First 500 chars
+      } catch (err) {
+        // Metrics endpoint might not exist, that's ok
+        setMetrics('Metrics endpoint not available');
+      }
 
       // Fetch queue stats for each job type
       const jobTypes = ['analyze_company', 'generate_feedback', 'process_analytics', 'send_email', 'generate_persona'];
@@ -75,6 +92,7 @@ export default function BackendStatusPage() {
       setQueueStats(stats);
     } catch (error) {
       console.error('Failed to fetch status:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch backend status');
     } finally {
       setLoading(false);
     }
@@ -99,24 +117,57 @@ export default function BackendStatusPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading backend status...</div>
-      </div>
+      <ErrorBoundaryWithContext component="BackendStatusPageLoading">
+        <div className="container mx-auto px-4 py-8">
+          <div className="space-y-6">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </ErrorBoundaryWithContext>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
+    <ErrorBoundaryWithContext component="BackendStatusPage">
+      <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Backend Infrastructure Status</h1>
           <p className="text-muted-foreground mt-2">Real-time monitoring of your world-class backend</p>
         </div>
-        <Button onClick={fetchStatus} variant="outline">
-          <Activity className="h-4 w-4 mr-2" />
-          Refresh
+        <Button onClick={fetchStatus} variant="outline" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <Activity className="h-4 w-4 mr-2" />
+              Refresh
+            </>
+          )}
         </Button>
       </div>
+
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-red-900">Error</p>
+            <p className="text-sm text-red-700 mt-1">{error}</p>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-600 hover:text-red-800"
+            aria-label="Dismiss error"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Health Status */}
       {health && (
@@ -288,7 +339,8 @@ export default function BackendStatusPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </ErrorBoundaryWithContext>
   );
 }
 

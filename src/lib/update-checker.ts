@@ -163,3 +163,4 @@ class UpdateChecker {
 // Singleton instance
 export const updateChecker = new UpdateChecker();
 
+

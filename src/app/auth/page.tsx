@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus } from 'lucide-react';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import Link from 'next/link';
 
 export default function AuthPage() {
@@ -49,7 +50,8 @@ export default function AuthPage() {
 
   if (showGuestForm) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <ErrorBoundaryWithContext component="AuthPageGuestForm">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-md mx-auto">
           {/* Cursor Employee Banner */}
           <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
@@ -131,11 +133,13 @@ export default function AuthPage() {
           </Card>
         </div>
       </div>
+      </ErrorBoundaryWithContext>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <ErrorBoundaryWithContext component="AuthPage">
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
       <div className="max-w-md mx-auto">
         {/* Prominent Guest Access Banner */}
         <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-lg shadow-sm">
@@ -217,7 +221,8 @@ export default function AuthPage() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </ErrorBoundaryWithContext>
   );
 }
 

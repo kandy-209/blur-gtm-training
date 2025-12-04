@@ -30,3 +30,4 @@ try {
     Write-Host "Close Cursor IDE and try again" -ForegroundColor Yellow
 }
 
+

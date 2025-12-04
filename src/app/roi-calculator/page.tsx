@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { calculateROI, formatCurrency, formatPercentage, type ROICalculatorInput } from '@/lib/roi-calculator';
-import { Calculator, TrendingUp, DollarSign, Users, Building2, Loader2 } from 'lucide-react';
+import { Calculator, TrendingUp, DollarSign, Users, Building2, Loader2, AlertCircle } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import { Slider } from '@/components/ui/slider';
 import ROIExecutiveDashboard from '@/components/ROIExecutiveDashboard';
 
@@ -38,6 +39,7 @@ function ROICalculatorContent() {
   const [results, setResults] = useState<ReturnType<typeof calculateROI> | null>(null);
   const [companyData, setCompanyData] = useState<{ name: string; symbol: string; revenue?: string } | null>(null);
   const [loadingCompany, setLoadingCompany] = useState(false);
+  const [companyError, setCompanyError] = useState<string | null>(null);
 
   // Auto-load company data if symbol is provided
   useEffect(() => {
@@ -49,6 +51,7 @@ function ROICalculatorContent() {
 
   const loadCompanyData = async (symbol: string) => {
     setLoadingCompany(true);
+    setCompanyError(null);
     try {
       const response = await fetch(`/api/alphavantage/overview?symbol=${encodeURIComponent(symbol)}`);
       if (response.ok) {
@@ -80,10 +83,16 @@ function ROICalculatorContent() {
               }
             }
           }
+        } else {
+          setCompanyError('Company data not found. Please check the symbol and try again.');
         }
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        setCompanyError(errorData.error || 'Failed to load company data. Please try again.');
       }
     } catch (error) {
       console.error('Failed to load company data:', error);
+      setCompanyError('Network error. Please check your connection and try again.');
     } finally {
       setLoadingCompany(false);
     }
@@ -119,9 +128,10 @@ function ROICalculatorContent() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="mb-8">
+      <ErrorBoundaryWithContext component="ROICalculatorContent">
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
@@ -160,6 +170,22 @@ function ROICalculatorContent() {
               <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading company data...
+              </div>
+            )}
+            {companyError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-900">Error</p>
+                  <p className="text-sm text-red-700 mt-1">{companyError}</p>
+                </div>
+                <button
+                  onClick={() => setCompanyError(null)}
+                  className="text-red-600 hover:text-red-800"
+                  aria-label="Dismiss error"
+                >
+                  ×
+                </button>
               </div>
             )}
           </div>
@@ -403,6 +429,7 @@ function ROICalculatorContent() {
           </div>
         </div>
       </div>
+      </ErrorBoundaryWithContext>
     </ProtectedRoute>
   );
 }
