@@ -222,10 +222,10 @@ export class ElevenLabsConversationDB {
       throw new Error(`Failed to fetch stats: ${error.message}`);
     }
 
-    const conversations = data || [];
+    const conversations = (data || []) as any[];
     const totalConversations = conversations.length;
-    const totalMessages = conversations.reduce((sum, c) => sum + (c.message_count || 0), 0);
-    const totalDuration = conversations.reduce((sum, c) => sum + (c.duration_ms || 0), 0);
+    const totalMessages = conversations.reduce((sum, c: any) => sum + (c.message_count || 0), 0);
+    const totalDuration = conversations.reduce((sum, c: any) => sum + (c.duration_ms || 0), 0);
 
     return {
       totalConversations,
