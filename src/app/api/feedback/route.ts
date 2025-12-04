@@ -57,7 +57,10 @@ export async function POST(request: NextRequest) {
         message: 'Feedback submitted successfully (logged)'
       });
     }
+    // Both inner try and catch blocks return, so execution never reaches code here
+    // The outer catch block below handles errors from request.json() (line 7) and other outer-level errors
   } catch (error) {
+    // Handles errors from request.json() parsing and other outer try-block errors
     console.error('Feedback submission error:', error);
     return NextResponse.json(
       { error: 'Failed to submit feedback' },
@@ -65,6 +68,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
