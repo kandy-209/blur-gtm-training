@@ -475,6 +475,13 @@ function ScenariosPage() {
           </div>
         )}
 
+        {/* Results Count */}
+        {!isLoading && filteredScenarios.length > 0 && (
+          <div className="mt-4 sm:mt-6 text-sm text-muted-foreground">
+            Showing {filteredScenarios.length} of {scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}
+          </div>
+        )}
+
         {/* Footer Info */}
         <div className="mt-8 sm:mt-10 md:mt-12 text-center">
           <Card className="border-gray-200 bg-gray-50 hover:bg-gray-100/50 transition-colors">
@@ -486,15 +493,6 @@ function ScenariosPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-
-          {/* Results Count */}
-          {!isLoading && filteredScenarios.length > 0 && (
-            <div className="mt-4 sm:mt-6 text-sm text-muted-foreground">
-              Showing {filteredScenarios.length} of {scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}
-            </div>
-          )}
-        </div>
 
         {/* Preview Modal */}
         <ErrorBoundaryWithContext component="ScenarioPreviewModal" severity="low">
@@ -504,6 +502,7 @@ function ScenariosPage() {
             onClose={() => setPreviewScenario(null)}
           />
         </ErrorBoundaryWithContext>
+      </div>
       </ErrorBoundaryWithContext>
     </ProtectedRoute>
   );
