@@ -337,7 +337,7 @@ export default function ScenarioBuilderPage() {
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none z-10" />
                 <Input
                   placeholder="Search scenarios by name, ID, or objection..."
                   value={searchQuery}
