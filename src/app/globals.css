@@ -107,6 +107,11 @@
     --font-geist-sans: var(--geist-sans);
     --font-geist-mono: var(--geist-mono);
   }
+  
+  /* Font display optimization - prevents preload warnings */
+  @font-face {
+    font-display: swap;
+  }
 
   /* Image optimization */
   img {

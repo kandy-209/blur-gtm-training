@@ -110,7 +110,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content="#000000" />
@@ -126,6 +126,28 @@ export default function RootLayout({
         
         {/* Preload critical resources */}
         <link rel="preload" href="/logos/cursor-logo.svg" as="image" type="image/svg+xml" />
+        
+        {/* Font display optimization - prevents preload warnings by using swap */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @font-face {
+              font-family: '__GeistSans_Fallback';
+              src: local('Arial');
+              ascent-override: 90%;
+              descent-override: 22%;
+              line-gap-override: 0%;
+              size-adjust: 107%;
+            }
+            @font-face {
+              font-family: '__GeistMono_Fallback';
+              src: local('Courier New');
+              ascent-override: 90%;
+              descent-override: 22%;
+              line-gap-override: 0%;
+              size-adjust: 107%;
+            }
+          `
+        }} />
         
         {/* Resource hints for faster loading */}
         <link rel="prefetch" href="/scenarios" />
@@ -243,7 +265,7 @@ export default function RootLayout({
         />
         {/* ElevenLabs widget loaded in component to avoid double-loading */}
       </head>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <body className="antialiased">
         <SkipLinks />
         <SEOHead />
         <BypassProtection />
