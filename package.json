@@ -68,6 +68,7 @@
     "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.1",
     "@aws-sdk/client-s3": "^3.943.0",
     "@aws-sdk/lib-storage": "^3.943.0",
     "@radix-ui/react-dialog": "^1.0.5",

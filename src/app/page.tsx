@@ -20,17 +20,6 @@ import {
   Search
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-<<<<<<< HEAD
-import { LiquidGlossCanvas } from '@/components/LiquidGlossCanvas';
-import { useEffect, useState } from 'react';
-
-export default function HomePage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-=======
 import { useEffect, useRef } from 'react';
 import OptimizedFluidBackground from '@/components/OptimizedFluidBackground';
 import { useOptimizedMousePosition } from '@/hooks/useOptimizedMousePosition';
@@ -38,7 +27,6 @@ import { useOptimizedMousePosition } from '@/hooks/useOptimizedMousePosition';
 export default function HomePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   useOptimizedMousePosition(containerRef);
->>>>>>> 3b3a78ca6fd1c5148876e9348effc011c6e1db29
 
   // Add structured data for homepage
   useEffect(() => {
@@ -73,19 +61,9 @@ export default function HomePage() {
       }
     };
   }, []);
+
   return (
     <ProtectedRoute>
-<<<<<<< HEAD
-      <div className="min-h-screen bg-white relative overflow-hidden">
-        {/* Liquid Gloss Canvas - Ray-marched 3D Cursor Logo */}
-        {mounted && <LiquidGlossCanvas />}
-        
-        {/* Content Layer */}
-        <div className="relative z-10">
-        {/* Hero Section - Clean Modern Design */}
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 max-w-6xl">
-          <div className="text-center space-y-6 mb-16">
-=======
       <div ref={containerRef} className="min-h-screen bg-gradient-to-b from-white via-gray-50/30 to-white relative overflow-hidden">
         {/* Optimized Fluid Background */}
         <OptimizedFluidBackground intensity="subtle" color="gradient" />
@@ -93,7 +71,6 @@ export default function HomePage() {
         {/* Hero Section - Premium Design */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32 max-w-6xl relative z-10">
           <div className="text-center space-y-12">
->>>>>>> 3b3a78ca6fd1c5148876e9348effc011c6e1db29
             {/* Badge */}
             <div className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full bg-gray-900 text-white text-xs font-semibold tracking-wide uppercase shadow-lg backdrop-blur-sm">
               <Trophy className="h-3.5 w-3.5" />
@@ -204,10 +181,6 @@ export default function HomePage() {
               </div>
             )}
           </div>
-<<<<<<< HEAD
-        </div>
-=======
->>>>>>> 3b3a78ca6fd1c5148876e9348effc011c6e1db29
         </div>
       </div>
     </ProtectedRoute>
