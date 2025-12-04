@@ -151,7 +151,10 @@ export class AnthropicFeedbackGenerator {
    * Build comprehensive feedback prompt
    */
   private buildComprehensivePrompt(userData: CompleteUserData, currentMetrics?: VoiceMetrics): string {
-    return `You are an expert voice coach analyzing a user's comprehensive voice coaching data. Provide detailed, personalized feedback.
+    const cursorContext = buildCursorContextPrompt();
+    return `${cursorContext}
+
+You are an expert voice coach analyzing a user's comprehensive voice coaching data. Provide detailed, personalized feedback that's relevant to developers and technical professionals.
 
 USER DATA SUMMARY:
 - Total Sessions: ${userData.totalSessions}

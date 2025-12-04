@@ -20,9 +20,16 @@ import {
   Search
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useEffect } from 'react';
+import { LiquidGlossCanvas } from '@/components/LiquidGlossCanvas';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Add structured data for homepage
   useEffect(() => {
     const structuredData = {
@@ -56,8 +63,12 @@ export default function HomePage() {
   }, []);
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white relative overflow-hidden">
+        {/* Liquid Gloss Canvas - Ray-marched 3D Cursor Logo */}
+        {mounted && <LiquidGlossCanvas />}
         
+        {/* Content Layer */}
+        <div className="relative z-10">
         {/* Hero Section - Clean Modern Design */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 max-w-6xl">
           <div className="text-center space-y-6 mb-16">
@@ -343,6 +354,7 @@ export default function HomePage() {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </ProtectedRoute>
