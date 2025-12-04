@@ -33,11 +33,13 @@ jest.mock('@/lib/security', () => ({
 describe('POST /api/live/lobby', () => {
   let mockJoinLobby: jest.Mock;
   let mockFindMatch: jest.Mock;
+  let mockGetLobbyUsers: jest.Mock;
 
   beforeAll(() => {
     const sessionManagerModule = require('@/lib/live-session-manager');
     mockJoinLobby = (sessionManagerModule as any).__mockJoinLobby;
     mockFindMatch = (sessionManagerModule as any).__mockFindMatch;
+    mockGetLobbyUsers = (sessionManagerModule as any).__mockGetLobbyUsers;
   });
 
   beforeEach(() => {
@@ -55,6 +57,7 @@ describe('POST /api/live/lobby', () => {
 
     mockJoinLobby.mockReturnValue(mockUser);
     mockFindMatch.mockReturnValue(null);
+    mockGetLobbyUsers.mockReturnValue([mockUser]); // Return user in lobby
 
     const request = new NextRequest('http://localhost/api/live/lobby', {
       method: 'POST',

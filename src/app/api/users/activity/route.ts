@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput } from '@/lib/security';
 import { retryWithBackoff } from '@/lib/error-recovery';
+import { log } from '@/lib/logger';
+import { successResponse, errorResponse, paginatedResponse } from '@/lib/api-response';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 export async function POST(request: NextRequest) {
+  let sanitizedUserId: string | undefined;
+  
   try {
     if (!supabase) {
       return NextResponse.json(
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sanitizedUserId = sanitizeInput(userId, 100);
+    sanitizedUserId = sanitizeInput(userId, 100);
     const sanitizedIpAddress = ipAddress ? sanitizeInput(ipAddress, 45) : null;
     const sanitizedUserAgent = userAgent ? sanitizeInput(userAgent, 500) : null;
 
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (error) throw error;
-        return { data, error: null };
+        return data!; // Return data directly, not wrapped in object
       },
       {
         maxRetries: 2,
@@ -69,7 +68,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to log activity');
     }
 
@@ -78,15 +77,19 @@ export async function POST(request: NextRequest) {
       activity: result.data,
     });
   } catch (error: any) {
-    console.error('Log activity error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to log activity' },
-      { status: 500 }
-    );
+    log.error('Log activity error', error instanceof Error ? error : new Error(String(error)), {
+      userId: sanitizedUserId,
+    });
+    return errorResponse(error, {
+      status: 500,
+      message: 'Failed to log user activity',
+    });
   }
 }
 
 export async function GET(request: NextRequest) {
+  let sanitizedUserId: string | undefined;
+  
   try {
     if (!supabase) {
       return NextResponse.json(
@@ -108,7 +111,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const sanitizedUserId = sanitizeInput(userId, 100);
+    sanitizedUserId = sanitizeInput(userId, 100);
 
     let query = supabase
       .from('user_activity')
@@ -121,11 +124,18 @@ export async function GET(request: NextRequest) {
       query = query.eq('activity_type', sanitizeInput(activityType, 50));
     }
 
+    // Get count separately
+    const { count: countResult } = await supabase
+      .from('user_activity')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', sanitizedUserId);
+    const total = countResult || 0;
+
     const result = await retryWithBackoff(
       async () => {
-        const { data, error, count } = await query;
+        const { data, error } = await query;
         if (error) throw error;
-        return { data: data || [], count: count || 0 };
+        return data || [];
       },
       {
         maxRetries: 2,
@@ -133,25 +143,26 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to fetch activity');
     }
 
-    // result.data contains { data: [], count: number }
-    const resultData = result.data as { data: any[]; count: number } | undefined;
+    const activities = result.data || [];
+    const page = Math.floor(offset / limit) + 1;
 
-    return NextResponse.json({
-      activities: resultData?.data || [],
-      total: resultData?.count || 0,
+    return paginatedResponse(activities, {
+      total,
+      page,
       limit,
-      offset,
     });
   } catch (error: any) {
-    console.error('Get activity error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch activity' },
-      { status: 500 }
-    );
+    log.error('Get activity error', error instanceof Error ? error : new Error(String(error)), {
+      userId: sanitizedUserId,
+    });
+    return errorResponse(error, {
+      status: 500,
+      message: 'Failed to fetch user activity',
+    });
   }
 }
 

@@ -8,7 +8,13 @@ jest.mock('next/navigation', () => ({
 }));
 
 jest.mock('@/hooks/useAuth', () => ({
-  useAuth: jest.fn(),
+  useAuth: jest.fn(() => ({
+    user: null,
+    loading: false,
+    isGuest: false,
+    signInAsGuest: jest.fn(),
+    signOut: jest.fn(),
+  })),
 }));
 
 describe('ProtectedRoute', () => {
@@ -42,10 +48,13 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
   });
 
-  it('should redirect to auth when user is not authenticated', async () => {
+  it('should auto-sign in as guest when user is not authenticated', async () => {
+    const mockSignInAsGuest = jest.fn();
     (useAuth as jest.Mock).mockReturnValue({
       user: null,
       loading: false,
+      isGuest: false,
+      signInAsGuest: mockSignInAsGuest,
     });
 
     render(
@@ -55,10 +64,11 @@ describe('ProtectedRoute', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/auth?redirect=%2Ftest');
+      expect(mockSignInAsGuest).toHaveBeenCalled();
     });
 
-    expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
+    // Should not redirect, should auto-sign in as guest
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('should render children when user is authenticated', () => {
@@ -78,15 +88,18 @@ describe('ProtectedRoute', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('should include redirect parameter in auth URL', async () => {
+  it('should auto-sign in as guest for different paths', async () => {
     Object.defineProperty(window, 'location', {
       value: { pathname: '/scenarios', search: '' },
       writable: true,
     });
 
+    const mockSignInAsGuest = jest.fn();
     (useAuth as jest.Mock).mockReturnValue({
       user: null,
       loading: false,
+      isGuest: false,
+      signInAsGuest: mockSignInAsGuest,
     });
 
     render(
@@ -96,8 +109,11 @@ describe('ProtectedRoute', () => {
     );
 
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/auth?redirect=%2Fscenarios');
+      expect(mockSignInAsGuest).toHaveBeenCalled();
     });
+
+    // Should not redirect, should auto-sign in as guest
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
 

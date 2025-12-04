@@ -16,13 +16,13 @@ import {
 
 describe('Card Component - Premium Design', () => {
   describe('Rendering', () => {
-    it('should render card with premium classes', () => {
+    it('should render card with default classes', () => {
       render(<Card>Card content</Card>);
       const card = screen.getByText('Card content');
       expect(card).toBeInTheDocument();
-      expect(card).toHaveClass('card-premium');
-      expect(card).toHaveClass('shadow-depth-2');
-      expect(card).toHaveClass('border-ultra-minimal');
+      expect(card).toHaveClass('rounded-xl');
+      expect(card).toHaveClass('border');
+      expect(card).toHaveClass('bg-white');
     });
 
     it('should render card with all sub-components', () => {
@@ -51,37 +51,39 @@ describe('Card Component - Premium Design', () => {
   });
 
   describe('Premium Design Classes', () => {
-    it('should have glass effect classes', () => {
+    it('should have basic styling classes', () => {
       render(<Card>Glass Card</Card>);
       const card = screen.getByText('Glass Card');
-      expect(card).toHaveClass('bg-white/90');
-      expect(card).toHaveClass('backdrop-blur-sm');
+      expect(card).toHaveClass('bg-white');
+      expect(card).toHaveClass('rounded-xl');
     });
 
-    it('should have shadow depth classes', () => {
+    it('should have shadow classes', () => {
       render(<Card>Shadow Card</Card>);
       const card = screen.getByText('Shadow Card');
-      expect(card).toHaveClass('shadow-depth-2');
-      expect(card).toHaveClass('hover:shadow-depth-3');
+      expect(card).toHaveClass('shadow-sm');
+      expect(card).toHaveClass('hover:shadow-md');
     });
 
     it('should have transition classes', () => {
       render(<Card>Transition Card</Card>);
       const card = screen.getByText('Transition Card');
-      expect(card).toHaveClass('transition-smooth');
+      expect(card).toHaveClass('transition-all');
+      expect(card).toHaveClass('duration-200');
     });
 
     it('should have border classes', () => {
       render(<Card>Border Card</Card>);
       const card = screen.getByText('Border Card');
-      expect(card).toHaveClass('border-ultra-minimal');
-      expect(card).toHaveClass('hover:border-subtle');
+      expect(card).toHaveClass('border');
+      expect(card).toHaveClass('border-gray-200');
+      expect(card).toHaveClass('hover:border-gray-300');
     });
 
-    it('should have focus ring for accessibility', () => {
-      render(<Card tabIndex={0}>Focusable Card</Card>);
-      const card = screen.getByText('Focusable Card');
-      expect(card).toHaveClass('focus-ring-glow');
+    it('should support card-premium class when explicitly provided', () => {
+      render(<Card className="card-premium">Premium Card</Card>);
+      const card = screen.getByText('Premium Card');
+      expect(card).toHaveClass('card-premium');
     });
   });
 

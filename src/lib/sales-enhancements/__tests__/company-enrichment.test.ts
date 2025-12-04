@@ -1,12 +1,29 @@
-import { enrichCompanyClearbit, findContactsClearbit, enrichCompanyMultiSource } from '../company-enrichment';
+// Mock fetch first
+const mockFetchFn = jest.fn();
+global.fetch = mockFetchFn;
 
-// Mock fetch
-global.fetch = jest.fn();
+// Mock api-timeout to delegate to global.fetch
+jest.mock('@/lib/api-timeout', () => ({
+  fetchWithTimeout: jest.fn(async (url: string, options?: any) => {
+    // Delegate to the mocked global.fetch
+    return mockFetchFn(url, options);
+  }),
+  withTimeout: jest.fn((promise: Promise<any>) => promise),
+}));
+
+import { enrichCompanyClearbit, findContactsClearbit, enrichCompanyMultiSource } from '../company-enrichment';
 
 describe('Company Enrichment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.CLEARBIT_API_KEY = 'test-key';
+    // Ensure window is undefined for server-side tests
+    (global as any).window = undefined;
+    // Reset fetch mock
+    mockFetchFn.mockClear();
+    // Reset fetchWithTimeout mock
+    const apiTimeout = require('@/lib/api-timeout');
+    (apiTimeout.fetchWithTimeout as jest.Mock).mockClear();
   });
 
   afterEach(() => {
@@ -199,38 +216,68 @@ describe('Company Enrichment', () => {
     });
 
     it('should fallback to Alpha Vantage when Clearbit fails', async () => {
-      // Mock Clearbit failure
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      });
+      // Set NEXT_PUBLIC_APP_URL for Alpha Vantage fallback
+      process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
+      
+      // Ensure window is undefined for server-side context
+      const originalWindow = (global as any).window;
+      delete (global as any).window;
 
-      // Mock Alpha Vantage search
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          results: [{ symbol: 'ACME', name: 'Acme Corp' }],
-        }),
-      });
+      // Get the mocked fetchWithTimeout
+      const apiTimeout = require('@/lib/api-timeout');
+      const fetchWithTimeoutMock = apiTimeout.fetchWithTimeout as jest.Mock;
 
-      // Mock Alpha Vantage overview
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          overview: {
-            name: 'Acme Corp',
-            description: 'Test company',
-            industry: 'Technology',
-            sector: 'Software',
-            revenue: '50000000',
-          },
-        }),
+      // Clear previous mocks and set up implementation
+      fetchWithTimeoutMock.mockClear();
+      mockFetchFn.mockClear();
+      
+      // Set up mock to handle both calls - override the delegation
+      let callCount = 0;
+      fetchWithTimeoutMock.mockImplementation(async (url: string) => {
+        callCount++;
+        // First call: Alpha Vantage search
+        if (callCount === 1 && url.includes('/api/alphavantage/search')) {
+          return {
+            ok: true,
+            json: async () => ({
+              results: [{ symbol: 'ACME', name: 'Acme Corp' }],
+            }),
+          };
+        }
+        // Second call: Alpha Vantage overview
+        if (callCount === 2 && url.includes('/api/alphavantage/overview')) {
+          return {
+            ok: true,
+            json: async () => ({
+              overview: {
+                name: 'Acme Corp',
+                description: 'Test company',
+                industry: 'Technology',
+                sector: 'Software',
+                revenue: '50000000',
+              },
+            }),
+          };
+        }
+        // Default fallback
+        return {
+          ok: false,
+          status: 404,
+          json: async () => ({}),
+        };
       });
 
       const result = await enrichCompanyMultiSource('Acme Corp');
 
+      // The function should return company data from Alpha Vantage fallback
       expect(result.company).toBeDefined();
       expect(result.company?.name).toBe('Acme Corp');
+      
+      // Restore window
+      if (originalWindow !== undefined) {
+        (global as any).window = originalWindow;
+      }
+      delete process.env.NEXT_PUBLIC_APP_URL;
     });
 
     it('should handle all sources failing', async () => {
@@ -252,4 +299,5 @@ describe('Company Enrichment', () => {
     });
   });
 });
+
 

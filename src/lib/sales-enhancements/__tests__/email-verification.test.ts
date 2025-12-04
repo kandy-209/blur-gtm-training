@@ -130,10 +130,10 @@ describe('Email Verification', () => {
       const result = await verifyEmailHunter('test+tag@acme.com');
 
       expect(result.valid).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(encodeURIComponent('test+tag@acme.com')),
-        expect.any(Object)
-      );
+      // URL already contains encoded version - fetch is called with URL string as first arg
+      expect(global.fetch).toHaveBeenCalled();
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+      expect(fetchCall[0]).toContain('test%2Btag%40acme.com');
     });
   });
 
@@ -191,10 +191,10 @@ describe('Email Verification', () => {
 
       await findEmailHunter("O'Brien", "O'Connell", 'acme.com');
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining(encodeURIComponent("O'Brien")),
-        expect.any(Object)
-      );
+      // URL already contains encoded version via URLSearchParams - fetch is called with URL string as first arg
+      expect(global.fetch).toHaveBeenCalled();
+      const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+      expect(fetchCall[0]).toContain('O%27Brien');
     });
   });
 
@@ -273,4 +273,5 @@ describe('Email Verification', () => {
     });
   });
 });
+
 

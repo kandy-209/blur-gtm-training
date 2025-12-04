@@ -122,7 +122,7 @@ export async function analyzeResponseQuality(
 /**
  * Basic response quality analysis (fallback)
  */
-function analyzeResponseQualityBasic(text: string): ResponseQuality {
+export function analyzeResponseQualityBasic(text: string): ResponseQuality {
   const words = text.toLowerCase().split(/\s+/);
   const wordCount = words.length;
 
@@ -183,4 +183,5 @@ function analyzeResponseQualityBasic(text: string): ResponseQuality {
     suggestions,
   };
 }
+
 

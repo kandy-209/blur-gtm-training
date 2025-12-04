@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sessionManager } from '@/lib/live-session-manager';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+import { getSupabaseClient } from '@/lib/supabase-client';
 
 // Create Supabase client with service role key for server-side operations
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 export async function POST(request: NextRequest) {
   try {

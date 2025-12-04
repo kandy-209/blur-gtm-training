@@ -4,25 +4,25 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "relative inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 overflow-hidden focus-ring-glow",
+  "relative inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "btn-premium text-white",
-        liquid: "btn-liquid-interactive text-white",
+        default: "bg-black text-white hover:bg-gray-900 shadow-sm",
+        liquid: "bg-black text-white hover:bg-gray-900",
         destructive:
-          "bg-red-600 text-white hover:bg-red-700 shadow-sm hover:shadow-md hover:shadow-red-500/20 focus-visible:ring-red-500",
+          "bg-red-600 text-white hover:bg-red-700 shadow-sm",
         outline:
-          "border-2 border-gray-300 bg-white/80 backdrop-blur-sm hover:bg-white hover:border-gray-900 hover:shadow-glow transition-all glass-ultra",
+          "border border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400",
         secondary:
-          "bg-gray-100 text-gray-900 hover:bg-gray-200 shadow-sm hover:shadow-md shadow-depth-1",
-        ghost: "hover:bg-gray-100/80 hover:text-gray-900 backdrop-blur-sm",
-        link: "text-black underline-offset-4 hover:underline",
+          "bg-gray-100 text-gray-900 hover:bg-gray-200",
+        ghost: "hover:bg-gray-100 hover:text-gray-900",
+        link: "text-gray-900 underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-lg px-3 text-xs",
-        lg: "h-11 rounded-xl px-8",
+        sm: "h-9 px-3 text-xs",
+        lg: "h-11 px-8",
         icon: "h-10 w-10",
       },
     },
@@ -42,10 +42,20 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    // Ensure deterministic className generation to prevent hydration mismatches
+    // Always merge in the same order: base classes first, then custom className
+    const baseClasses = buttonVariants({ variant, size })
+    // Use deterministic merging - always pass baseClasses first, then className
+    // Convert to string and normalize to ensure consistency
+    const mergedClasses = className 
+      ? String(cn(baseClasses, className)).trim() 
+      : String(baseClasses).trim()
+    
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={mergedClasses || undefined}
         ref={ref}
+        suppressHydrationWarning={true}
         {...props}
       />
     )

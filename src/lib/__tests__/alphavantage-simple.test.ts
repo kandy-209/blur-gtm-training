@@ -100,9 +100,8 @@ describe('alphavantage-simple', () => {
         json: async () => mockResponse,
       });
 
-      const result = await getQuote('AAPL');
-
-      expect(result).toBeNull();
+      // The function throws an error for rate limits, which should be caught
+      await expect(getQuote('AAPL')).rejects.toThrow('Rate limit exceeded');
     });
 
     it('returns null when Global Quote is missing', async () => {
@@ -137,9 +136,7 @@ describe('alphavantage-simple', () => {
     it('handles network errors', async () => {
       (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await getQuote('AAPL');
-
-      expect(result).toBeNull();
+      await expect(getQuote('AAPL')).rejects.toThrow('Network error');
     });
 
     it('handles non-ok HTTP responses', async () => {
@@ -148,9 +145,7 @@ describe('alphavantage-simple', () => {
         status: 500,
       });
 
-      const result = await getQuote('AAPL');
-
-      expect(result).toBeNull();
+      await expect(getQuote('AAPL')).rejects.toThrow('API error: 500');
     });
 
     it('calculates change and changePercent correctly', async () => {
@@ -244,11 +239,22 @@ describe('alphavantage-simple', () => {
     });
 
     it('returns null when API key is missing', async () => {
-      process.env.ALPHA_VANTAGE_API_KEY = '';
+      // Temporarily delete the API key
+      const originalKey = process.env.ALPHA_VANTAGE_API_KEY;
+      delete process.env.ALPHA_VANTAGE_API_KEY;
       
-      const result = await getCompanyOverview('AAPL');
+      // Re-import the module to pick up the new env var
+      jest.resetModules();
+      const { getCompanyOverview: getCompanyOverviewWithoutKey } = await import('../alphavantage-simple');
+      
+      const result = await getCompanyOverviewWithoutKey('AAPL');
       
       expect(result).toBeNull();
+      expect(global.fetch).not.toHaveBeenCalled();
+      
+      // Restore
+      process.env.ALPHA_VANTAGE_API_KEY = originalKey;
+      jest.resetModules();
     });
 
     it('returns null when API returns error', async () => {
@@ -296,11 +302,22 @@ describe('alphavantage-simple', () => {
     });
 
     it('returns null when API key is missing', async () => {
-      process.env.ALPHA_VANTAGE_API_KEY = '';
+      // Temporarily delete the API key
+      const originalKey = process.env.ALPHA_VANTAGE_API_KEY;
+      delete process.env.ALPHA_VANTAGE_API_KEY;
       
-      const result = await searchSymbol('Apple');
+      // Re-import the module to pick up the new env var
+      jest.resetModules();
+      const { searchSymbol: searchSymbolWithoutKey } = await import('../alphavantage-simple');
+      
+      const result = await searchSymbolWithoutKey('Apple');
       
       expect(result).toBeNull();
+      expect(global.fetch).not.toHaveBeenCalled();
+      
+      // Restore
+      process.env.ALPHA_VANTAGE_API_KEY = originalKey;
+      jest.resetModules();
     });
 
     it('returns null when API returns error', async () => {

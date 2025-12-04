@@ -1,4 +1,55 @@
 import { POST } from '@/app/api/roleplay/route'
+import { NextRequest } from 'next/server'
+
+// Mock dependencies
+jest.mock('@/lib/db', () => ({
+  db: {
+    roleplayTurn: {
+      create: jest.fn().mockResolvedValue({ id: 'turn_123' }),
+    },
+  },
+}));
+
+jest.mock('@/lib/error-handler', () => ({
+  handleError: jest.fn((error) => {
+    return {
+      json: () => Promise.resolve({ error: error.message }),
+      status: 500,
+    };
+  }),
+  withErrorHandler: jest.fn((fn) => {
+    return async (...args: any[]) => {
+      try {
+        return await fn(...args);
+      } catch (error: any) {
+        return {
+          json: () => Promise.resolve({ error: error.message }),
+          status: 500,
+        };
+      }
+    };
+  }),
+  generateRequestId: jest.fn(() => 'req_123'),
+}));
+
+jest.mock('@/lib/logger', () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/metrics', () => ({
+  recordApiCall: jest.fn(),
+  roleplayTurnsTotal: {
+    inc: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/sentry', () => ({
+  captureException: jest.fn(),
+}));
 
 // Mock AI providers
 jest.mock('@/lib/ai-providers', () => {
@@ -18,23 +69,6 @@ jest.mock('@/lib/ai-providers', () => {
     HuggingFaceProvider: jest.fn().mockImplementation(() => mockProvider),
   };
 })
-
-// Mock NextRequest
-class MockNextRequest {
-  public headers: Headers
-  constructor(public url: string, public init?: RequestInit) {
-    this.headers = new Headers(init?.headers)
-  }
-  async json() {
-    return JSON.parse(this.init?.body as string || '{}')
-  }
-  async text() {
-    return this.init?.body as string || ''
-  }
-  get ip() {
-    return '127.0.0.1'
-  }
-}
 
 describe('/api/roleplay', () => {
   beforeEach(() => {
@@ -62,11 +96,11 @@ describe('/api/roleplay', () => {
       conversationHistory: [],
     }
 
-    const request = new MockNextRequest('http://localhost/api/roleplay', {
+    const request = new NextRequest('http://localhost/api/roleplay', {
       method: 'POST',
       body: JSON.stringify(requestBody),
       headers: { 'Content-Type': 'application/json' },
-    }) as any
+    })
 
     const response = await POST(request)
     const data = await response.json()
@@ -81,12 +115,11 @@ describe('/api/roleplay', () => {
   it('should return error when no AI provider is configured', async () => {
     delete process.env.HUGGINGFACE_API_KEY
     delete process.env.OPENAI_API_KEY
+    delete process.env.ANTHROPIC_API_KEY
     delete process.env.AI_PROVIDER
 
     const { getAIProvider } = require('@/lib/ai-providers');
-    getAIProvider.mockImplementation(() => {
-      throw new Error('No AI provider available');
-    });
+    getAIProvider.mockReturnValueOnce(null); // Return null when no provider available
 
     const requestBody = {
       scenarioInput: {
@@ -105,13 +138,14 @@ describe('/api/roleplay', () => {
       conversationHistory: [],
     }
 
-    const request = new MockNextRequest('http://localhost/api/roleplay', {
+    const request = new NextRequest('http://localhost/api/roleplay', {
       method: 'POST',
       body: JSON.stringify(requestBody),
       headers: { 'Content-Type': 'application/json' },
-    }) as any
+    })
 
     const response = await POST(request)
+    expect(response).toBeDefined();
     const data = await response.json()
 
     expect(response.status).toBe(500)
@@ -119,11 +153,11 @@ describe('/api/roleplay', () => {
   })
 
   it('should handle invalid request body', async () => {
-    const request = new MockNextRequest('http://localhost/api/roleplay', {
+    const request = new NextRequest('http://localhost/api/roleplay', {
       method: 'POST',
       body: JSON.stringify({ invalid: 'data' }),
       headers: { 'Content-Type': 'application/json' },
-    }) as any
+    })
 
     const response = await POST(request)
     // Should return 400 for validation errors (improved security)

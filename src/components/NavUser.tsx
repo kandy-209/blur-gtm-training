@@ -13,8 +13,13 @@ export default function NavUser() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/auth');
+    try {
+      await signOut();
+      router.push('/auth');
+    } catch (error) {
+      // Handle error gracefully - still redirect to auth
+      router.push('/auth');
+    }
   };
 
   const navLinks = [
@@ -31,7 +36,7 @@ export default function NavUser() {
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center space-x-1">
         {navLinks.map((link) => (
-          <Link key={link.href} href={link.href}>
+          <Link key={link.href} href={link.href} suppressHydrationWarning>
             <Button variant="ghost" className="text-sm font-medium">{link.label}</Button>
           </Link>
         ))}
@@ -53,11 +58,11 @@ export default function NavUser() {
             </Button>
           </>
         ) : (
-          <Link href="/auth">
+          <Link href="/auth" suppressHydrationWarning>
             <Button variant="ghost" className="text-sm font-medium">Sign In</Button>
           </Link>
         )}
-        <Link href="/scenario-builder">
+        <Link href="/scenario-builder" suppressHydrationWarning>
           <Button variant="ghost" className="text-sm font-medium">Scenario Builder</Button>
         </Link>
       </div>

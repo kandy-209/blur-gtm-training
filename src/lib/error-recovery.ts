@@ -71,13 +71,15 @@ export async function retryWithBackoff<T>(
 }
 
 export function isRetryableError(error: Error): boolean {
+  const lowerMessage = error.message.toLowerCase();
+  
   // Network errors are retryable
-  if (error.message.includes('network') || error.message.includes('fetch')) {
+  if (lowerMessage.includes('network') || lowerMessage.includes('fetch')) {
     return true;
   }
 
   // Timeout errors are retryable
-  if (error.message.includes('timeout') || error.message.includes('timed out')) {
+  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
     return true;
   }
 
@@ -87,7 +89,7 @@ export function isRetryableError(error: Error): boolean {
   }
 
   // Rate limit errors are retryable (with backoff)
-  if (error.message.includes('429') || error.message.includes('rate limit')) {
+  if (error.message.includes('429') || lowerMessage.includes('rate limit')) {
     return true;
   }
 

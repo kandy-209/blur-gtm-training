@@ -107,3 +107,4 @@ async function checkExternalAPIs(): Promise<boolean> {
   return checks.some(check => check);
 }
 
+

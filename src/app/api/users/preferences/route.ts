@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput } from '@/lib/security';
 import { retryWithBackoff } from '@/lib/error-recovery';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -136,7 +131,7 @@ export async function PUT(request: NextRequest) {
           .single();
 
         if (error) throw error;
-        return { data, error: null };
+        return data!; // Return data directly, not wrapped in object
       },
       {
         maxRetries: 2,
@@ -144,7 +139,7 @@ export async function PUT(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to update preferences');
     }
 
