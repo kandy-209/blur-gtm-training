@@ -1,0 +1,26 @@
+{
+  "name": "Cursor Enterprise GTM Training Platform",
+  "short_name": "Cursor GTM",
+  "description": "Master Enterprise sales with AI-powered role-play training",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "business"],
+  "lang": "en-US",
+  "dir": "ltr"
+}
+

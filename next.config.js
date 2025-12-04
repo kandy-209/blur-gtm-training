@@ -24,7 +24,14 @@ const nextConfig = {
     optimizeCss: true,
     // Enable partial prerendering for better LCP
     ppr: false, // Set to true when stable
+    // Optimize server components
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
+  
+  // Turbopack configuration (for dev mode)
+  turbopack: {},
   
   // Compiler optimizations
   compiler: {

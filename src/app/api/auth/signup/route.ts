@@ -7,16 +7,17 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limiting
     const rateLimitResult = rateLimit(request, { maxRequests: 5, windowMs: 60000 }); // 5 signups per minute
-    if (!rateLimitResult?.allowed) {
+    if (!rateLimitResult?.allowed && rateLimitResult) {
+      const retryAfter = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
       return NextResponse.json(
         { 
           error: 'Too many signup attempts. Please try again later.',
-          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+          retryAfter
         },
         { 
           status: 429,
           headers: {
-            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+            'Retry-After': retryAfter.toString(),
             'X-RateLimit-Limit': '5',
             'X-RateLimit-Remaining': '0',
             'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
@@ -134,8 +135,8 @@ export async function POST(request: NextRequest) {
     }, {
       headers: {
         'X-RateLimit-Limit': '5',
-        'X-RateLimit-Remaining': (rateLimitResult.remaining - 1).toString(),
-        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+        'X-RateLimit-Remaining': rateLimitResult ? (rateLimitResult.remaining - 1).toString() : '4',
+        'X-RateLimit-Reset': rateLimitResult ? rateLimitResult.resetTime.toString() : Date.now().toString(),
       }
     });
   } catch (error: any) {

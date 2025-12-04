@@ -112,22 +112,27 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
         <meta name="theme-color" content="#000000" />
+        <meta name="color-scheme" content="light dark" />
+        <meta name="format-detection" content="telephone=no" />
         <link rel="canonical" href={siteUrl} />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
         
-        {/* Preconnect to external domains for better performance */}
+        {/* Preconnect to external domains for better performance - Critical */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://api.elevenlabs.io" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
         
-        {/* Preload critical resources */}
-        <link rel="preload" href="/logos/cursor-logo.svg" as="image" type="image/svg+xml" />
+        {/* Preload critical resources - Above the fold */}
+        <link rel="preload" href="/logos/cursor-logo.svg" as="image" type="image/svg+xml" fetchPriority="high" />
         
-        {/* Font display optimization - prevents preload warnings by using swap */}
+        {/* Font display optimization - prevents layout shift */}
         <style dangerouslySetInnerHTML={{
           __html: `
             @font-face {
@@ -137,6 +142,7 @@ export default function RootLayout({
               descent-override: 22%;
               line-gap-override: 0%;
               size-adjust: 107%;
+              font-display: swap;
             }
             @font-face {
               font-family: '__GeistMono_Fallback';
@@ -145,13 +151,20 @@ export default function RootLayout({
               descent-override: 22%;
               line-gap-override: 0%;
               size-adjust: 107%;
+              font-display: swap;
             }
+            /* Prevent layout shift */
+            html { font-family: '__GeistSans_Fallback', system-ui, -apple-system, sans-serif; }
+            /* Critical CSS inline for faster FCP */
+            body { margin: 0; padding: 0; }
+            #main-content { min-height: 100vh; }
           `
         }} />
         
-        {/* Resource hints for faster loading */}
-        <link rel="prefetch" href="/scenarios" />
-        <link rel="prefetch" href="/sales-skills" />
+        {/* Resource hints for faster loading - Prefetch below fold */}
+        <link rel="prefetch" href="/scenarios" as="document" />
+        <link rel="prefetch" href="/sales-skills" as="document" />
+        <link rel="prefetch" href="/analytics" as="document" />
         {/* Structured Data - Organization */}
         <script
           type="application/ld+json"
@@ -206,6 +219,39 @@ export default function RootLayout({
                 ratingValue: '4.8',
                 ratingCount: '150',
               },
+              featureList: [
+                'AI-Powered Role-Play Training',
+                'Real-time Feedback',
+                'Analytics Dashboard',
+                'Multiple Scenarios',
+                'Enterprise Sales Focus',
+              ],
+            }),
+          }}
+        />
+        {/* Structured Data - Course */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Course',
+              name: 'Cursor Enterprise GTM Sales Training',
+              description: siteDescription,
+              provider: {
+                '@type': 'Organization',
+                name: 'Cursor',
+                url: 'https://cursor.com',
+              },
+              courseCode: 'CURSOR-GTM-101',
+              educationalLevel: 'Professional',
+              teaches: [
+                'Enterprise Sales Positioning',
+                'Objection Handling',
+                'Go-to-Market Strategy',
+                'B2B Sales Techniques',
+                'AI-Assisted Sales Training',
+              ],
             }),
           }}
         />
@@ -274,15 +320,17 @@ export default function RootLayout({
             <div className="flex h-16 items-center justify-between relative">
               <Link href="/" className="flex items-center space-x-2 group flex-shrink-0 min-w-0">
                 <div className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 p-1.5 sm:p-2 flex-shrink-0 shadow-glow hover:shadow-glow-lg hover:scale-105 gloss-overlay">
-                  {/* Cursor Logo */}
+                  {/* Cursor Logo - Optimized for LCP */}
                   <img
                     src="/logos/cursor-logo.svg"
-                    alt="Cursor Logo"
+                    alt="Cursor Enterprise GTM Training Platform Logo"
                     className="h-5 w-5 sm:h-6 sm:w-6 object-contain max-w-full max-h-full relative z-10"
                     width={24}
                     height={24}
                     loading="eager"
                     decoding="async"
+                    fetchPriority="high"
+                    aria-hidden="false"
                   />
                 </div>
                 <span className="text-base sm:text-lg lg:text-xl font-semibold tracking-tight hidden sm:inline truncate text-gradient">Cursor Enterprise GTM</span>

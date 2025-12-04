@@ -20,8 +20,40 @@ import {
   Search
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useEffect } from 'react';
 
 export default function HomePage() {
+  // Add structured data for homepage
+  useEffect(() => {
+    const structuredData = {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: 'Cursor Enterprise GTM Training Platform',
+      description: 'Master Enterprise sales with AI-powered role-play training',
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: scenarios.length,
+        itemListElement: scenarios.slice(0, 6).map((scenario, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'Course',
+            name: scenario.persona.name,
+            description: scenario.objection_statement,
+          },
+        })),
+      },
+    };
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-liquid bg-liquid-pattern relative overflow-hidden">
