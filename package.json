@@ -23,6 +23,7 @@
     "test:all-enhanced": "jest --testPathPattern='workflows|edge-cases|security|stress|chaos|comprehensive' --no-coverage --verbose",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "test:windows": "powershell -ExecutionPolicy Bypass -File scripts/run-tests.ps1",
+    "test:cache": "powershell -ExecutionPolicy Bypass -File scripts/run-all-cache-tests.ps1",
     "test:debug": "node --inspect-brk node_modules/.bin/jest",
     "test:domain": "jest src/__tests__/domain",
     "test:agents": "jest src/__tests__/infrastructure/agents",

@@ -1,26 +1,104 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
-import { sanitizeInput } from '@/lib/security';
+import {
+  parseJsonBody,
+  validateRequestBody,
+  validateString,
+  validateNumber,
+  validateEmail,
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api-validation';
+
+const FEEDBACK_TYPES = ['general', 'bug', 'feature', 'improvement', 'other'] as const;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { type, subject, message, rating, userId, email } = body;
+    // Parse and validate JSON body
+    const bodyResult = await parseJsonBody(request);
+    if (!bodyResult.success) {
+      return bodyResult.error;
+    }
+
+    const { type, subject, message, rating, userId, email } = bodyResult.data;
 
     // Validate required fields
-    if (!type || !subject || !message) {
-      return NextResponse.json(
-        { error: 'Type, subject, and message are required' },
-        { status: 400 }
+    const validation = validateRequestBody(
+      bodyResult.data,
+      ['type', 'subject', 'message'],
+      {
+        type: (value) => FEEDBACK_TYPES.includes(value as any),
+        subject: (value) => typeof value === 'string' && value.trim().length > 0,
+        message: (value) => typeof value === 'string' && value.trim().length > 0,
+      }
+    );
+
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Validation failed',
+        400,
+        { errors: validation.errors }
       );
     }
 
-    // Sanitize inputs
-    const sanitizedType = sanitizeInput(type, 50);
-    const sanitizedSubject = sanitizeInput(subject, 200);
-    const sanitizedMessage = sanitizeInput(message, 5000);
-    const sanitizedUserId = userId ? sanitizeInput(userId, 100) : 'anonymous';
-    const sanitizedEmail = email ? sanitizeInput(email, 200) : 'anonymous';
+    // Validate and sanitize individual fields
+    const typeValidation = validateString(type, {
+      maxLength: 50,
+      required: true,
+      pattern: new RegExp(`^(${FEEDBACK_TYPES.join('|')})$`),
+    });
+    if (!typeValidation.valid) {
+      return createErrorResponse(typeValidation.error || 'Invalid feedback type', 400);
+    }
+
+    const subjectValidation = validateString(subject, {
+      minLength: 3,
+      maxLength: 200,
+      required: true,
+    });
+    if (!subjectValidation.valid) {
+      return createErrorResponse(subjectValidation.error || 'Invalid subject', 400);
+    }
+
+    const messageValidation = validateString(message, {
+      minLength: 10,
+      maxLength: 5000,
+      required: true,
+    });
+    if (!messageValidation.valid) {
+      return createErrorResponse(messageValidation.error || 'Invalid message', 400);
+    }
+
+    // Validate optional fields
+    const ratingValidation = rating !== undefined
+      ? validateNumber(rating, { min: 0, max: 5, integer: true })
+      : { valid: true, sanitized: 0 };
+    if (!ratingValidation.valid) {
+      return createErrorResponse(ratingValidation.error || 'Invalid rating', 400);
+    }
+
+    const userIdValidation = userId
+      ? validateString(userId, { maxLength: 100 })
+      : { valid: true, sanitized: 'anonymous' };
+    if (!userIdValidation.valid) {
+      return createErrorResponse(userIdValidation.error || 'Invalid user ID', 400);
+    }
+
+    const emailValidation = email
+      ? (validateEmail(email)
+          ? validateString(email, { maxLength: 200 })
+          : { valid: false, error: 'Invalid email format' })
+      : { valid: true, sanitized: 'anonymous' };
+    if (!emailValidation.valid) {
+      return createErrorResponse(emailValidation.error || 'Invalid email', 400);
+    }
+
+    const sanitizedType = typeValidation.sanitized!;
+    const sanitizedSubject = subjectValidation.sanitized!;
+    const sanitizedMessage = messageValidation.sanitized!;
+    const sanitizedRating = ratingValidation.sanitized || 0;
+    const sanitizedUserId = userIdValidation.sanitized || 'anonymous';
+    const sanitizedEmail = emailValidation.sanitized || 'anonymous';
 
     // Store feedback in database
     try {
@@ -28,49 +106,48 @@ export async function POST(request: NextRequest) {
         type: sanitizedType,
         subject: sanitizedSubject,
         message: sanitizedMessage,
-        rating: typeof rating === 'number' ? Math.max(0, Math.min(5, rating)) : 0,
+        rating: sanitizedRating,
         userId: sanitizedUserId,
         email: sanitizedEmail,
       });
 
-      return NextResponse.json({ 
-        success: true,
-        message: 'Feedback submitted successfully',
-        feedbackId: savedFeedback.id
-      });
+      return createSuccessResponse(
+        { feedbackId: savedFeedback.id },
+        'Feedback submitted successfully'
+      );
     } catch (dbError) {
-      // Log error but still return success to user
+      // Log error but still return success to user (graceful degradation)
       console.error('Error saving feedback to database:', dbError);
+      
       // Fallback: log feedback if database save fails
       console.log('Feedback received (fallback logging):', {
         type: sanitizedType,
         subject: sanitizedSubject,
         message: sanitizedMessage,
-        rating: rating || 0,
+        rating: sanitizedRating,
         userId: sanitizedUserId,
         email: sanitizedEmail,
         timestamp: new Date().toISOString(),
       });
       
-      return NextResponse.json({ 
-        success: true,
-        message: 'Feedback submitted successfully (logged)'
-      });
+      // Return success even if DB save fails (feedback is logged)
+      return createSuccessResponse(
+        { logged: true },
+        'Feedback received successfully (logged)'
+      );
     }
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'Feedback submitted successfully' 
-    });
   } catch (error) {
     console.error('Feedback submission error:', error);
-    return NextResponse.json(
-      { error: 'Failed to submit feedback' },
-      { status: 500 }
+    return createErrorResponse(
+      'Failed to submit feedback. Please try again.',
+      500
     );
   }
 }
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 288bc55f0728dc2db03e8187ac5752935d73a562

@@ -90,9 +90,9 @@ export function DiscoveryCall({ callId, companyId, personaId }: DiscoveryCallPro
   };
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-screen p-6">
+    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 sm:gap-6 min-h-screen p-3 sm:p-4 md:p-6">
       {/* Main conversation */}
-      <div className="col-span-8 flex flex-col">
+      <div className="lg:col-span-8 flex flex-col w-full">
         {/* Metrics display */}
         <Card className="p-4 mb-4">
           <div className="flex items-center justify-between">
@@ -128,7 +128,7 @@ export function DiscoveryCall({ callId, companyId, personaId }: DiscoveryCallPro
                   className={`flex ${msg.role === 'rep' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-lg p-3 ${
+                    className={`max-w-[85%] sm:max-w-[75%] lg:max-w-[70%] rounded-lg p-3 sm:p-4 ${
                       msg.role === 'rep'
                         ? 'bg-blue-500 text-white'
                         : 'bg-gray-200 text-gray-900'
@@ -153,7 +153,7 @@ export function DiscoveryCall({ callId, companyId, personaId }: DiscoveryCallPro
         </Card>
 
         {/* Input */}
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -165,32 +165,36 @@ export function DiscoveryCall({ callId, companyId, personaId }: DiscoveryCallPro
             }}
             placeholder="Type your message..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 min-w-0"
           />
-          <Button
-            onClick={toggleRecording}
-            variant={isRecording ? 'destructive' : 'outline'}
-            size="icon"
-          >
-            {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button
-            onClick={sendMessage}
-            disabled={!input.trim() || isLoading}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            Send
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={toggleRecording}
+              variant={isRecording ? 'destructive' : 'outline'}
+              size="icon"
+              className="flex-shrink-0"
+            >
+              {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className="flex-shrink-0"
+            >
+              <Send className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Send</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Sidebar */}
-      <aside className="col-span-4">
+      <aside className="lg:col-span-4 w-full lg:w-auto">
         <Tabs defaultValue="context" className="h-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="context">Context</TabsTrigger>
-            <TabsTrigger value="metrics">Metrics</TabsTrigger>
-            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+            <TabsTrigger value="context" className="text-xs sm:text-sm">Context</TabsTrigger>
+            <TabsTrigger value="metrics" className="text-xs sm:text-sm">Metrics</TabsTrigger>
+            <TabsTrigger value="feedback" className="text-xs sm:text-sm">Feedback</TabsTrigger>
           </TabsList>
           <TabsContent value="context" className="mt-4">
             <Card className="p-4">

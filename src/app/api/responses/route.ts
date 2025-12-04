@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sanitizeInput } from '@/lib/security';
+import { parseJsonBody, validateRequestBody, createErrorResponse, createSuccessResponse, validateString, validateNumber } from '@/lib/api-validation';
 
 export async function POST(request: NextRequest) {
   try {
-    const contentType = request.headers?.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      return NextResponse.json(
-        { error: 'Content-Type must be application/json' },
-        { status: 400 }
-      );
+    // Parse and validate JSON body
+    const bodyResult = await parseJsonBody(request);
+    if (!bodyResult.success) {
+      return bodyResult.error;
     }
 
-    const body = await request.json();
+    const body = bodyResult.data;
     const {
       userId,
       scenarioId,
@@ -26,48 +25,72 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!userId || !scenarioId || !userMessage || !evaluation) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+    const validation = validateRequestBody(
+      body,
+      ['userId', 'scenarioId', 'userMessage', 'evaluation'],
+      {
+        userId: (v) => validateString(v, { minLength: 1, maxLength: 100, required: true }).valid,
+        scenarioId: (v) => validateString(v, { minLength: 1, maxLength: 100, required: true }).valid,
+        userMessage: (v) => validateString(v, { minLength: 1, maxLength: 5000, required: true }).valid,
+        evaluation: (v) => ['PASS', 'FAIL', 'REJECT'].includes(v),
+      }
+    );
+
+    if (!validation.valid) {
+      return createErrorResponse(
+        'Validation failed',
+        400,
+        { errors: validation.errors }
       );
+    }
+
+    // Validate optional fields
+    const turnNumberResult = validateNumber(turnNumber, { min: 1, max: 1000, integer: true });
+    const confidenceScoreResult = validateNumber(confidenceScore, { min: 0, max: 100 });
+
+    // Validate keyPointsMentioned array
+    let sanitizedKeyPoints: string[] = [];
+    if (keyPointsMentioned) {
+      if (!Array.isArray(keyPointsMentioned)) {
+        return createErrorResponse('keyPointsMentioned must be an array', 400);
+      }
+      sanitizedKeyPoints = keyPointsMentioned
+        .filter((kp): kp is string => typeof kp === 'string')
+        .map((kp) => sanitizeInput(kp, 200))
+        .filter((kp) => kp.length > 0);
     }
 
     // Sanitize inputs
     const response = await db.saveUserResponse({
       userId: sanitizeInput(userId, 100),
       scenarioId: sanitizeInput(scenarioId, 100),
-      turnNumber: typeof turnNumber === 'number' ? turnNumber : 1,
-      objectionCategory: sanitizeInput(objectionCategory || '', 100),
+      turnNumber: turnNumberResult.sanitized || 1,
+      objectionCategory: objectionCategory ? sanitizeInput(objectionCategory, 100) : '',
       userMessage: sanitizeInput(userMessage, 5000),
-      aiResponse: sanitizeInput(aiResponse || '', 10000),
+      aiResponse: aiResponse ? sanitizeInput(aiResponse, 10000) : '',
       evaluation: evaluation as 'PASS' | 'FAIL' | 'REJECT',
-      confidenceScore: typeof confidenceScore === 'number' 
-        ? Math.max(50, Math.min(100, confidenceScore)) 
-        : 50,
-      keyPointsMentioned: Array.isArray(keyPointsMentioned)
-        ? keyPointsMentioned.map((kp: string) => sanitizeInput(kp, 200))
-        : [],
+      confidenceScore: confidenceScoreResult.sanitized || 50,
+      keyPointsMentioned: sanitizedKeyPoints,
     });
 
     // Extract technical questions asynchronously
     db.extractTechnicalQuestions(response.id).catch(console.error);
 
-    return NextResponse.json({ success: true, response });
+    return createSuccessResponse(response, 'Response saved successfully');
   } catch (error: any) {
     console.error('Save response error:', error);
     
     // Provide more specific error messages
     if (error?.message?.includes('validation') || error?.message?.includes('invalid')) {
-      return NextResponse.json(
-        { error: 'Invalid input data. Please check your request and try again.' },
-        { status: 400 }
+      return createErrorResponse(
+        'Invalid input data. Please check your request and try again.',
+        400
       );
     }
     
-    return NextResponse.json(
-      { error: 'Failed to save response. Please try again later.' },
-      { status: 500 }
+    return createErrorResponse(
+      'Failed to save response. Please try again later.',
+      500
     );
   }
 }
