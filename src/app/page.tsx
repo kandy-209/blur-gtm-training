@@ -24,14 +24,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function HomePage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50/50 relative overflow-hidden">
-        {/* Subtle background pattern */}
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" 
-             style={{
-               backgroundImage: `radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)`,
-               backgroundSize: '24px 24px'
-             }}
-        />
+      <div className="min-h-screen bg-liquid bg-liquid-pattern relative overflow-hidden">
         
         {/* Hero Section - Enhanced Premium Design */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 relative z-10">

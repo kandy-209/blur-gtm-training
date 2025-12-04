@@ -11,7 +11,7 @@ const liquidButtonVariants = cva(
         default: "btn-premium text-white",
         outline: "border-2 border-gray-300 bg-white/80 backdrop-blur-sm text-gray-900 hover:bg-white hover:border-gray-900 hover:shadow-glow",
         ghost: "bg-transparent text-gray-900 hover:bg-gray-100/50",
-        liquid: "liquid-gradient text-white shadow-liquid",
+        liquid: "liquid-gradient text-white shadow-liquid hover:shadow-lg transition-all duration-200",
         glass: "glass text-gray-900 hover:glass-strong",
       },
       size: {
