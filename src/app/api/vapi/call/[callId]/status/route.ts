@@ -9,10 +9,10 @@ const VAPI_API_KEY = process.env.VAPI_API_KEY || '';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { callId: string } }
+  { params }: { params: Promise<{ callId: string }> }
 ) {
   try {
-    const { callId } = params;
+    const { callId } = await params;
 
     if (!callId) {
       return NextResponse.json(

@@ -38,9 +38,7 @@ if (SENTRY_DSN) {
       return event;
     },
     integrations: [
-      new Sentry.BrowserTracing({
-        tracePropagationTargets: ['localhost', /^https:\/\/.*\.vercel\.app/],
-      }),
+      // BrowserTracing is automatically included in @sentry/nextjs
     ],
   });
 }
