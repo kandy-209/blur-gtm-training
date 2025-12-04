@@ -1,13 +1,28 @@
 import { safeDate } from './date-utils';
 
 export interface TrainingEvent {
-  eventType: 'scenario_start' | 'scenario_complete' | 'turn_submit' | 'feedback_view' | 'module_complete' | 'live_match_found' | 'live_message_sent' | 'live_voice_enabled' | 'live_session_ended';
+  eventType: 'scenario_start' | 'scenario_complete' | 'turn_submit' | 'feedback_view' | 'module_complete' | 'live_match_found' | 'live_message_sent' | 'live_voice_enabled' | 'live_session_ended' | 'call_started' | 'call_completed' | 'call_analysis_ready';
   userId?: string;
   scenarioId?: string;
   turnNumber?: number;
   score?: number;
   timestamp: Date;
   metadata?: Record<string, any>;
+}
+
+export interface CallTrainingMetrics {
+  callId: string;
+  duration: number;
+  talkTime: number;
+  listenTime: number;
+  interruptions: number;
+  objectionsRaised: number;
+  objectionsResolved: number;
+  meetingBooked: boolean;
+  saleClosed: boolean;
+  energyLevel: number;
+  confidenceScore: number;
+  overallScore?: number;
 }
 
 class Analytics {
@@ -92,6 +107,19 @@ class Analytics {
                 duration: event.metadata?.duration,
                 rating: event.metadata?.rating,
               });
+              break;
+            case 'call_started':
+            case 'call_completed':
+            case 'call_analysis_ready':
+              // Track call training events
+              if (typeof window !== 'undefined' && (window as any).va) {
+                (window as any).va('track', `call_${event.eventType}`, {
+                  callId: event.metadata?.callId,
+                  scenarioId: event.scenarioId,
+                  duration: event.metadata?.duration,
+                  score: event.metadata?.overallScore || event.score,
+                });
+              }
               break;
           }
         } catch (error) {
