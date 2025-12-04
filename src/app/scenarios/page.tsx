@@ -278,10 +278,13 @@ function ScenariosPage() {
                   className="hover-lift border-gray-200 transition-smooth group relative overflow-hidden"
                 >
                   {/* Category Badge */}
-                  <div className={`absolute top-4 right-4 ${categoryColor} px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1`}>
+                  <Badge 
+                    className={`absolute top-4 right-4 ${categoryColor} px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 z-10`}
+                    variant="outline"
+                  >
                     <CategoryIcon className="h-3 w-3" />
                     {scenario.objection_category.replace(/_/g, ' ')}
-                  </div>
+                  </Badge>
 
                   <CardHeader className="pb-4 pt-6">
                     <CardTitle className="text-lg font-semibold mb-2 pr-20">
