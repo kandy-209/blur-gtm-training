@@ -42,7 +42,11 @@ export async function signUp(data: SignUpData) {
         username,
         full_name: fullName,
         role: isCursorEmail ? 'admin' : 'user', // Set admin role for @cursor.com emails
+        role_at_cursor: roleAtCursor,
+        job_title: jobTitle,
+        department: department || null,
       },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
     },
   });
 
@@ -54,31 +58,95 @@ export async function signUp(data: SignUpData) {
     throw new Error('Failed to create user');
   }
 
-  // Create user profile
-  // Note: Profile creation might fail due to RLS policies, but we'll try anyway
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .insert({
-      id: authData.user.id,
-      email,
-      username,
-      full_name: fullName,
-      role_at_cursor: roleAtCursor,
-      job_title: jobTitle,
-      department,
-    });
+  // Profile creation is now handled by database trigger (handle_new_user)
+  // But we'll still try to create it manually with retry logic for robustness
+  let profileCreated = false;
+  let attempts = 0;
+  const maxAttempts = 3;
 
-  if (profileError) {
-    // Log error but don't fail signup - profile can be created later via database trigger or manually
-    console.error('Profile creation error (non-blocking):', profileError);
-    // Check if it's a duplicate key error (profile might already exist)
-    if (profileError.code === '23505') {
-      console.log('Profile already exists, continuing...');
+  while (!profileCreated && attempts < maxAttempts) {
+    attempts++;
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .insert({
+        id: authData.user.id,
+        email,
+        username,
+        full_name: fullName || null,
+        role_at_cursor: roleAtCursor,
+        job_title: jobTitle,
+        department: department || null,
+        onboarding_completed: false,
+        last_active_at: new Date().toISOString(),
+      });
+
+    if (!profileError) {
+      profileCreated = true;
+    } else if (profileError.code === '23505') {
+      // Profile already exists (likely created by trigger)
+      profileCreated = true;
+      console.log('Profile already exists (likely created by trigger)');
+    } else if (attempts < maxAttempts) {
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
     } else {
-      // For other errors (like RLS policy violations), log but continue
-      // The user can still sign in, and profile can be created later
-      console.warn('Profile creation failed but user signup succeeded:', profileError.message);
+      // Final attempt failed - log but don't fail signup
+      console.warn('Profile creation failed after retries, but user signup succeeded:', profileError.message);
+      console.warn('Profile will be created by database trigger or can be created manually');
     }
+  }
+
+  // Create default preferences (with retry)
+  attempts = 0;
+  while (attempts < maxAttempts) {
+    attempts++;
+    const { error: prefsError } = await supabase
+      .from('user_preferences')
+      .insert({
+        user_id: authData.user.id,
+      });
+
+    if (!prefsError || prefsError.code === '23505') {
+      break; // Success or already exists
+    } else if (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+    }
+  }
+
+  // Create default stats (with retry)
+  attempts = 0;
+  while (attempts < maxAttempts) {
+    attempts++;
+    const { error: statsError } = await supabase
+      .from('user_stats')
+      .insert({
+        user_id: authData.user.id,
+      });
+
+    if (!statsError || statsError.code === '23505') {
+      break; // Success or already exists
+    } else if (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+    }
+  }
+
+  // Log signup activity
+  try {
+    await supabase
+      .from('user_activity')
+      .insert({
+        user_id: authData.user.id,
+        activity_type: 'signup',
+        activity_data: {
+          email,
+          username,
+          role_at_cursor: roleAtCursor,
+          job_title: jobTitle,
+        },
+      });
+  } catch (error) {
+    // Non-blocking - activity logging failure shouldn't break signup
+    console.warn('Failed to log signup activity:', error);
   }
 
   return authData;
@@ -149,28 +217,61 @@ export async function updateUserProfile(userId: string, updates: Partial<{
   department: string;
   bio: string;
   avatarUrl: string;
+  onboardingCompleted?: boolean;
+  onboardingData?: Record<string, any>;
+  skillLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  timezone?: string;
+  locale?: string;
+  metadata?: Record<string, any>;
 }>) {
   if (!supabase) {
     throw new Error('Supabase is not configured');
   }
+
+  // Build update object with only provided fields
+  const updateData: any = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (updates.username !== undefined) updateData.username = updates.username;
+  if (updates.fullName !== undefined) updateData.full_name = updates.fullName;
+  if (updates.roleAtCursor !== undefined) updateData.role_at_cursor = updates.roleAtCursor;
+  if (updates.jobTitle !== undefined) updateData.job_title = updates.jobTitle;
+  if (updates.department !== undefined) updateData.department = updates.department;
+  if (updates.bio !== undefined) updateData.bio = updates.bio;
+  if (updates.avatarUrl !== undefined) updateData.avatar_url = updates.avatarUrl;
+  if (updates.onboardingCompleted !== undefined) updateData.onboarding_completed = updates.onboardingCompleted;
+  if (updates.onboardingData !== undefined) updateData.onboarding_data = updates.onboardingData;
+  if (updates.skillLevel !== undefined) updateData.skill_level = updates.skillLevel;
+  if (updates.timezone !== undefined) updateData.timezone = updates.timezone;
+  if (updates.locale !== undefined) updateData.locale = updates.locale;
+  if (updates.metadata !== undefined) updateData.metadata = updates.metadata;
+
   const { data, error } = await supabase
     .from('user_profiles')
-    .update({
-      username: updates.username,
-      full_name: updates.fullName,
-      role_at_cursor: updates.roleAtCursor,
-      job_title: updates.jobTitle,
-      department: updates.department,
-      bio: updates.bio,
-      avatar_url: updates.avatarUrl,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq('id', userId)
     .select()
     .single();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  // Log profile update activity
+  try {
+    await supabase
+      .from('user_activity')
+      .insert({
+        user_id: userId,
+        activity_type: 'profile_update',
+        activity_data: {
+          updated_fields: Object.keys(updates),
+        },
+      });
+  } catch (activityError) {
+    // Non-blocking - activity logging failure shouldn't break profile update
+    console.warn('Failed to log profile update activity:', activityError);
   }
 
   return data;

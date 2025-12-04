@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signUp } from '@/lib/auth';
-import { sanitizeInput, validateText } from '@/lib/security';
+import { sanitizeInput, validateText, rateLimit } from '@/lib/security';
+import { retryWithBackoff } from '@/lib/error-recovery';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimitResult = rateLimit(request, { maxRequests: 5, windowMs: 60000 }); // 5 signups per minute
+    if (!rateLimitResult?.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Too many signup attempts. Please try again later.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000).toString(),
+            'X-RateLimit-Limit': '5',
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+          }
+        }
+      );
+    }
+
     const body = await request.json();
     const { email, password, username, fullName, roleAtCursor, jobTitle, department } = body;
 
@@ -32,10 +53,24 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validate password strength
+    // Enhanced password validation
     if (password.length < 8) {
       return NextResponse.json(
         { error: 'Password must be at least 8 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Check password strength
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    const strengthScore = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length;
+    if (strengthScore < 2) {
+      return NextResponse.json(
+        { error: 'Password must contain at least 2 of: uppercase, lowercase, numbers, special characters' },
         { status: 400 }
       );
     }
@@ -45,6 +80,15 @@ export async function POST(request: NextRequest) {
     if (!usernameValidation.valid) {
       return NextResponse.json(
         { error: usernameValidation.error || 'Invalid username' },
+        { status: 400 }
+      );
+    }
+
+    // Check username format (alphanumeric, underscore, hyphen)
+    const usernameRegex = /^[a-zA-Z0-9_-]+$/;
+    if (!usernameRegex.test(username)) {
+      return NextResponse.json(
+        { error: 'Username can only contain letters, numbers, underscores, and hyphens' },
         { status: 400 }
       );
     }
@@ -60,18 +104,60 @@ export async function POST(request: NextRequest) {
       department: department ? sanitizeInput(department, 100) : undefined,
     };
 
-    const authData = await signUp(sanitizedData);
+    // Retry signup with backoff for robustness
+    const signupResult = await retryWithBackoff(
+      () => signUp(sanitizedData),
+      {
+        maxRetries: 2,
+        retryDelay: 1000,
+        shouldRetry: (error) => {
+          // Retry on network errors or temporary failures
+          return error.message?.includes('network') ||
+                 error.message?.includes('timeout') ||
+                 error.message?.includes('503') ||
+                 error.message?.includes('502');
+        }
+      }
+    );
+
+    if (!signupResult.success || !signupResult.data) {
+      throw signupResult.error || new Error('Failed to sign up');
+    }
+
+    const authData = signupResult.data;
 
     return NextResponse.json({
       success: true,
       user: authData.user,
       session: authData.session,
+      message: 'Account created successfully. Please check your email to verify your account.',
+    }, {
+      headers: {
+        'X-RateLimit-Limit': '5',
+        'X-RateLimit-Remaining': (rateLimitResult.remaining - 1).toString(),
+        'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+      }
     });
   } catch (error: any) {
     console.error('Signup error:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = error.message || 'Failed to sign up';
+    let statusCode = 500;
+
+    if (errorMessage.includes('already registered') || errorMessage.includes('already exists')) {
+      errorMessage = 'An account with this email already exists. Please sign in instead.';
+      statusCode = 409;
+    } else if (errorMessage.includes('invalid') || errorMessage.includes('validation')) {
+      statusCode = 400;
+    } else if (errorMessage.includes('network') || errorMessage.includes('timeout')) {
+      errorMessage = 'Network error. Please check your connection and try again.';
+      statusCode = 503;
+    }
+
     return NextResponse.json(
-      { error: error.message || 'Failed to sign up' },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     );
   }
 }
