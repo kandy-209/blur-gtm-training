@@ -86,7 +86,7 @@ export function UpdateNotification({
 
   return (
     <Card
-      className={`fixed bottom-4 right-4 z-50 w-full max-w-md shadow-lg border-2 ${
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-full max-w-md shadow-lg border-2 ${
         updateResult?.hasUpdate
           ? updateResult.updateInfo?.critical
             ? 'border-red-300 bg-red-50'
