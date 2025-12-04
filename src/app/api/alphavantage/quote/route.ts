@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     const sanitizedSymbol = sanitizeInput(symbol.toUpperCase(), 10);
     
-    // Use enhanced quote with caching
+    // Use enhanced quote directly (it handles caching internally)
     const quote = await getEnhancedQuote(sanitizedSymbol);
 
     if (!quote) {
