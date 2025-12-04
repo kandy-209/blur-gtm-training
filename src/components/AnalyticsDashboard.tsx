@@ -62,15 +62,6 @@ function AnalyticsDashboard() {
     threshold: 100,
   });
 
-  // Advanced loading state management
-  const loadingState = useLoadingState({
-    minLoadingTime: 300,
-    maxLoadingTime: 10000,
-        onTimeout: () => {
-      announce('Loading is taking longer than expected. Please wait.');
-    },
-  });
-
   // Live region for announcements
   const announce = useCallback((message: string) => {
     const region = document.getElementById('analytics-live-region');
@@ -82,14 +73,26 @@ function AnalyticsDashboard() {
     }
   }, []);
 
+  // Advanced loading state management
+  const loadingState = useLoadingState({
+    minLoadingTime: 300,
+    maxLoadingTime: 10000,
+    onTimeout: useCallback(() => {
+      announce('Loading is taking longer than expected. Please wait.');
+    }, [announce]),
+  });
+
+  // Memoize onUpdate to prevent infinite loops
+  const handleStatsUpdate = useCallback(async (optimisticStats: ReturnType<typeof analytics.getStats>) => {
+    // In a real app, this would sync with server
+    return optimisticStats;
+  }, []);
+
   // Optimistic updates for stats
   const { data: stats, updateOptimistically: updateStatsOptimistically } = useOptimisticUpdate(
     analytics.getStats(),
     {
-      onUpdate: async (optimisticStats) => {
-        // In a real app, this would sync with server
-        return optimisticStats;
-      },
+      onUpdate: handleStatsUpdate,
       rollbackOnError: true,
     }
   );
@@ -189,7 +192,7 @@ function AnalyticsDashboard() {
         clearTimeout(timeoutId);
       }
     };
-  }, [loadingState, updateStatsOptimistically, announce]);
+  }, [loadingState.startLoading, loadingState.stopLoading, updateStatsOptimistically, announce]);
 
   const handleDeleteEvent = async (eventIndex: number, event: TrainingEvent) => {
     if (!user) {
