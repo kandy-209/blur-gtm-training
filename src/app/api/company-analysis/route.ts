@@ -7,6 +7,9 @@ import { storeAnalysis, getLatestAnalysis, isAnalysisCached, storeFiling } from 
 import { getProviderName } from '@/lib/company-analysis/llm-provider';
 import type { CompanyAnalysis, AnalysisRequest, FinancialMetrics, CompanyInfo } from '@/lib/company-analysis/types';
 import { sanitizeInput } from '@/lib/security';
+import { CachePresets } from '@/lib/cache-headers';
+import { log, generateRequestId } from '@/lib/logger';
+import { handleError } from '@/lib/error-handler';
 
 /**
  * Analyze a company and generate Cursor-specific ROI analysis
@@ -36,10 +39,16 @@ export async function POST(request: NextRequest) {
 
     const sanitizedTicker = ticker ? sanitizeInput(ticker.toUpperCase(), 10) : null;
 
+    const requestId = generateRequestId();
+    const startTime = Date.now();
+
     // Check cache first (if ticker provided)
     if (sanitizedTicker && await isAnalysisCached(sanitizedTicker, 24)) {
       const cached = await getLatestAnalysis(sanitizedTicker);
       if (cached) {
+        const duration = Date.now() - startTime;
+        log.info('Company analysis cache hit', { ticker: sanitizedTicker, requestId, duration });
+        
         return NextResponse.json({
           success: true,
           analysis: cached.analysis,
@@ -47,6 +56,13 @@ export async function POST(request: NextRequest) {
           reasoning: cached.reasoning,
           cached: true,
           provider: cached.provider || 'Unknown',
+        }, {
+          headers: {
+            'Cache-Control': CachePresets.companyAnalysis(),
+            'X-Cache-Status': 'HIT',
+            'X-Request-ID': requestId,
+            'X-Response-Time': `${duration}ms`,
+          },
         });
       }
     }
@@ -196,6 +212,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    const duration = Date.now() - startTime;
+    log.info('Company analysis completed', {
+      ticker: sanitizedTicker,
+      companyName: companyInfo?.companyName,
+      duration,
+      requestId,
+    });
+
     return NextResponse.json({
       success: true,
       analysis: companyAnalysis,
@@ -203,13 +227,21 @@ export async function POST(request: NextRequest) {
       reasoning: cursorAnalysis.reasoning,
       provider: providerName,
       cached: false,
+    }, {
+      headers: {
+        'Cache-Control': CachePresets.companyAnalysis(),
+        'X-Cache-Status': 'MISS',
+        'X-Request-ID': requestId,
+        'X-Response-Time': `${duration}ms`,
+      },
     });
   } catch (error: any) {
-    console.error('Company analysis error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to analyze company' },
-      { status: 500 }
-    );
+    const requestId = generateRequestId();
+    log.error('Company analysis error', error instanceof Error ? error : new Error(String(error)), {
+      requestId,
+    });
+    
+    return handleError(error, requestId);
   }
 }
 

@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getQuote } from '@/lib/alphavantage-simple';
+import { getEnhancedQuote } from '@/lib/alphavantage-enhanced';
 import { sanitizeInput } from '@/lib/security';
-import { retryWithBackoff } from '@/lib/error-recovery';
+import { cachedRouteHandler } from '@/lib/next-cache-wrapper';
+import { CachePresets } from '@/lib/cache-headers';
+import { log, generateRequestId } from '@/lib/logger';
+import { handleError } from '@/lib/error-handler';
 
 export async function GET(request: NextRequest) {
+  const requestId = generateRequestId();
+  const startTime = Date.now();
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const symbol = searchParams.get('symbol');
@@ -11,7 +17,13 @@ export async function GET(request: NextRequest) {
     if (!symbol) {
       return NextResponse.json(
         { error: 'Symbol parameter is required' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Cache-Control': CachePresets.noCache(),
+            'X-Request-ID': requestId,
+          },
+        }
       );
     }
 
@@ -19,45 +31,64 @@ export async function GET(request: NextRequest) {
     if (!process.env.ALPHA_VANTAGE_API_KEY || process.env.ALPHA_VANTAGE_API_KEY.trim() === '') {
       return NextResponse.json(
         { error: 'Alpha Vantage API key not configured' },
-        { status: 503 }
+        { 
+          status: 503,
+          headers: {
+            'Cache-Control': CachePresets.noCache(),
+            'X-Request-ID': requestId,
+          },
+        }
       );
     }
 
     const sanitizedSymbol = sanitizeInput(symbol.toUpperCase(), 10);
     
-    // Retry with backoff for robustness
-    const quoteResult = await retryWithBackoff(
-      () => getQuote(sanitizedSymbol),
-      {
-        maxRetries: 3,
-        retryDelay: 1000,
-        shouldRetry: (error) => {
-          return error.message?.includes('timeout') || 
-                 error.message?.includes('rate limit') ||
-                 error.message?.includes('503') ||
-                 error.message?.includes('429');
-        }
-      }
-    );
+    // Use enhanced quote with caching
+    const quote = await getEnhancedQuote(sanitizedSymbol);
 
-    if (!quoteResult.success || !quoteResult.data) {
+    if (!quote) {
       return NextResponse.json(
-        { error: quoteResult.error?.message || 'Quote not found or API error' },
-        { status: 404 }
+        { error: 'Quote not found or API error' },
+        { 
+          status: 404,
+          headers: {
+            'Cache-Control': CachePresets.noCache(),
+            'X-Request-ID': requestId,
+          },
+        }
       );
     }
 
-    return NextResponse.json({ 
-      quote: quoteResult.data,
-      timestamp: new Date().toISOString(),
-      cached: false
+    const duration = Date.now() - startTime;
+    
+    log.info('Quote fetched', {
+      symbol: sanitizedSymbol,
+      duration,
+      requestId,
     });
-  } catch (error: any) {
-    console.error('Quote API error:', error);
+
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch quote' },
-      { status: 500 }
+      { 
+        quote,
+        timestamp: new Date().toISOString(),
+      },
+      {
+        headers: {
+          'Cache-Control': CachePresets.stockQuote(),
+          'X-Request-ID': requestId,
+          'X-Response-Time': `${duration}ms`,
+        },
+      }
     );
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    
+    log.error('Quote API error', error instanceof Error ? error : new Error(String(error)), {
+      requestId,
+      duration,
+    });
+    
+    return handleError(error, requestId);
   }
 }
 

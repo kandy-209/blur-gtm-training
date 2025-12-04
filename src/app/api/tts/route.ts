@@ -1,5 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sanitizeInput, validateText } from '@/lib/security';
+import { ElevenLabsClient } from '@/lib/elevenlabs';
+
+// Initialize ElevenLabs client
+const elevenLabsClient = new ElevenLabsClient({
+  apiKey: process.env.ELEVENLABS_API_KEY,
+  voiceId: process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID,
+  modelId: 'eleven_multilingual_v2', // Better model for multilingual support
+  stability: 0.5,
+  similarityBoost: 0.75,
+  useSpeakerBoost: true
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { text, voiceId } = await request.json();
+    const { text, voiceId, modelId, stability, similarityBoost, stream, outputFormat } = await request.json();
 
     // Validate text input
     const textValidation = validateText(text || '', {
@@ -29,7 +40,8 @@ export async function POST(request: NextRequest) {
 
     // Sanitize inputs
     const sanitizedText = sanitizeInput(text, 5000);
-    const sanitizedVoiceId = voiceId ? sanitizeInput(voiceId, 100) : null;
+    const sanitizedVoiceId = voiceId ? sanitizeInput(voiceId, 100) : undefined;
+    const sanitizedModelId = modelId ? sanitizeInput(modelId, 50) : undefined;
 
     if (!process.env.ELEVENLABS_API_KEY) {
       return NextResponse.json(
@@ -38,44 +50,96 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use ElevenLabs API for text-to-speech
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${sanitizedVoiceId || '21m00Tcm4TlvDq8ikWAM'}`,
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': process.env.ELEVENLABS_API_KEY,
-        },
-        body: JSON.stringify({
-          text: sanitizedText,
-          model_id: 'eleven_monolingual_v1',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
-        }),
-      }
-    );
+    // Validate voice settings
+    const voiceSettings = {
+      stability: Math.max(0, Math.min(1, stability ?? 0.5)),
+      similarity_boost: Math.max(0, Math.min(1, similarityBoost ?? 0.75)),
+      use_speaker_boost: true
+    };
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('ElevenLabs API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate speech' },
-        { status: response.status }
-      );
+    // Handle streaming request
+    if (stream) {
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            await elevenLabsClient.streamTextToSpeech({
+              text: sanitizedText,
+              voiceId: sanitizedVoiceId,
+              modelId: sanitizedModelId,
+              voiceSettings,
+              outputFormat: outputFormat as any,
+              onChunk: (chunk) => {
+                controller.enqueue(chunk);
+              },
+              onComplete: () => {
+                controller.close();
+              },
+              onError: (error) => {
+                controller.error(error);
+              }
+            });
+          } catch (error) {
+            controller.error(error);
+          }
+        }
+      });
+
+      return new NextResponse(stream, {
+        headers: {
+          'Content-Type': 'audio/mpeg',
+          'Transfer-Encoding': 'chunked',
+          'Cache-Control': 'no-cache',
+          'X-Accel-Buffering': 'no', // Disable buffering for streaming
+        },
+      });
     }
 
-    const audioBuffer = await response.arrayBuffer();
+    // Non-streaming request
+    const audioBuffer = await elevenLabsClient.textToSpeech({
+      text: sanitizedText,
+      voiceId: sanitizedVoiceId,
+      modelId: sanitizedModelId,
+      voiceSettings,
+      outputFormat: outputFormat as any,
+    });
+
     const audioBase64 = Buffer.from(audioBuffer).toString('base64');
 
     return NextResponse.json({
       audio: `data:audio/mpeg;base64,${audioBase64}`,
+      format: 'mp3',
+      size: audioBuffer.byteLength,
+    }, {
+      headers: {
+        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+      },
     });
   } catch (error) {
     console.error('TTS API error:', error);
+    
+    // Provide more detailed error messages
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        return NextResponse.json(
+          { error: 'ElevenLabs API key is invalid or missing' },
+          { status: 401 }
+        );
+      }
+      if (error.message.includes('quota') || error.message.includes('limit')) {
+        return NextResponse.json(
+          { error: 'ElevenLabs API quota exceeded' },
+          { status: 429 }
+        );
+      }
+      if (error.message.includes('voice')) {
+        return NextResponse.json(
+          { error: 'Invalid voice ID' },
+          { status: 400 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
@@ -83,3 +147,33 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// GET endpoint to retrieve available voices
+export async function GET(request: NextRequest) {
+  try {
+    if (!process.env.ELEVENLABS_API_KEY) {
+      return NextResponse.json(
+        { error: 'ElevenLabs API key not configured' },
+        { status: 500 }
+      );
+    }
+
+    const voices = await elevenLabsClient.getVoices();
+    
+    return NextResponse.json({
+      voices: voices.map((voice: any) => ({
+        voice_id: voice.voice_id,
+        name: voice.name,
+        category: voice.category,
+        description: voice.description,
+        preview_url: voice.preview_url,
+      })),
+      count: voices.length,
+    });
+  } catch (error) {
+    console.error('Error fetching voices:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch voices' },
+      { status: 500 }
+    );
+  }
+}

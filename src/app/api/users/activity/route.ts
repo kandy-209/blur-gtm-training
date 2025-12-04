@@ -125,7 +125,7 @@ export async function GET(request: NextRequest) {
       async () => {
         const { data, error, count } = await query;
         if (error) throw error;
-        return { data, count, error: null };
+        return { data: data || [], count: count || 0 };
       },
       {
         maxRetries: 2,
@@ -137,9 +137,12 @@ export async function GET(request: NextRequest) {
       throw result.error || new Error('Failed to fetch activity');
     }
 
+    // result.data contains { data: [], count: number }
+    const resultData = result.data as { data: any[]; count: number } | undefined;
+
     return NextResponse.json({
-      activities: result.data || [],
-      total: result.count || 0,
+      activities: resultData?.data || [],
+      total: resultData?.count || 0,
       limit,
       offset,
     });

@@ -53,7 +53,9 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    let stats = statsResult.data || {
+    // Extract the actual stats data from result
+    const statsData = statsResult.data as { data: any; error: any } | undefined;
+    let stats: any = statsData?.data || {
       total_sessions: 0,
       total_scenarios_completed: 0,
       total_turns: 0,

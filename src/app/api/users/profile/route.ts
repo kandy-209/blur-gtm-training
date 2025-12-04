@@ -53,7 +53,9 @@ export async function GET(request: NextRequest) {
       throw result.error || new Error('Failed to fetch profile');
     }
 
-    let profile = result.data;
+    // Extract the actual profile data from result.data
+    const profileData = result.data as { data: any; error: null };
+    let profile: any = profileData.data;
 
     // Include stats if requested
     if (includeStats) {
