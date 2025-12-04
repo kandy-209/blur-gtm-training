@@ -29,15 +29,48 @@ if (typeof global.TextDecoder === 'undefined') {
     decode(bytes) {
       let str = '';
       let i = 0;
+      const REPLACEMENT_CHAR = 0xFFFD; // Unicode replacement character
+      
       while (i < bytes.length) {
         let c = bytes[i++];
         if (c > 127) {
+          // 2-byte sequence (110xxxxx 10xxxxxx)
           if (c > 191 && c < 224) {
-            c = (c & 31) << 6 | bytes[i++] & 63;
-          } else if (c > 223 && c < 240) {
-            c = (c & 15) << 12 | (bytes[i++] & 63) << 6 | bytes[i++] & 63;
-          } else if (c > 239 && c < 248) {
-            c = (c & 7) << 18 | (bytes[i++] & 63) << 12 | (bytes[i++] & 63) << 6 | bytes[i++] & 63;
+            if (i >= bytes.length) {
+              // Incomplete sequence - use replacement character
+              str += String.fromCharCode(REPLACEMENT_CHAR);
+              break;
+            }
+            c = (c & 31) << 6 | (bytes[i++] & 63);
+          }
+          // 3-byte sequence (1110xxxx 10xxxxxx 10xxxxxx)
+          else if (c > 223 && c < 240) {
+            if (i + 1 >= bytes.length) {
+              // Incomplete sequence - use replacement character
+              str += String.fromCharCode(REPLACEMENT_CHAR);
+              break;
+            }
+            c = (c & 15) << 12 | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63);
+          }
+          // 4-byte sequence (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+          else if (c > 239 && c < 248) {
+            if (i + 2 >= bytes.length) {
+              // Incomplete sequence - use replacement character
+              str += String.fromCharCode(REPLACEMENT_CHAR);
+              break;
+            }
+            c = (c & 7) << 18 | ((bytes[i++] & 63) << 12) | ((bytes[i++] & 63) << 6) | (bytes[i++] & 63);
+            // Code points > 0xFFFF need surrogate pairs
+            if (c > 0xFFFF) {
+              const high = Math.floor((c - 0x10000) / 0x400) + 0xD800;
+              const low = ((c - 0x10000) % 0x400) + 0xDC00;
+              str += String.fromCharCode(high, low);
+              continue;
+            }
+          }
+          // Invalid UTF-8 start byte - use replacement character
+          else {
+            c = REPLACEMENT_CHAR;
           }
         }
         str += String.fromCharCode(c);
