@@ -188,14 +188,22 @@ class Analytics {
   getStats() {
     const events = this.getEvents();
     const scenarioCompletions = events.filter(e => e.eventType === 'scenario_complete');
+    const callCompletions = events.filter(e => e.eventType === 'call_completed');
     const avgScore = scenarioCompletions.length > 0
       ? scenarioCompletions.reduce((sum, e) => sum + (e.score || 0), 0) / scenarioCompletions.length
+      : 0;
+    
+    const avgCallScore = callCompletions.length > 0
+      ? callCompletions.reduce((sum, e) => sum + (e.metadata?.overallScore || e.score || 0), 0) / callCompletions.length
       : 0;
 
     return {
       totalScenarios: scenarioCompletions.length,
       averageScore: Math.round(avgScore),
       totalTurns: events.filter(e => e.eventType === 'turn_submit').length,
+      totalCalls: callCompletions.length,
+      averageCallScore: Math.round(avgCallScore),
+      totalCallDuration: callCompletions.reduce((sum, e) => sum + (e.metadata?.duration || 0), 0),
     };
   }
 }

@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validEventTypes = ['scenario_start', 'scenario_complete', 'turn_submit', 'feedback_view', 'module_complete'];
+    const validEventTypes = ['scenario_start', 'scenario_complete', 'turn_submit', 'feedback_view', 'module_complete', 'call_started', 'call_completed', 'call_analysis_ready'];
     if (typeof event.eventType !== 'string' || !validEventTypes.includes(event.eventType)) {
       return NextResponse.json(
         { error: 'Invalid event type' },
@@ -249,6 +249,17 @@ export async function GET(request: NextRequest) {
         ? scores.reduce((sum, s) => sum + s, 0) / scores.length 
         : 0;
       
+      // Calculate call training stats
+      const callCompletions = userEvents.filter(e => e.eventType === 'call_completed');
+      const totalCalls = callCompletions.length;
+      const callScores = callCompletions
+        .map(e => e.metadata?.overallScore || e.score || 0)
+        .filter(s => s > 0);
+      const averageCallScore = callScores.length > 0
+        ? callScores.reduce((sum, s) => sum + s, 0) / callScores.length
+        : 0;
+      const totalCallDuration = callCompletions.reduce((sum, e) => sum + (e.metadata?.duration || 0), 0);
+      
       // Group by scenario
       const scenarioStats = new Map<string, {
         scenarioId: string;
@@ -285,6 +296,9 @@ export async function GET(request: NextRequest) {
         totalTurns,
         averageScore: Math.round(averageScore * 10) / 10,
         completionRate: startedScenarios > 0 ? (completedScenarios / startedScenarios) * 100 : 0,
+        totalCalls,
+        averageCallScore: Math.round(averageCallScore * 10) / 10,
+        totalCallDuration,
         scenarioBreakdown: Array.from(scenarioStats.values()),
         eventTypeBreakdown: {
           scenario_start: userEvents.filter(e => e.eventType === 'scenario_start').length,
@@ -292,6 +306,9 @@ export async function GET(request: NextRequest) {
           turn_submit: userEvents.filter(e => e.eventType === 'turn_submit').length,
           feedback_view: userEvents.filter(e => e.eventType === 'feedback_view').length,
           module_complete: userEvents.filter(e => e.eventType === 'module_complete').length,
+          call_started: userEvents.filter(e => e.eventType === 'call_started').length,
+          call_completed: userEvents.filter(e => e.eventType === 'call_completed').length,
+          call_analysis_ready: userEvents.filter(e => e.eventType === 'call_analysis_ready').length,
         },
       };
     }

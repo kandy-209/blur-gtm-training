@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { scenarios } from '@/data/scenarios';
 import type { Scenario } from '@/types/roleplay';
+import { analytics } from '@/lib/analytics';
 
 interface PhoneCallTrainingProps {
   userId: string;
@@ -131,6 +132,16 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
       const data = await response.json();
       setCallId(data.callId);
       setCallStatus('in-progress');
+      
+      // Track call started event
+      analytics.track({
+        eventType: 'call_started',
+        scenarioId: selectedScenario.id,
+        metadata: {
+          callId: data.callId,
+          trainingMode,
+        },
+      });
 
       // Start polling for call status and analysis
       const interval = setInterval(async () => {
@@ -186,6 +197,36 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
         }
         if (data.analysis) {
           setCallAnalysis(data.analysis);
+          
+          // Track call completed and analysis ready
+          analytics.track({
+            eventType: 'call_completed',
+            scenarioId: scenarioId,
+            score: data.analysis.overall_score,
+            metadata: {
+              callId: callId,
+              duration: data.metrics?.duration || 0,
+              overallScore: data.analysis.overall_score,
+              meetingBooked: data.metrics?.meetingBooked || false,
+              saleClosed: data.metrics?.saleClosed || false,
+            },
+          });
+          
+          // Store call analytics
+          if (data.metrics && data.analysis) {
+            fetch('/api/analytics/calls', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                userId,
+                callId,
+                scenarioId,
+                duration: data.metrics.duration || 0,
+                metrics: data.metrics,
+                analysis: data.analysis,
+              }),
+            }).catch(err => console.error('Failed to store call analytics:', err));
+          }
         }
       }
     } catch (err) {

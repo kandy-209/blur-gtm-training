@@ -21,6 +21,9 @@ interface AnalyticsStats {
   totalScenarios: number;
   averageScore: number;
   totalTurns: number;
+  totalCalls?: number;
+  averageCallScore?: number;
+  totalCallDuration?: number;
 }
 
 interface UseAnalyticsOptions {
@@ -54,6 +57,9 @@ export function useAnalytics(options: UseAnalyticsOptions = {}): UseAnalyticsRet
     totalScenarios: 0,
     averageScore: 0,
     totalTurns: 0,
+    totalCalls: 0,
+    averageCallScore: 0,
+    totalCallDuration: 0,
   });
   const [events, setEvents] = useState<TrainingEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -130,6 +136,9 @@ export function useAnalytics(options: UseAnalyticsOptions = {}): UseAnalyticsRet
           totalScenarios: data.stats?.totalScenarios || 0,
           averageScore: Math.round(data.stats?.averageScore || 0),
           totalTurns: data.stats?.totalTurns || 0,
+          totalCalls: data.stats?.totalCalls || 0,
+          averageCallScore: data.stats?.averageCallScore ? Math.round(data.stats.averageCallScore) : 0,
+          totalCallDuration: data.stats?.totalCallDuration || 0,
         };
 
         const newEvents: TrainingEvent[] = (data.events || []).map((e: any) => ({

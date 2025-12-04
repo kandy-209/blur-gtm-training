@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TrainingEvent } from '@/lib/analytics';
-import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, Trash2, RefreshCw, Phone } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { safeDate, isValidDate } from '@/lib/date-utils';
@@ -42,6 +42,21 @@ function getEventTypeConfig(eventType: string) {
       label: 'Module Completed',
       icon: <CheckCircle className="h-4 w-4 text-green-600" />,
       bgColor: 'bg-green-50',
+    },
+    call_started: {
+      label: 'Call Started',
+      icon: <Phone className="h-4 w-4 text-blue-600" />,
+      bgColor: 'bg-blue-50',
+    },
+    call_completed: {
+      label: 'Call Completed',
+      icon: <CheckCircle className="h-4 w-4 text-green-600" />,
+      bgColor: 'bg-green-50',
+    },
+    call_analysis_ready: {
+      label: 'Call Analysis Ready',
+      icon: <BarChart3 className="h-4 w-4 text-purple-600" />,
+      bgColor: 'bg-purple-50',
     },
   };
   
@@ -219,6 +234,27 @@ function AnalyticsDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {stats.totalCalls > 0 && (
+          <Card className="border-gray-200 hover-lift transition-smooth">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Phone Calls</CardTitle>
+              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center" aria-hidden="true">
+                <Phone className="h-5 w-5 text-blue-700" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold tracking-tight" aria-label={`${stats.totalCalls} phone calls completed`}>
+                {stats.totalCalls}
+              </div>
+              {stats.averageCallScore > 0 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Avg: {stats.averageCallScore}/100
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
           </div>
 
           <Card className="border-gray-200">
