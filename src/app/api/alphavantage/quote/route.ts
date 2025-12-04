@@ -40,10 +40,28 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    if (!quoteResult.success || !quoteResult.data) {
+    // Handle null data (quote not found)
+    if (quoteResult.data === null) {
       return NextResponse.json(
-        { error: quoteResult.error?.message || 'Quote not found or API error' },
+        { error: 'Quote not found or API error' },
         { status: 404 }
+      );
+    }
+
+    if (!quoteResult.success || !quoteResult.data) {
+      // Preserve the original error message
+      const errorMessage = quoteResult.error?.message || 
+                          (quoteResult.error instanceof Error ? quoteResult.error.message : String(quoteResult.error)) ||
+                          'API error';
+      // Return 500 for API errors (rate limits, timeouts, etc.), 404 only for not found
+      const lowerMessage = errorMessage.toLowerCase();
+      const isNotFound = lowerMessage.includes('not found') || 
+                        lowerMessage.includes('invalid symbol') ||
+                        errorMessage.includes('404');
+      const status = isNotFound ? 404 : 500;
+      return NextResponse.json(
+        { error: errorMessage },
+        { status }
       );
     }
 

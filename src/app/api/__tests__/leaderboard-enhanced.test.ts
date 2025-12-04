@@ -1,39 +1,78 @@
-import { GET } from '@/app/api/leaderboard/route';
-import { createClient } from '@supabase/supabase-js';
+import { NextRequest } from 'next/server';
 
-// Mock Supabase
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(),
-}));
-
-// Mock NextRequest
-class MockNextRequest {
-  public nextUrl: URL;
+jest.mock('@/lib/supabase-client', () => {
+  const mockSupabaseInstance = {
+    from: jest.fn((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn(),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn(),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn(),
+          }),
+        };
+      }
+      return {
+        select: jest.fn(),
+      };
+    }),
+  };
   
-  constructor(public url: string) {
-    this.nextUrl = new URL(url);
-  }
-}
+  return {
+    getSupabaseClient: jest.fn(() => mockSupabaseInstance),
+    __mockSupabaseInstance: mockSupabaseInstance,
+  };
+});
+
+// Import route after mock is set up
+import { GET } from '@/app/api/leaderboard/route';
 
 describe('GET /api/leaderboard - Enhanced', () => {
-  let mockSupabase: any;
+  let mockSupabaseInstance: any;
+  let getSupabaseClient: jest.Mock;
+
+  beforeAll(() => {
+    const supabaseClientModule = require('@/lib/supabase-client');
+    getSupabaseClient = supabaseClientModule.getSupabaseClient as jest.Mock;
+    mockSupabaseInstance = (supabaseClientModule as any).__mockSupabaseInstance;
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    mockSupabase = {
-      from: jest.fn(),
-    };
-
-    (createClient as jest.Mock).mockReturnValue(mockSupabase);
+    // Reset mock implementation
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn(),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn(),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn(),
+          }),
+        };
+      }
+      return {
+        select: jest.fn(),
+      };
+    });
     
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
-  });
-
-  afterEach(() => {
-    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    getSupabaseClient.mockReturnValue(mockSupabaseInstance);
   });
 
   it('should return enhanced leaderboard with comprehensive metrics', async () => {
@@ -101,22 +140,30 @@ describe('GET /api/leaderboard - Enhanced', () => {
       error: null,
     };
 
-    mockSupabase.from
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue(mockRatings),
-        }),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockResolvedValue(mockSessions),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue(mockAnalytics),
-        }),
-      });
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue(mockRatings),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn().mockResolvedValue(mockSessions),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue(mockAnalytics),
+          }),
+        };
+      }
+      return {
+        select: jest.fn().mockResolvedValue({ data: [], error: null }),
+      };
+    });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard');
+    const request = new NextRequest('http://localhost/api/leaderboard');
     const response = await GET(request);
     const data = await response.json();
 
@@ -170,22 +217,30 @@ describe('GET /api/leaderboard - Enhanced', () => {
       error: null,
     };
 
-    mockSupabase.from
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue(mockRatings),
-        }),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockResolvedValue(mockSessions),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      });
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue(mockRatings),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn().mockResolvedValue(mockSessions),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      return {
+        select: jest.fn().mockResolvedValue({ data: [], error: null }),
+      };
+    });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard');
+    const request = new NextRequest('http://localhost/api/leaderboard');
     const response = await GET(request);
     const data = await response.json();
 
@@ -200,22 +255,30 @@ describe('GET /api/leaderboard - Enhanced', () => {
   });
 
   it('should handle empty leaderboard gracefully', async () => {
-    mockSupabase.from
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      })
-      .mockReturnValueOnce({
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      return {
         select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      });
+      };
+    });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard');
+    const request = new NextRequest('http://localhost/api/leaderboard');
     const response = await GET(request);
     const data = await response.json();
 
@@ -239,22 +302,30 @@ describe('GET /api/leaderboard - Enhanced', () => {
       error: null,
     };
 
-    mockSupabase.from
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue(mockRatings),
-        }),
-      })
-      .mockReturnValueOnce({
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue(mockRatings),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      return {
         select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      });
+      };
+    });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard?limit=10');
+    const request = new NextRequest('http://localhost/api/leaderboard?limit=10');
     const response = await GET(request);
     const data = await response.json();
 
@@ -263,16 +334,23 @@ describe('GET /api/leaderboard - Enhanced', () => {
   });
 
   it('should handle Supabase errors gracefully', async () => {
-    mockSupabase.from.mockReturnValue({
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Invalid API key' },
-        }),
-      }),
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'Invalid API key' },
+            }),
+          }),
+        };
+      }
+      return {
+        select: jest.fn().mockResolvedValue({ data: [], error: null }),
+      };
     });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard');
+    const request = new NextRequest('http://localhost/api/leaderboard');
     const response = await GET(request);
     const data = await response.json();
 
@@ -315,22 +393,30 @@ describe('GET /api/leaderboard - Enhanced', () => {
       error: null,
     };
 
-    mockSupabase.from
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue(mockRatings),
-        }),
-      })
-      .mockReturnValueOnce({
+    mockSupabaseInstance.from.mockImplementation((table: string) => {
+      if (table === 'user_ratings') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue(mockRatings),
+          }),
+        };
+      } else if (table === 'live_sessions') {
+        return {
+          select: jest.fn().mockResolvedValue({ data: [], error: null }),
+        };
+      } else if (table === 'analytics_events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        };
+      }
+      return {
         select: jest.fn().mockResolvedValue({ data: [], error: null }),
-      })
-      .mockReturnValueOnce({
-        select: jest.fn().mockReturnValue({
-          in: jest.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-      });
+      };
+    });
 
-    const request = new MockNextRequest('http://localhost/api/leaderboard');
+    const request = new NextRequest('http://localhost/api/leaderboard');
     const response = await GET(request);
     const data = await response.json();
 

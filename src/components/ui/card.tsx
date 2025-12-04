@@ -5,7 +5,6 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  // If card-premium is in className, use it; otherwise use default premium styling
   const hasPremiumClass = className?.includes('card-premium');
   return (
     <div
@@ -13,7 +12,7 @@ const Card = React.forwardRef<
       className={cn(
         hasPremiumClass 
           ? "" // card-premium class handles all styling
-          : "rounded-2xl border border-ultra-minimal bg-white/90 backdrop-blur-sm text-card-foreground shadow-depth-2 transition-smooth hover:shadow-depth-3 hover:border-subtle focus-ring-glow",
+          : "rounded-xl border border-gray-200 bg-white text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md hover:border-gray-300",
         className
       )}
       {...props}

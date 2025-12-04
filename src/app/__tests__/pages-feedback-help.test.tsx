@@ -4,10 +4,24 @@ import HelpPage from '../help/page';
 import SalesSkillsPage from '../sales-skills/page';
 import { useAuth } from '@/hooks/useAuth';
 
-jest.mock('@/hooks/useAuth');
+jest.mock('@/hooks/useAuth', () => ({
+  useAuth: jest.fn(),
+}));
+
 jest.mock('@/components/ProtectedRoute', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock components that might cause parsing issues
+jest.mock('@/components/ProspectResearch', () => ({
+  __esModule: true,
+  default: () => <div>ProspectResearch</div>,
+}));
+
+jest.mock('@/components/EmailTemplateGenerator', () => ({
+  __esModule: true,
+  default: () => <div>EmailTemplateGenerator</div>,
 }));
 
 const mockUser = {
@@ -15,9 +29,11 @@ const mockUser = {
   email: 'test@example.com',
 };
 
+const mockUseAuth = useAuth as jest.Mock;
+
 describe('Feedback Page', () => {
   beforeEach(() => {
-    (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
+    mockUseAuth.mockReturnValue({ user: mockUser, loading: false });
   });
 
   it('renders feedback form', () => {
@@ -36,7 +52,7 @@ describe('Feedback Page', () => {
 
 describe('Help Page', () => {
   beforeEach(() => {
-    (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
+    mockUseAuth.mockReturnValue({ user: mockUser, loading: false });
   });
 
   it('renders help content', () => {
@@ -59,7 +75,7 @@ describe('Help Page', () => {
 
 describe('Sales Skills Page', () => {
   beforeEach(() => {
-    (useAuth as jest.Mock).mockReturnValue({ user: mockUser });
+    mockUseAuth.mockReturnValue({ user: mockUser, loading: false });
   });
 
   it('renders sales skills content', () => {

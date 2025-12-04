@@ -29,6 +29,18 @@ jest.mock('@/components/ProtectedRoute', () => {
   };
 });
 
+// Mock OptimizedFluidBackground to avoid canvas/window issues in tests
+jest.mock('@/components/OptimizedFluidBackground', () => {
+  return function MockOptimizedFluidBackground() {
+    return null;
+  };
+});
+
+// Mock useOptimizedMousePosition
+jest.mock('@/hooks/useOptimizedMousePosition', () => ({
+  useOptimizedMousePosition: jest.fn(),
+}));
+
 // Mock useAuth hook
 jest.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -53,14 +65,20 @@ jest.mock('@/lib/analytics', () => ({
   trackAnalyticsEvent: jest.fn(),
 }));
 
-// Mock Vercel Analytics
+// Mock Vercel Analytics - handle ESM modules
 jest.mock('@vercel/analytics/next', () => ({
   Analytics: () => null,
-}));
+}), { virtual: true });
 
 jest.mock('@vercel/speed-insights/next', () => ({
   SpeedInsights: () => null,
-}));
+}), { virtual: true });
+
+// Mock @vercel/analytics dist module and main module
+jest.mock('@vercel/analytics/dist/index.mjs', () => ({}), { virtual: true });
+jest.mock('@vercel/analytics', () => ({
+  track: jest.fn(),
+}), { virtual: true });
 
 // Mock useParams
 jest.mock('next/navigation', () => ({
@@ -81,8 +99,10 @@ describe('Page Rendering Tests', () => {
     });
 
     it('should render main heading', () => {
-      const { getByText } = render(<HomePage />);
-      expect(getByText(/Cursor Enterprise GTM Training/i)).toBeTruthy();
+      const { getByText, container } = render(<HomePage />);
+      expect(getByText(/Transform Into a/i)).toBeTruthy();
+      // Text is split across multiple elements, so check container text content
+      expect(container.textContent).toMatch(/World-Class GTM Operator/i);
     });
   });
 

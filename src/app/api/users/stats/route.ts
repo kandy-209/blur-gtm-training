@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput } from '@/lib/security';
 import { retryWithBackoff } from '@/lib/error-recovery';
+import { log } from '@/lib/logger';
+import { successResponse, errorResponse } from '@/lib/api-response';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 export async function GET(request: NextRequest) {
+  let sanitizedUserId: string | undefined;
+  
   try {
     if (!supabase) {
       return NextResponse.json(
@@ -30,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const sanitizedUserId = sanitizeInput(userId, 100);
+    sanitizedUserId = sanitizeInput(userId, 100);
 
     // Get user stats
     const statsResult = await retryWithBackoff(
@@ -45,7 +44,7 @@ export async function GET(request: NextRequest) {
           throw error;
         }
 
-        return { data, error };
+        return data || null;
       },
       {
         maxRetries: 2,
@@ -53,7 +52,7 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    let stats = statsResult.data || {
+    const defaultStats = {
       total_sessions: 0,
       total_scenarios_completed: 0,
       total_turns: 0,
@@ -67,6 +66,10 @@ export async function GET(request: NextRequest) {
       streak_longest: 0,
       achievements_unlocked: 0,
     };
+
+    let stats: any = statsResult.success && statsResult.data 
+      ? statsResult.data 
+      : defaultStats;
 
     // Get additional data from analytics if available
     let analyticsData: any = null;
@@ -93,23 +96,47 @@ export async function GET(request: NextRequest) {
           };
         }
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
+        log.error('Error fetching analytics data', error instanceof Error ? error : new Error(String(error)), {
+          userId: sanitizedUserId,
+        });
       }
     }
 
-    return NextResponse.json({
-      stats: {
-        ...stats,
-        ...(analyticsData || {}),
+    // Ensure stats has all required fields
+    const statsWithDefaults: any = {
+      total_sessions: stats?.total_sessions ?? 0,
+      total_scenarios_completed: stats?.total_scenarios_completed ?? 0,
+      total_turns: stats?.total_turns ?? 0,
+      total_time_spent_minutes: stats?.total_time_spent_minutes ?? 0,
+      average_score: stats?.average_score ?? 0,
+      highest_score: stats?.highest_score ?? 0,
+      win_rate: stats?.win_rate ?? 0,
+      total_wins: stats?.total_wins ?? 0,
+      total_losses: stats?.total_losses ?? 0,
+      streak_current: stats?.streak_current ?? 0,
+      streak_longest: stats?.streak_longest ?? 0,
+      achievements_unlocked: stats?.achievements_unlocked ?? 0,
+      ...stats,
+      ...(analyticsData || {}),
+    };
+
+    return successResponse(
+      {
+        stats: statsWithDefaults,
+        lastUpdated: stats?.last_updated_at || new Date().toISOString(),
       },
-      lastUpdated: stats.last_updated_at || new Date().toISOString(),
-    });
-  } catch (error: any) {
-    console.error('Get stats error:', error);
-    return NextResponse.json(
-      { error: error.message || 'Failed to fetch stats' },
-      { status: 500 }
+      {
+        message: 'Stats retrieved successfully',
+      }
     );
+  } catch (error: any) {
+    log.error('Get stats error', error instanceof Error ? error : new Error(String(error)), {
+      userId: sanitizedUserId,
+    });
+    return errorResponse(error, {
+      status: 500,
+      message: 'Failed to fetch user statistics',
+    });
   }
 }
 
@@ -149,7 +176,7 @@ export async function PUT(request: NextRequest) {
           .single();
 
         if (error) throw error;
-        return { data, error: null };
+        return data!; // Return data directly, not wrapped in object
       },
       {
         maxRetries: 2,
@@ -157,7 +184,7 @@ export async function PUT(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to update stats');
     }
 

@@ -3,6 +3,8 @@
  * Integrates with Clearbit, ZoomInfo, and Apollo.io for enhanced prospect data
  */
 
+import { fetchWithTimeout, withTimeout } from '@/lib/api-timeout';
+
 interface CompanyEnrichment {
   name: string;
   domain?: string;
@@ -52,12 +54,21 @@ export async function enrichCompanyClearbit(
     return { error: 'Clearbit API key not configured' };
   }
 
+  // Return early if domain is empty
+  if (!domain || domain.trim() === '') {
+    return { error: 'Domain is required' };
+  }
+
   try {
-    const response = await fetch(`https://company.clearbit.com/v2/companies/find?domain=${encodeURIComponent(domain)}`, {
-      headers: {
-        Authorization: `Bearer ${key}`,
-      },
-    });
+    const response = await fetchWithTimeout(
+      `https://company.clearbit.com/v2/companies/find?domain=${encodeURIComponent(domain)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${key}`,
+        },
+        timeout: 5000, // 5 second timeout
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -106,11 +117,15 @@ export async function findContactsClearbit(
   }
 
   try {
-    const response = await fetch(`https://person.clearbit.com/v2/combined/find?domain=${encodeURIComponent(domain)}`, {
-      headers: {
-        Authorization: `Bearer ${key}`,
-      },
-    });
+    const response = await fetchWithTimeout(
+      `https://person.clearbit.com/v2/combined/find?domain=${encodeURIComponent(domain)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${key}`,
+        },
+        timeout: 5000, // 5 second timeout
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -144,42 +159,60 @@ export async function enrichCompanyMultiSource(
   companyName: string,
   domain?: string
 ): Promise<EnrichmentResult> {
+  // Return early if company name is empty
+  if (!companyName || companyName.trim() === '') {
+    return { error: 'Company name is required' };
+  }
+
   // Try Clearbit first if domain is available
-  if (domain) {
+  if (domain && domain.trim() !== '') {
     const clearbitResult = await enrichCompanyClearbit(domain);
     if (clearbitResult.company && !clearbitResult.error) {
       return clearbitResult;
     }
   }
 
-  // Fallback: Use Alpha Vantage company search
-  try {
-    const searchResponse = await fetch(`/api/alphavantage/search?keyword=${encodeURIComponent(companyName)}`);
-    if (searchResponse.ok) {
-      const searchData = await searchResponse.json();
-      if (searchData.results && searchData.results.length > 0) {
-        const symbol = searchData.results[0].symbol;
-        const overviewResponse = await fetch(`/api/alphavantage/overview?symbol=${symbol}`);
-        if (overviewResponse.ok) {
-          const overviewData = await overviewResponse.json();
-          if (overviewData.overview) {
-            return {
-              company: {
-                name: overviewData.overview.name,
-                description: overviewData.overview.description,
-                industry: overviewData.overview.industry,
-                sector: overviewData.overview.sector,
-                revenue: overviewData.overview.revenue ? parseFloat(overviewData.overview.revenue) : undefined,
-              },
-            };
+  // Fallback: Use Alpha Vantage company search (only in server-side context)
+  if (typeof window === 'undefined') {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const searchResponse = await fetchWithTimeout(
+        `${baseUrl}/api/alphavantage/search?keyword=${encodeURIComponent(companyName)}`,
+        { timeout: 5000 }
+      );
+      if (searchResponse.ok) {
+        const searchData = await searchResponse.json();
+        if (searchData.results && searchData.results.length > 0) {
+          const symbol = searchData.results[0].symbol;
+          const overviewResponse = await fetchWithTimeout(
+            `${baseUrl}/api/alphavantage/overview?symbol=${symbol}`,
+            { timeout: 5000 }
+          );
+          if (overviewResponse.ok) {
+            const overviewData = await overviewResponse.json();
+            if (overviewData.overview) {
+              return {
+                company: {
+                  name: overviewData.overview.name || companyName,
+                  description: overviewData.overview.description,
+                  industry: overviewData.overview.industry,
+                  sector: overviewData.overview.sector,
+                  revenue: overviewData.overview.revenue ? parseFloat(overviewData.overview.revenue) : undefined,
+                },
+              };
+            }
           }
         }
       }
+    } catch (error) {
+      console.error('Alpha Vantage enrichment error:', error);
     }
-  } catch (error) {
-    // Silent fallback
   }
 
-  return { error: 'Could not enrich company data from available sources' };
+  // Return error only (no company) when all enrichment attempts failed
+  // This distinguishes between partial success (company returned) and complete failure
+  return {
+    error: 'Failed to enrich company data from all sources.',
+  };
 }
 

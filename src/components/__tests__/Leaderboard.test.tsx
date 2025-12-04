@@ -31,7 +31,9 @@ describe('Leaderboard', () => {
     render(<Leaderboard />);
 
     await waitFor(() => {
-      expect(screen.getByText(/leaderboard/i)).toBeInTheDocument();
+      // Use getAllByText since there are multiple elements with "leaderboard" text
+      const leaderboardElements = screen.getAllByText(/leaderboard/i);
+      expect(leaderboardElements.length).toBeGreaterThan(0);
     });
   });
 

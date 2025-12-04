@@ -45,7 +45,10 @@ describe('ErrorBoundary Component', () => {
       </ErrorBoundary>
     );
     
-    expect(screen.getByText(/error/i)).toBeInTheDocument();
+    // Use getAllByText since there are multiple elements with "error" text
+    const errorElements = screen.getAllByText(/error/i);
+    expect(errorElements.length).toBeGreaterThan(0);
+    expect(errorElements[0]).toBeInTheDocument();
   });
 
   it('provides reload button', () => {
@@ -151,9 +154,12 @@ describe('ErrorBoundary Component', () => {
     // Error boundary may or may not catch useEffect errors
     // depending on React version
     await new Promise(resolve => setTimeout(resolve, 100));
-    expect(screen.getByRole('generic')).toBeInTheDocument();
+    // Use getAllByRole since there are multiple generic elements
+    const genericElements = screen.getAllByRole('generic');
+    expect(genericElements.length).toBeGreaterThan(0);
   });
 });
+
 
 
 

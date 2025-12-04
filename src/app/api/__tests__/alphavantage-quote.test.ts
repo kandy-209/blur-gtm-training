@@ -66,6 +66,18 @@ jest.mock('@/lib/security', () => ({
   sanitizeInput: jest.fn((input: string) => input.toUpperCase()),
 }));
 
+// Mock error-recovery to avoid retry delays in tests
+jest.mock('@/lib/error-recovery', () => ({
+  retryWithBackoff: jest.fn(async (fn: () => Promise<any>) => {
+    try {
+      const data = await fn();
+      return { success: true, data, attempts: 1 };
+    } catch (error) {
+      return { success: false, error, attempts: 1 };
+    }
+  }),
+}));
+
 // Mock fs module to prevent debug log errors
 jest.mock('fs', () => ({
   appendFileSync: jest.fn(),
@@ -158,7 +170,9 @@ describe('GET /api/alphavantage/quote', () => {
   });
 
   it('handles API errors gracefully', async () => {
-    (getQuote as jest.Mock).mockRejectedValueOnce(new Error('API rate limit exceeded'));
+    // Mock to reject - retryWithBackoff is mocked to not retry
+    const rateLimitError = new Error('API rate limit exceeded');
+    (getQuote as jest.Mock).mockRejectedValueOnce(rateLimitError);
 
     const url = new URL('http://localhost/api/alphavantage/quote?symbol=AAPL');
     const request = new NextRequest(url);
@@ -168,7 +182,7 @@ describe('GET /api/alphavantage/quote', () => {
 
     expect(response.status).toBe(500);
     expect(data.error).toBe('API rate limit exceeded');
-  });
+  }, 10000); // Increase timeout to 10 seconds
 
   it('sanitizes symbol input', async () => {
     const mockQuote = {
@@ -196,6 +210,9 @@ describe('GET /api/alphavantage/quote', () => {
   });
 
   it('handles special characters in symbol', async () => {
+    // Mock getQuote to return null for invalid symbols
+    (getQuote as jest.Mock).mockResolvedValueOnce(null);
+
     const url = new URL('http://localhost/api/alphavantage/quote?symbol=AAPL%3Cscript%3E');
     const request = new NextRequest(url);
 

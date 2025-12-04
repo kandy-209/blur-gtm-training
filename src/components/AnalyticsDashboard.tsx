@@ -1,21 +1,20 @@
 'use client';
 
-import { useEffect, useState, ReactElement, memo, useCallback } from 'react';
+import { useState, ReactElement, memo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { analytics, TrainingEvent } from '@/lib/analytics';
-import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, Trash2 } from 'lucide-react';
+import { TrainingEvent } from '@/lib/analytics';
+import { BarChart3, Target, TrendingUp, Clock, MessageSquare, Eye, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
-import { trackAnalyticsEvent } from '@/lib/vercel-analytics';
+import { safeDate, isValidDate } from '@/lib/date-utils';
 import { Skeleton, SkeletonStats, SkeletonList } from '@/components/ui/skeleton';
 import { ProgressiveSkeletonGroup } from '@/components/ui/progressive-skeleton';
-import { useLoadingState } from '@/hooks/useLoadingState';
-import { useOptimisticUpdate } from '@/hooks/useOptimisticUpdate';
-import { retryWithBackoff, isRetryableError } from '@/lib/error-recovery';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import { LiveRegion } from '@/components/ui/live-region';
+import { analytics } from '@/lib/analytics';
 
 function getEventTypeConfig(eventType: string) {
   const configs: Record<string, { label: string; icon: ReactElement; bgColor: string }> = {
@@ -62,137 +61,24 @@ function AnalyticsDashboard() {
     threshold: 100,
   });
 
-  // Live region for announcements
-  const announce = useCallback((message: string) => {
-    const region = document.getElementById('analytics-live-region');
-    if (region) {
-      region.textContent = '';
-      setTimeout(() => {
-        region.textContent = message;
-      }, 100);
-    }
-  }, []);
-
-  // Advanced loading state management
-  const loadingState = useLoadingState({
-    minLoadingTime: 300,
-    maxLoadingTime: 10000,
-    onTimeout: useCallback(() => {
-      announce('Loading is taking longer than expected. Please wait.');
-    }, [announce]),
+  // Use optimized analytics hook with caching
+  const {
+    stats,
+    events: recentEvents,
+    isLoading,
+    isRefreshing,
+    error,
+    refresh,
+    cacheAge,
+    isStale,
+  } = useAnalytics({
+    userId: user?.id,
+    autoRefresh: true,
+    refreshInterval: 30000, // 30 seconds
+    enableCache: true,
   });
 
-  // Memoize onUpdate to prevent infinite loops
-  const handleStatsUpdate = useCallback(async (optimisticStats: ReturnType<typeof analytics.getStats>) => {
-    // In a real app, this would sync with server
-    return optimisticStats;
-  }, []);
-
-  // Optimistic updates for stats
-  const { data: stats, updateOptimistically: updateStatsOptimistically } = useOptimisticUpdate(
-    analytics.getStats(),
-    {
-      onUpdate: handleStatsUpdate,
-      rollbackOnError: true,
-    }
-  );
-
-  const [recentEvents, setRecentEvents] = useState<TrainingEvent[]>([]);
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    let isMounted = true;
-    let timeoutId: NodeJS.Timeout | null = null;
-
-    const fetchData = async () => {
-      if (!isMounted) return;
-      
-      loadingState.startLoading();
-
-      try {
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 5000);
-        });
-
-        const result = await Promise.race([
-          retryWithBackoff(
-            async () => {
-              const newStats = analytics.getStats();
-              const events = analytics.getEvents().slice(-10).reverse();
-              return { stats: newStats, events };
-            },
-            {
-              maxRetries: 2, // Reduced retries
-              retryDelay: 500, // Reduced delay
-              shouldRetry: (error) => isRetryableError(error),
-              onRetry: (attempt) => {
-                if (isMounted) {
-                  announce(`Retrying... Attempt ${attempt}`);
-                }
-              },
-            }
-          ),
-          timeoutPromise,
-        ]) as any;
-
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-          timeoutId = null;
-        }
-
-        if (!isMounted) return;
-
-        if (result.success && result.data) {
-          updateStatsOptimistically(result.data.stats);
-          setRecentEvents(result.data.events);
-          announce('Analytics loaded successfully');
-        } else {
-          throw result.error || new Error('Failed to load analytics');
-        }
-      } catch (error: any) {
-        if (!isMounted) return;
-        console.error('Error updating stats:', error);
-        if (error.message === 'Request timeout') {
-          announce('Analytics loading timed out. Showing cached data.');
-        } else {
-          announce('Failed to load analytics. Showing cached data.');
-        }
-        // Still show cached data
-        try {
-          const cachedStats = analytics.getStats();
-          const cachedEvents = analytics.getEvents().slice(-10).reverse();
-          updateStatsOptimistically(cachedStats);
-          setRecentEvents(cachedEvents);
-        } catch (e) {
-          // Ignore cache errors
-        }
-      } finally {
-        if (isMounted) {
-          loadingState.stopLoading();
-        }
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-      }
-    };
-
-    fetchData();
-    // Increase interval to reduce load - only refresh every 30 seconds
-    const interval = setInterval(() => {
-      if (isMounted) {
-        fetchData();
-      }
-    }, 30000);
-    
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [loadingState.startLoading, loadingState.stopLoading, updateStatsOptimistically, announce]);
 
   const handleDeleteEvent = async (eventIndex: number, event: TrainingEvent) => {
     if (!user) {
@@ -228,9 +114,8 @@ function AnalyticsDashboard() {
         }),
       });
 
-      // Update local state
-      setRecentEvents(prev => prev.filter((_, idx) => idx !== eventIndex));
-      updateStatsOptimistically(analytics.getStats());
+      // Refresh analytics to get updated data
+      await refresh();
     } catch (error) {
       console.error('Error deleting event:', error);
       alert('Failed to delete event. Please try again.');
@@ -246,7 +131,7 @@ function AnalyticsDashboard() {
   return (
     <>
       <LiveRegion id="analytics-live-region" level="polite" />
-      {loadingState.isLoading ? (
+      {isLoading ? (
         <div className="space-y-8" role="status" aria-live="polite" aria-label="Loading analytics dashboard">
           <ProgressiveSkeletonGroup
             count={3}
@@ -283,9 +168,10 @@ function AnalyticsDashboard() {
               />
             </CardContent>
           </Card>
-          {loadingState.progress !== undefined && (
-            <div className="text-center text-sm text-muted-foreground">
-              Loading... {loadingState.progress}%
+          {isRefreshing && (
+            <div className="text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              Refreshing...
             </div>
           )}
         </div>
@@ -337,8 +223,29 @@ function AnalyticsDashboard() {
 
           <Card className="border-gray-200">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl">Recent Activity</CardTitle>
-          <CardDescription className="text-sm">Your latest training events</CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Recent Activity</CardTitle>
+              <CardDescription className="text-sm">
+                Your latest training events
+                {isStale && cacheAge > 0 && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    (Updated {Math.floor(cacheAge / 1000)}s ago)
+                  </span>
+                )}
+              </CardDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refresh()}
+              disabled={isRefreshing}
+              className="h-8"
+              title="Refresh analytics"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -349,7 +256,10 @@ function AnalyticsDashboard() {
               </div>
             ) : (
               recentEvents.map((event, idx) => {
-                const eventDate = new Date(event.timestamp);
+                // Safely get date and validate
+                const eventDate = safeDate(event.timestamp);
+                const dateIsValid = isValidDate(event.timestamp);
+                
                 const eventTypeConfig = getEventTypeConfig(event.eventType);
                 const isDeleting = deletingIds.has(idx);
                 
@@ -373,7 +283,11 @@ function AnalyticsDashboard() {
                       <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
                         <div className="flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5" />
-                          {formatDistanceToNow(eventDate, { addSuffix: true })}
+                          {dateIsValid ? (
+                            formatDistanceToNow(eventDate, { addSuffix: true })
+                          ) : (
+                            <span>Just now</span>
+                          )}
                         </div>
                         {event.score !== undefined && (
                           <div className="flex items-center gap-1.5">
@@ -417,9 +331,12 @@ function AnalyticsDashboard() {
         </Card>
         </div>
       )}
-      {loadingState.error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700" role="alert">
-          {loadingState.error.message}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700 flex items-center justify-between" role="alert">
+          <span>{error.message || 'Failed to load analytics'}</span>
+          <Button variant="ghost" size="sm" onClick={() => refresh()} className="h-6 text-red-700 hover:text-red-800">
+            Retry
+          </Button>
         </div>
       )}
     </>

@@ -29,6 +29,7 @@ describe('useAuth', () => {
   });
 
   it('should return null user initially when no session', async () => {
+    if (!supabase) throw new Error('Supabase client not initialized');
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({
       data: { session: null },
     });
@@ -48,6 +49,7 @@ describe('useAuth', () => {
       email: 'test@example.com',
     };
 
+    if (!supabase) throw new Error('Supabase client not initialized');
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({
       data: { session: { user: mockUser } },
     });
@@ -65,6 +67,7 @@ describe('useAuth', () => {
     const mockUser = { id: 'user_123', email: 'test@example.com' };
     let authStateChangeCallback: any;
 
+    if (!supabase) throw new Error('Supabase client not initialized');
     (supabase.auth.getSession as jest.Mock).mockResolvedValue({
       data: { session: null },
     });

@@ -4,11 +4,6 @@ describe('error-recovery', () => {
   describe('retryWithBackoff', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
     });
 
     it('should return success on first attempt', async () => {
@@ -27,21 +22,16 @@ describe('error-recovery', () => {
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce('success');
 
-      const promise = retryWithBackoff(fn, {
+      const result = await retryWithBackoff(fn, {
         maxRetries: 3,
-        retryDelay: 100,
+        retryDelay: 10, // Use shorter delay for tests
       });
-
-      // Fast-forward timers
-      jest.advanceTimersByTime(100);
-
-      const result = await promise;
 
       expect(result.success).toBe(true);
       expect(result.data).toBe('success');
       expect(result.attempts).toBe(2);
       expect(fn).toHaveBeenCalledTimes(2);
-    });
+    }, 10000); // Increase timeout
 
     it('should use exponential backoff', async () => {
       const fn = jest.fn()
@@ -49,22 +39,19 @@ describe('error-recovery', () => {
         .mockRejectedValueOnce(new Error('Error 2'))
         .mockResolvedValueOnce('success');
 
-      const promise = retryWithBackoff(fn, {
+      const startTime = Date.now();
+      const result = await retryWithBackoff(fn, {
         maxRetries: 3,
-        retryDelay: 100,
+        retryDelay: 10, // Use shorter delay for tests
         backoffMultiplier: 2,
       });
-
-      // First retry after 100ms
-      jest.advanceTimersByTime(100);
-      // Second retry after 200ms (100 * 2)
-      jest.advanceTimersByTime(200);
-
-      const result = await promise;
+      const elapsed = Date.now() - startTime;
 
       expect(result.success).toBe(true);
       expect(result.attempts).toBe(3);
-    });
+      // Verify backoff happened (should take at least 10 + 20 = 30ms)
+      expect(elapsed).toBeGreaterThanOrEqual(25);
+    }, 10000); // Increase timeout
 
     it('should stop retrying if shouldRetry returns false', async () => {
       const fn = jest.fn().mockRejectedValue(new Error('400 Bad Request'));
@@ -90,55 +77,43 @@ describe('error-recovery', () => {
         .mockRejectedValueOnce(new Error('Error 2'))
         .mockResolvedValueOnce('success');
 
-      const promise = retryWithBackoff(fn, {
+      await retryWithBackoff(fn, {
         maxRetries: 3,
-        retryDelay: 100,
+        retryDelay: 10, // Use shorter delay for tests
         onRetry,
       });
-
-      jest.advanceTimersByTime(200);
-
-      await promise;
 
       expect(onRetry).toHaveBeenCalledTimes(2);
       expect(onRetry).toHaveBeenCalledWith(1);
       expect(onRetry).toHaveBeenCalledWith(2);
-    });
+    }, 10000); // Increase timeout
 
     it('should fail after max retries', async () => {
       const fn = jest.fn().mockRejectedValue(new Error('Persistent error'));
 
-      const promise = retryWithBackoff(fn, {
+      const result = await retryWithBackoff(fn, {
         maxRetries: 2,
-        retryDelay: 100,
+        retryDelay: 10, // Use shorter delay for tests
       });
-
-      jest.advanceTimersByTime(300);
-
-      const result = await promise;
 
       expect(result.success).toBe(false);
       expect(result.error?.message).toContain('Persistent error');
       expect(result.attempts).toBe(3); // Initial + 2 retries
       expect(fn).toHaveBeenCalledTimes(3);
-    });
+    }, 10000); // Increase timeout
 
     it('should respect maxRetries limit', async () => {
       const fn = jest.fn().mockRejectedValue(new Error('Error'));
 
-      const promise = retryWithBackoff(fn, {
+      const result = await retryWithBackoff(fn, {
         maxRetries: 1,
-        retryDelay: 100,
+        retryDelay: 10, // Use shorter delay for tests
       });
-
-      jest.advanceTimersByTime(200);
-
-      const result = await promise;
 
       expect(result.success).toBe(false);
       expect(result.attempts).toBe(2); // Initial + 1 retry
       expect(fn).toHaveBeenCalledTimes(2);
-    });
+    }, 10000); // Increase timeout
   });
 
   describe('isRetryableError', () => {

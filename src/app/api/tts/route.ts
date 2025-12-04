@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sanitizeInput, validateText } from '@/lib/security';
+import { log } from '@/lib/logger';
+import { successResponse, errorResponse } from '@/lib/api-response';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +16,49 @@ export async function POST(request: NextRequest) {
 
     const { text, voiceId } = await request.json();
 
-    // Validate text input
-    const textValidation = validateText(text || '', {
+    // Validate text input and reject XSS patterns (including encoded variants)
+    const textStr = String(text || '');
+    
+    // Decode common encodings to check for XSS
+    const decoded = textStr
+      .replace(/%3C/gi, '<')
+      .replace(/%3E/gi, '>')
+      .replace(/&#60;/gi, '<')
+      .replace(/&#62;/gi, '>')
+      .replace(/\\x3C/gi, '<')
+      .replace(/\\x3E/gi, '>')
+      .replace(/\\u003C/gi, '<')
+      .replace(/\\u003E/gi, '>');
+    
+    const xssPatterns = [
+      /<script/i,
+      /javascript:/i,
+      /onerror=/i,
+      /onload=/i,
+      /onclick=/i,
+      /onfocus=/i,
+      /<iframe/i,
+      /<svg/i,
+      /<img/i,
+      /<body/i,
+      /<input/i,
+      /<link/i,
+      /<meta/i,
+      /<style/i,
+      /<object/i,
+      /<embed/i,
+      /<form/i,
+    ];
+    
+    const hasXSS = xssPatterns.some(pattern => pattern.test(textStr) || pattern.test(decoded));
+    if (hasXSS) {
+      return NextResponse.json(
+        { error: 'Invalid text input: potentially dangerous content detected' },
+        { status: 400 }
+      );
+    }
+    
+    const textValidation = validateText(textStr, {
       minLength: 1,
       maxLength: 5000, // Limit text length for TTS
     });
@@ -60,12 +103,15 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error('ElevenLabs API error:', error);
-      return NextResponse.json(
-        { error: 'Failed to generate speech' },
-        { status: response.status }
-      );
+      const errorText = await response.text();
+      log.error('ElevenLabs API error', new Error(errorText), {
+        status: response.status,
+        voiceId: sanitizedVoiceId,
+      });
+      return errorResponse('Failed to generate speech', {
+        status: response.status,
+        message: 'Text-to-speech generation failed',
+      });
     }
 
     const audioBuffer = await response.arrayBuffer();
@@ -75,11 +121,11 @@ export async function POST(request: NextRequest) {
       audio: `data:audio/mpeg;base64,${audioBase64}`,
     });
   } catch (error) {
-    console.error('TTS API error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    log.error('TTS API error', error instanceof Error ? error : new Error(String(error)));
+    return errorResponse(error instanceof Error ? error : new Error('Internal server error'), {
+      status: 500,
+      message: 'Text-to-speech service unavailable',
+    });
   }
 }
 

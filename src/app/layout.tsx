@@ -315,32 +315,30 @@ export default function RootLayout({
         <SkipLinks />
         <SEOHead />
         <BypassProtection />
-        <nav id="navigation" className="sticky top-0 z-[100] w-full bg-white/95 backdrop-blur-xl border-b border-gray-200/40 shadow-sm" aria-label="Main navigation">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between relative">
-              <Link href="/" className="flex items-center space-x-2 group flex-shrink-0 min-w-0">
-                <div className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-black flex items-center justify-center group-hover:bg-gray-900 transition-all duration-300 p-1.5 sm:p-2 flex-shrink-0 shadow-glow hover:shadow-glow-lg hover:scale-105 gloss-overlay">
-                  {/* Cursor Logo - Optimized for LCP */}
+        <nav id="navigation" className="sticky top-0 z-[100] w-full bg-white/80 backdrop-blur-md border-b border-gray-200/60" aria-label="Main navigation">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div className="flex h-16 items-center justify-between">
+              <Link href="/" className="flex items-center space-x-3 group flex-shrink-0">
+                <div className="relative h-9 w-9 rounded-lg bg-black flex items-center justify-center group-hover:bg-gray-900 transition-colors p-2">
                   <img
                     src="/logos/cursor-logo.svg"
                     alt="Cursor Enterprise GTM Training Platform Logo"
-                    className="h-5 w-5 sm:h-6 sm:w-6 object-contain max-w-full max-h-full relative z-10"
-                    width={24}
-                    height={24}
+                    className="h-5 w-5 object-contain"
+                    width={20}
+                    height={20}
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
-                    aria-hidden="false"
                   />
                 </div>
-                <span className="text-base sm:text-lg lg:text-xl font-semibold tracking-tight hidden sm:inline truncate text-gradient">Cursor Enterprise GTM</span>
-                <span className="text-base font-semibold tracking-tight sm:hidden truncate text-gradient">GTM Training</span>
+                <span className="text-lg font-semibold tracking-tight hidden sm:inline text-gray-900">Cursor Enterprise GTM</span>
+                <span className="text-base font-semibold tracking-tight sm:hidden text-gray-900">GTM Training</span>
               </Link>
               <NavUser />
             </div>
           </div>
         </nav>
-        <main id="main-content" className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50/50" role="main">
+        <main id="main-content" className="min-h-screen bg-white" role="main">
           <LiveRegion id="app-live-region" level="polite" />
           {children}
         </main>

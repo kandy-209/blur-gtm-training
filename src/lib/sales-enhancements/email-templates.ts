@@ -38,22 +38,8 @@ interface TemplateRequest {
 export async function generateEmailTemplate(
   request: TemplateRequest
 ): Promise<EmailTemplate> {
-  try {
-    const response = await fetch('/api/llm/generate-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate email template');
-    }
-
-    return await response.json();
-  } catch (error) {
-    // Fallback to template-based generation
-    return generateEmailTemplateFallback(request);
-  }
+  // Use fallback for now - LLM generation will be handled by the API route directly
+  return generateEmailTemplateFallback(request);
 }
 
 /**
@@ -159,21 +145,51 @@ export async function generateEmailVariants(
   const variants: EmailTemplate['variants'] = [];
 
   // Generate variants with different subject lines and CTAs
-  const subjectVariants = [
-    baseTemplate.subject,
-    baseTemplate.subject.replace('Quick question', 'Quick thought'),
-    baseTemplate.subject.replace('Quick question', 'Idea for'),
-  ];
+  // Ensure we always create unique variants
+  const subjectVariants: string[] = [];
+  const baseSubject = baseTemplate.subject;
+  
+  // Create unique subject variants
+  if (baseSubject.includes('Quick question')) {
+    subjectVariants.push(
+      baseSubject,
+      baseSubject.replace('Quick question', 'Quick thought'),
+      baseSubject.replace('Quick question', 'Idea for')
+    );
+  } else if (baseSubject.includes('Following up')) {
+    subjectVariants.push(
+      baseSubject,
+      baseSubject.replace('Following up', 'Re:'),
+      baseSubject.replace('Following up', 'Quick follow-up')
+    );
+  } else if (baseSubject.includes('Demo:')) {
+    subjectVariants.push(
+      baseSubject,
+      baseSubject.replace('Demo:', 'See how'),
+      baseSubject.replace('Demo:', 'Discover')
+    );
+  } else {
+    // Generic variants for any subject
+    subjectVariants.push(
+      baseSubject,
+      `${baseSubject} - Quick question`,
+      `Re: ${baseSubject}`
+    );
+  }
 
   const ctaVariants = [
     baseTemplate.cta,
     'Learn more',
     'Get started',
+    'Schedule a call',
+    'Reply to learn more',
   ];
 
-  for (let i = 0; i < Math.min(count, subjectVariants.length); i++) {
+  // Limit variants to available subject/CTA combinations
+  const maxVariants = Math.min(count, subjectVariants.length, ctaVariants.length);
+  for (let i = 0; i < maxVariants; i++) {
     variants.push({
-      subject: subjectVariants[i] || baseTemplate.subject,
+      subject: subjectVariants[i] || `${baseSubject} (Variant ${i + 1})`,
       body: baseTemplate.body,
       cta: ctaVariants[i] || baseTemplate.cta,
     });

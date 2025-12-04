@@ -35,6 +35,11 @@ const customJestConfig = {
     '/node_modules/',
     '/.next/',
     '/out/',
+    '/src/__tests__/setup/test-utils.tsx',
+    '/src/__tests__/setup/enhanced-test-utils.ts',
+  ],
+  transformIgnorePatterns: [
+    'node_modules/(?!(.*\\.mjs$|@vercel))',
   ],
 }
 

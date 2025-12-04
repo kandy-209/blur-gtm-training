@@ -201,14 +201,40 @@ function handleUnknownError(error: unknown, requestId?: string): NextResponse<Er
   
   recordError(ErrorType.INTERNAL, ErrorSeverity.CRITICAL);
   
+  // Extract provider name from error message if present (case-insensitive)
+  const providerMatch = errorMessage.match(/(hugging\s*face|anthropic|openai|claude)/i);
+  let providerName = null;
+  if (providerMatch) {
+    const matched = providerMatch[0].toLowerCase();
+    if (matched.includes('hugging')) {
+      providerName = 'Hugging Face';
+    } else if (matched.includes('anthropic') || matched.includes('claude')) {
+      providerName = 'Anthropic';
+    } else if (matched.includes('openai')) {
+      providerName = 'OpenAI';
+    }
+  }
+  
   // Don't expose internal errors in production
   const message = process.env.NODE_ENV === 'production'
     ? 'An internal error occurred'
     : errorMessage;
   
+  // Use provider name in error field if available, otherwise check message for provider mentions
+  let errorField = 'Internal Server Error';
+  if (providerName) {
+    errorField = `${providerName} API Error`;
+  } else if (errorMessage.toLowerCase().includes('hugging face') || errorMessage.toLowerCase().includes('huggingface')) {
+    errorField = 'Hugging Face API Error';
+  } else if (errorMessage.toLowerCase().includes('anthropic') || errorMessage.toLowerCase().includes('claude')) {
+    errorField = 'Anthropic API Error';
+  } else if (errorMessage.toLowerCase().includes('openai')) {
+    errorField = 'OpenAI API Error';
+  }
+  
   return NextResponse.json(
     {
-      error: 'Internal Server Error',
+      error: errorField,
       message,
       code: ErrorType.INTERNAL,
       timestamp: new Date().toISOString(),
@@ -241,4 +267,5 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<NextRespo
     }
   }) as T;
 }
+
 

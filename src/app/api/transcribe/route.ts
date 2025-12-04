@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { validateFile } from '@/lib/security';
 
 // Initialize OpenAI client lazily to avoid build-time errors
+// Only import when actually needed (not at module load time)
 function getOpenAIClient() {
   if (!process.env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
+    throw new Error('OpenAI API key not configured. Transcription requires OpenAI Whisper API.');
   }
+  
+  // Dynamic import to avoid build-time errors
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const OpenAI = require('openai').default;
   return new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
