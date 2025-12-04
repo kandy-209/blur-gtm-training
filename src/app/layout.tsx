@@ -269,7 +269,7 @@ export default function RootLayout({
         <SkipLinks />
         <SEOHead />
         <BypassProtection />
-        <nav id="navigation" className="sticky top-0 z-50 w-full glass-strong border-b border-gray-200/40" aria-label="Main navigation">
+        <nav id="navigation" className="sticky top-0 z-[100] w-full bg-white/95 backdrop-blur-xl border-b border-gray-200/40 shadow-sm" aria-label="Main navigation">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center justify-between relative">
               <Link href="/" className="flex items-center space-x-2 group flex-shrink-0 min-w-0">
