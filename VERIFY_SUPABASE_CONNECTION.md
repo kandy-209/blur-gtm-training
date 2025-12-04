@@ -129,3 +129,5 @@ If everything is set correctly:
 
 **If all checks pass → Supabase is connected! ✅**
 
+
+

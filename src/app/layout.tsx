@@ -9,6 +9,7 @@ import { SkipLinks } from '@/components/SkipLinks';
 import { LiveRegion } from '@/components/ui/live-region';
 import SEOHead from '@/components/SEOHead';
 import WebVitals from '@/components/WebVitals';
+import { UpdateNotification } from '@/components/UpdateNotification';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
@@ -345,6 +346,7 @@ export default function RootLayout({
           {children}
         </main>
         <GlobalVoiceAssistant />
+        <UpdateNotification autoCheck={true} checkInterval={60 * 60 * 1000} />
         <WebVitals />
         <Analytics />
         <SpeedInsights />

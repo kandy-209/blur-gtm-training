@@ -79,3 +79,5 @@ After adding the service role key and redeploying:
 
 **The code is ready - just add the environment variable!** 🚀
 
+
+
