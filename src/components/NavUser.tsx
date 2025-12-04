@@ -24,6 +24,7 @@ export default function NavUser() {
 
   const navLinks = [
     { href: '/scenarios', label: 'Scenarios' },
+    { href: '/sales-training', label: 'Phone Training' },
     { href: '/features', label: 'Features' },
     { href: '/chat', label: 'Chat' },
     { href: '/analytics', label: 'Analytics' },
