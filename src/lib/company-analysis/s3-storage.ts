@@ -6,11 +6,20 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
+// ⚠️ SECURITY: S3 credentials must be provided via environment variables
+// Never hardcode credentials in source code!
 const S3_ENDPOINT = process.env.S3_ENDPOINT || 'https://files.massive.com';
-const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID || '9608b1ba-919e-43df-aaa5-31c69921572c';
-const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY || 'axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b';
+const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 const S3_BUCKET = process.env.S3_BUCKET || 'flatfiles';
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
+
+// Validate required credentials
+if (!S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY) {
+  throw new Error(
+    'S3 credentials are required. Please set S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY environment variables.'
+  );
+}
 
 // Initialize S3 client
 const s3Client = new S3Client({
