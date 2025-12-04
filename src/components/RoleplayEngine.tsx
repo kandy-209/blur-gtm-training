@@ -17,6 +17,7 @@ import { Volume2, VolumeX, Copy, RotateCcw } from 'lucide-react';
 import ConversationMetrics from '@/components/ConversationMetrics';
 import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
+import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -39,6 +40,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Track scenario start
@@ -334,6 +336,20 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       handler: () => {
         setShowFeedback(false);
         setError(null);
+        setShowShortcuts(false);
+      },
+    },
+    {
+      key: '/',
+      ctrl: true,
+      handler: () => {
+        setShowShortcuts(true);
+      },
+    },
+    {
+      key: '?',
+      handler: () => {
+        setShowShortcuts(true);
       },
     },
   ], !state.isComplete);
@@ -751,6 +767,34 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           </div>
         </Card>
       )}
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        shortcuts={[
+          {
+            keys: ['Ctrl', 'Enter'],
+            description: 'Send message',
+            category: 'Actions',
+          },
+          {
+            keys: ['?'],
+            description: 'Show keyboard shortcuts',
+            category: 'Actions',
+          },
+          {
+            keys: ['Ctrl', '/'],
+            description: 'Show keyboard shortcuts',
+            category: 'Actions',
+          },
+          {
+            keys: ['Esc'],
+            description: 'Close modals / Clear errors',
+            category: 'Navigation',
+          },
+        ]}
+        open={showShortcuts}
+        onOpenChange={setShowShortcuts}
+      />
     </div>
   );
 }
