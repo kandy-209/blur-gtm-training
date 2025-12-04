@@ -1,0 +1,12 @@
+git rm --cached .github/workflows/daily-dependency-check.yml
+
+echo .github/workflows/daily-dependency-check.yml >> .gitignore
+
+git reset --soft HEAD~1
+
+git reset HEAD .github/workflows/daily-dependency-check.yml
+
+git commit -m "Fix: Add null checks for dataSources and merge remote changes"
+
+git push origin main
+
