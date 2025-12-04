@@ -281,9 +281,10 @@ function ScenariosPage() {
                   <Badge 
                     className={`absolute top-4 right-4 ${categoryColor} px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 z-10`}
                     variant="outline"
+                    aria-label={`Category: ${scenario.objection_category.replace(/_/g, ' ')}`}
                   >
-                    <CategoryIcon className="h-3 w-3" />
-                    {scenario.objection_category.replace(/_/g, ' ')}
+                    <CategoryIcon className="h-3 w-3" aria-hidden="true" />
+                    <span>{scenario.objection_category.replace(/_/g, ' ')}</span>
                   </Badge>
 
                   <CardHeader className="pb-4 pt-6">
