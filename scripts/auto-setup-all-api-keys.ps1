@@ -225,7 +225,7 @@ $analyticsKeys = @(
         Name = "Alpha Vantage API Key"
         Description = "Financial data API key"
         GetUrl = "https://www.alphavantage.co/support/#api-key"
-        Example = "D05K80BVIL89XP20"
+        Example = "your-alpha-vantage-key-here"
     },
     @{
         Key = "CLEARBIT_API_KEY"

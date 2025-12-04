@@ -13,11 +13,13 @@ Your Cursor MCP configuration has been set up at `~/.cursor/mcp.json` with your 
 {
   "mcpServers": {
     "alphavantage": {
-      "url": "https://mcp.alphavantage.co/mcp?apikey=D05K80BVIL89XP20"
+      "url": "https://mcp.alphavantage.co/mcp?apikey=YOUR_API_KEY_HERE"
     }
   }
 }
 ```
+
+**⚠️ SECURITY:** Replace `YOUR_API_KEY_HERE` with your actual Alpha Vantage API key. Never commit your real API key to version control!
 
 ## What This Enables
 
@@ -41,11 +43,13 @@ If you prefer a local connection instead of remote, you can use:
      "mcpServers": {
        "alphavantage": {
          "command": "uvx",
-         "args": ["av-mcp", "D05K80BVIL89XP20"]
+         "args": ["av-mcp", "YOUR_API_KEY_HERE"]
        }
      }
    }
    ```
+   
+   **⚠️ SECURITY:** Replace `YOUR_API_KEY_HERE` with your actual Alpha Vantage API key.
 
 ## Restart Cursor
 
@@ -57,11 +61,13 @@ Once Cursor restarts, you should be able to:
 - Query Alpha Vantage data through Cursor's MCP interface
 - Access financial data directly in your development environment
 
-## Your API Key
+## Get Your API Key
 
-**Alpha Vantage API Key:** `D05K80BVIL89XP20`
+**Alpha Vantage API Key:**
+- Get your free API key at: https://www.alphavantage.co/support/#api-key
 - Free tier: 5 requests/minute, 500 requests/day
 - Used for both MCP and direct API calls in the application
+- ⚠️ **Never commit your API key to version control!**
 
 
 

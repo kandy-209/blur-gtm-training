@@ -309,18 +309,40 @@ export const LiquidGlossCanvas = () => {
 
     // Fullscreen quad
     const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+    
+    // Create VAO (Vertex Array Object) - WebGL2 feature
     const vao = gl.createVertexArray();
+    if (!vao) {
+      console.error("[LiquidGloss] Failed to create VAO");
+      return;
+    }
+    
     gl.bindVertexArray(vao);
     const buffer = gl.createBuffer();
+    if (!buffer) {
+      console.error("[LiquidGloss] Failed to create buffer");
+      return;
+    }
+    
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
     const posLoc = gl.getAttribLocation(program, "aPosition");
+    if (posLoc === -1) {
+      console.error("[LiquidGloss] Failed to get attribute location");
+      return;
+    }
+    
     gl.enableVertexAttribArray(posLoc);
     gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
     const uTime = gl.getUniformLocation(program, "uTime");
     const uMouse = gl.getUniformLocation(program, "uMouse");
     const uResolution = gl.getUniformLocation(program, "uResolution");
+    
+    if (!uTime || !uMouse || !uResolution) {
+      console.error("[LiquidGloss] Failed to get uniform locations");
+      return;
+    }
 
     let lastMouse = { x: 0, y: 0 };
 
@@ -338,32 +360,40 @@ export const LiquidGlossCanvas = () => {
     window.addEventListener("mousemove", onMouseMove);
 
     let time = 0;
-    let animationId: number;
+    let animationId: number | null = null;
+    let isRunning = true;
 
     const render = () => {
-      time += 0.016;
-      gl.clearColor(1.0, 1.0, 1.0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      if (!isRunning || !vao || !uTime || !uMouse || !uResolution) {
+        return;
+      }
       
-      if (uTime && uMouse && uResolution) {
+      try {
+        time += 0.016;
+        gl.clearColor(1.0, 1.0, 1.0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        
         gl.useProgram(program);
         gl.uniform1f(uTime, time);
         gl.uniform2f(uMouse, mouseRef.current.x, mouseRef.current.y);
         gl.uniform2f(uResolution, canvas.width, canvas.height);
+        gl.bindVertexArray(vao);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         
-        if (vao) {
-          gl.bindVertexArray(vao);
-          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        }
+        animationId = requestAnimationFrame(render);
+      } catch (error) {
+        console.error("[LiquidGloss] Render error:", error);
+        isRunning = false;
       }
-      
-      animationId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
-      cancelAnimationFrame(animationId);
+      isRunning = false;
+      if (animationId !== null) {
+        cancelAnimationFrame(animationId);
+      }
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("resize", updateSize);
     };

@@ -107,14 +107,15 @@ NEXT_PUBLIC_SUPABASE_URL=$supabaseUrl
 NEXT_PUBLIC_SUPABASE_ANON_KEY=$anonKey
 SUPABASE_SERVICE_ROLE_KEY=$serviceKey
 
-# Alpha Vantage
-ALPHA_VANTAGE_API_KEY=D05K80BVIL89XP20
+# Alpha Vantage - Get your key at https://www.alphavantage.co/support/#api-key
+ALPHA_VANTAGE_API_KEY=your-alpha-vantage-key-here
 
-# S3 Storage
-S3_ENDPOINT=https://files.massive.com
-S3_ACCESS_KEY_ID=9608b1ba-919e-43df-aaa5-31c69921572c
-S3_SECRET_ACCESS_KEY=axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b
-S3_BUCKET=flatfiles
+# S3 Storage - Get your credentials from your storage provider
+# ⚠️ SECURITY: Never commit real credentials to Git!
+S3_ENDPOINT=https://your-endpoint.com
+S3_ACCESS_KEY_ID=your-access-key-id-here
+S3_SECRET_ACCESS_KEY=your-secret-access-key-here
+S3_BUCKET=your-bucket-name
 S3_REGION=us-east-1
 
 # App Configuration

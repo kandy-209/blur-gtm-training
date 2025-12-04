@@ -51,7 +51,8 @@ MODAL_FUNCTION_URL=
 # ============================================
 # Alpha Vantage - https://www.alphavantage.co/support/#api-key
 # Free tier: 5 requests/minute, 500/day
-ALPHA_VANTAGE_API_KEY=D05K80BVIL89XP20
+# ⚠️ SECURITY: Get your own API key - never use hardcoded values!
+ALPHA_VANTAGE_API_KEY=your-alpha-vantage-key-here
 
 # Clearbit - https://clearbit.com/
 CLEARBIT_API_KEY=
@@ -60,12 +61,14 @@ CLEARBIT_API_KEY=
 NEWS_API_KEY=
 
 # ============================================
-# Storage (Optional - Already configured)
+# Storage (Optional)
 # ============================================
-S3_ENDPOINT=https://files.massive.com
-S3_ACCESS_KEY_ID=9608b1ba-919e-43df-aaa5-31c69921572c
-S3_SECRET_ACCESS_KEY=axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b
-S3_BUCKET=flatfiles
+# ⚠️ SECURITY WARNING: Never commit real credentials to Git!
+# Get your S3 credentials from your storage provider
+S3_ENDPOINT=https://your-endpoint.com
+S3_ACCESS_KEY_ID=your-access-key-id-here
+S3_SECRET_ACCESS_KEY=your-secret-access-key-here
+S3_BUCKET=your-bucket-name
 S3_REGION=us-east-1
 
 # ============================================

@@ -1,0 +1,8 @@
+cd /d "C:\Users\Laxmo\Modal Test\cursor-gtm-training"
+
+git reset HEAD .github/workflows/daily-dependency-check.yml
+
+git commit -m "Fix: Add null checks for dataSources in company enrich API"
+
+git push origin main
+

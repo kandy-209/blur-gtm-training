@@ -50,7 +50,9 @@
     "api-keys:generate": "powershell -ExecutionPolicy Bypass -File scripts/setup-api-keys.ps1 -GenerateEnvFile",
     "api-keys:auto-setup": "powershell -ExecutionPolicy Bypass -File scripts/auto-setup-all-api-keys.ps1",
     "api-keys:supabase": "powershell -ExecutionPolicy Bypass -File scripts/quick-setup-supabase.ps1",
-    "api-keys:create-env": "powershell -ExecutionPolicy Bypass -File scripts/create-env-local.ps1"
+    "api-keys:create-env": "powershell -ExecutionPolicy Bypass -File scripts/create-env-local.ps1",
+    "api-keys:sync-vercel": "powershell -ExecutionPolicy Bypass -File scripts/sync-vercel-env-to-local.ps1",
+    "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.943.0",

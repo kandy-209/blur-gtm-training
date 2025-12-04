@@ -22,22 +22,23 @@ OPENAI_API_KEY=sk-...
 # ============================================
 
 # Alpha Vantage - Free tier: 5 requests/minute, 500/day
-# Your API Key: D05K80BVIL89XP20
-ALPHA_VANTAGE_API_KEY=D05K80BVIL89XP20
+# Get your API key at: https://www.alphavantage.co/support/#api-key
+ALPHA_VANTAGE_API_KEY=your-alpha-vantage-key-here
 
 # Polygon.io - Optional alternative data source
 # Get your key at: https://polygon.io/
 POLYGON_API_KEY=...
 
 # ============================================
-# S3 Storage (Already Configured)
+# S3 Storage
 # ============================================
 
-# Your S3 credentials (already set from your input)
-S3_ENDPOINT=https://files.massive.com
-S3_ACCESS_KEY_ID=9608b1ba-919e-43df-aaa5-31c69921572c
-S3_SECRET_ACCESS_KEY=axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b
-S3_BUCKET=flatfiles
+# ⚠️ SECURITY WARNING: Never commit real credentials to Git!
+# Get your S3 credentials from your storage provider
+S3_ENDPOINT=https://your-endpoint.com
+S3_ACCESS_KEY_ID=your-access-key-id-here
+S3_SECRET_ACCESS_KEY=your-secret-access-key-here
+S3_BUCKET=your-bucket-name
 S3_REGION=us-east-1
 
 # ============================================
@@ -55,9 +56,9 @@ NEXT_PUBLIC_ELEVENLABS_AGENT_ID=...
 ## Quick Setup
 
 1. Create `.env.local` file in the root directory
-2. Copy the Alpha Vantage key above
+2. Get your Alpha Vantage API key from https://www.alphavantage.co/support/#api-key
 3. Add Claude or OpenAI API key (recommended: Claude)
-4. The S3 credentials are already configured
+4. Add your S3 credentials (if using S3 storage)
 
 ## Priority Order
 

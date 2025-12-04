@@ -35,15 +35,17 @@ ANTHROPIC_API_KEY=sk-ant-...  # Best option - Claude
 OPENAI_API_KEY=sk-...          # Fallback option
 
 # S3 Storage (for caching and persistence)
-S3_ENDPOINT=https://files.massive.com
-S3_ACCESS_KEY_ID=9608b1ba-919e-43df-aaa5-31c69921572c
-S3_SECRET_ACCESS_KEY=axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b
-S3_BUCKET=flatfiles
+# ⚠️ SECURITY WARNING: Never commit real credentials to Git!
+# Get your S3 credentials from your storage provider
+S3_ENDPOINT=https://your-endpoint.com
+S3_ACCESS_KEY_ID=your-access-key-id-here
+S3_SECRET_ACCESS_KEY=your-secret-access-key-here
+S3_BUCKET=your-bucket-name
 S3_REGION=us-east-1
 
 # Financial APIs (optional but recommended)
-ALPHA_VANTAGE_API_KEY=...  # Free tier available
-POLYGON_API_KEY=...        # Optional
+ALPHA_VANTAGE_API_KEY=your-key-here  # Get at https://www.alphavantage.co/support/#api-key (Free tier available)
+POLYGON_API_KEY=your-key-here       # Optional - Get at https://polygon.io/
 ```
 
 ### 2. Get API Keys
