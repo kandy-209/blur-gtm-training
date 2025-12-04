@@ -2,7 +2,7 @@
  * Tests for Cache Metrics API
  */
 
-import { GET } from '../../cache/metrics/route';
+import { GET } from '@/app/api/cache/metrics/route';
 import { NextRequest } from 'next/server';
 import { getCacheMetrics } from '@/lib/next-cache-wrapper';
 

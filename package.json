@@ -33,7 +33,12 @@
     "test:lighthouse": "npx lighthouse http://localhost:3000 --view",
     "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'",
     "sync": "powershell -ExecutionPolicy Bypass -File scripts/sync-git.ps1",
-    "sync:mac": "bash scripts/sync-git.sh"
+    "sync:mac": "bash scripts/sync-git.sh",
+    "check:updates": "powershell -ExecutionPolicy Bypass -File scripts/check-updates.ps1",
+    "check:updates:mac": "bash scripts/check-updates.sh",
+    "update:deps": "powershell -ExecutionPolicy Bypass -File scripts/auto-update-dependencies.ps1 -DryRun",
+    "update:deps:apply": "powershell -ExecutionPolicy Bypass -File scripts/auto-update-dependencies.ps1",
+    "update:deps:patch": "powershell -ExecutionPolicy Bypass -File scripts/auto-update-dependencies.ps1 -PatchOnly"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.943.0",

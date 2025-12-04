@@ -2,7 +2,7 @@
  * Tests for Enhanced Alpha Vantage Quote API
  */
 
-import { GET } from '../../alphavantage/quote/route';
+import { GET } from '@/app/api/alphavantage/quote/route';
 import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/alphavantage-enhanced', () => ({

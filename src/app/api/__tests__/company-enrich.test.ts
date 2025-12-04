@@ -2,7 +2,7 @@
  * Tests for Company Enrichment API
  */
 
-import { GET } from '../../company/enrich/route';
+import { GET } from '@/app/api/company/enrich/route';
 import { NextRequest } from 'next/server';
 
 // Mock dependencies

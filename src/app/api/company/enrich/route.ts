@@ -57,9 +57,11 @@ export async function GET(request: NextRequest) {
         duration,
         timestamp: new Date().toISOString(),
         dataSources: [
-          ...(financialData.status === 'fulfilled' ? ['alphavantage'] : []),
-          ...(enrichmentData.status === 'fulfilled' ? enrichmentData.value.dataSources : []),
-          ...(newsData.status === 'fulfilled' ? ['newsapi'] : []),
+          ...(financialData.status === 'fulfilled' && financialData.value ? ['alphavantage'] : []),
+          ...(enrichmentData.status === 'fulfilled' && enrichmentData.value?.dataSources && Array.isArray(enrichmentData.value.dataSources) 
+            ? enrichmentData.value.dataSources 
+            : []),
+          ...(newsData.status === 'fulfilled' && newsData.value ? ['newsapi'] : []),
         ],
       },
     };
