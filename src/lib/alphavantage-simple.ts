@@ -3,10 +3,9 @@
  * Clean, easy-to-use functions for common financial data queries
  */
 
-import { appendFileSync } from 'fs';
-
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY || '';
 const BASE_URL = 'https://www.alphavantage.co/query';
+const REQUEST_TIMEOUT = 10000; // 10 seconds
 
 interface QuoteData {
   symbol: string;
@@ -49,50 +48,23 @@ interface TimeSeriesData {
  * Get real-time quote for a stock symbol
  */
 export async function getQuote(symbol: string): Promise<QuoteData | null> {
-  // #region debug log
-  if (process.env.NODE_ENV !== 'test') {
-    try {
-      const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-      appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:49',message:'getQuote called',data:{symbol,hasApiKey:!!ALPHA_VANTAGE_API_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'K'})+'\n');
-    } catch {}
-  }
-  // #endregion
-
   if (!ALPHA_VANTAGE_API_KEY) {
     console.warn('Alpha Vantage API key not configured');
-    // #region debug log
-    if (process.env.NODE_ENV !== 'test') {
-      try {
-        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:53',message:'No API key',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})+'\n');
-      } catch {}
-    }
-    // #endregion
     return null;
   }
 
   try {
     const url = `${BASE_URL}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
     
-    // #region debug log
-    if (process.env.NODE_ENV !== 'test') {
-      try {
-        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:58',message:'Fetching from Alpha Vantage',data:{url:url.replace(ALPHA_VANTAGE_API_KEY,'REDACTED')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'M'})+'\n');
-      } catch {}
-    }
-    // #endregion
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
 
-    // #region debug log
-    if (process.env.NODE_ENV !== 'test') {
-      try {
-        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:62',message:'Alpha Vantage response',data:{ok:response.ok,status:response.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'N'})+'\n');
-      } catch {}
-    }
-    // #endregion
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -100,30 +72,17 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
 
     const data = await response.json();
     
-    // #region debug log
-    if (process.env.NODE_ENV !== 'test') {
-      try {
-        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:70',message:'Alpha Vantage data parsed',data:{hasNote:!!data.Note,hasError:!!data['Error Message'],hasGlobalQuote:!!data['Global Quote'],note:data.Note,errorMessage:data['Error Message']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'O'})+'\n');
-      } catch {}
-    }
-    // #endregion
-    
     if (data.Note || data['Error Message']) {
-      console.error('Alpha Vantage error:', data.Note || data['Error Message']);
+      const errorMsg = data.Note || data['Error Message'];
+      if (errorMsg.includes('rate limit') || errorMsg.includes('Thank you for using Alpha Vantage')) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      console.error('Alpha Vantage error:', errorMsg);
       return null;
     }
 
     const quote = data['Global Quote'];
     if (!quote || !quote['05. price']) {
-      // #region debug log
-      if (process.env.NODE_ENV !== 'test') {
-        try {
-          const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-          appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:77',message:'Invalid quote data',data:{hasQuote:!!quote,hasPrice:!!quote?.['05. price']},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'P'})+'\n');
-        } catch {}
-      }
-      // #endregion
       return null;
     }
 
@@ -144,9 +103,12 @@ export async function getQuote(symbol: string): Promise<QuoteData | null> {
       previousClose,
       timestamp: quote['07. latest trading day'],
     };
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
     console.error('Error fetching quote:', error);
-    return null;
+    throw error;
   }
 }
 
@@ -160,9 +122,17 @@ export async function getCompanyOverview(symbol: string): Promise<CompanyOvervie
   }
 
   try {
-    const response = await fetch(
-      `${BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
+    const url = `${BASE_URL}?function=OVERVIEW&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}`;
+    
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -171,7 +141,11 @@ export async function getCompanyOverview(symbol: string): Promise<CompanyOvervie
     const data = await response.json();
     
     if (data.Note || data['Error Message'] || !data.Symbol) {
-      console.error('Alpha Vantage error:', data.Note || data['Error Message']);
+      const errorMsg = data.Note || data['Error Message'];
+      if (errorMsg && (errorMsg.includes('rate limit') || errorMsg.includes('Thank you for using Alpha Vantage'))) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      console.error('Alpha Vantage error:', errorMsg);
       return null;
     }
 
@@ -189,9 +163,12 @@ export async function getCompanyOverview(symbol: string): Promise<CompanyOvervie
       revenue: data.RevenueTTM,
       profitMargin: data.ProfitMargin,
     };
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
     console.error('Error fetching company overview:', error);
-    return null;
+    throw error;
   }
 }
 
@@ -201,21 +178,21 @@ export async function getCompanyOverview(symbol: string): Promise<CompanyOvervie
 export async function searchSymbol(keyword: string): Promise<Array<{ symbol: string; name: string }> | null> {
   if (!ALPHA_VANTAGE_API_KEY || ALPHA_VANTAGE_API_KEY.trim() === '') {
     console.warn('Alpha Vantage API key not configured');
-    // #region debug log
-    if (process.env.NODE_ENV !== 'test') {
-      try {
-        const logPath = '/Users/lemonbear/Desktop/Blurred Lines/.cursor/debug.log';
-        appendFileSync(logPath, JSON.stringify({location:'alphavantage-simple.ts:147',message:'No API key for searchSymbol',data:{keyword,apiKeyExists:!!process.env.ALPHA_VANTAGE_API_KEY},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'L'})+'\n');
-      } catch {}
-    }
-    // #endregion
     return null;
   }
 
   try {
-    const response = await fetch(
-      `${BASE_URL}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(keyword)}&apikey=${ALPHA_VANTAGE_API_KEY}`
-    );
+    const url = `${BASE_URL}?function=SYMBOL_SEARCH&keywords=${encodeURIComponent(keyword)}&apikey=${ALPHA_VANTAGE_API_KEY}`;
+    
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+    
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -224,7 +201,11 @@ export async function searchSymbol(keyword: string): Promise<Array<{ symbol: str
     const data = await response.json();
     
     if (data.Note || data['Error Message']) {
-      console.error('Alpha Vantage error:', data.Note || data['Error Message']);
+      const errorMsg = data.Note || data['Error Message'];
+      if (errorMsg.includes('rate limit') || errorMsg.includes('Thank you for using Alpha Vantage')) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      console.error('Alpha Vantage error:', errorMsg);
       return null;
     }
 
@@ -233,9 +214,12 @@ export async function searchSymbol(keyword: string): Promise<Array<{ symbol: str
       symbol: match['1. symbol'],
       name: match['2. name'],
     }));
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
     console.error('Error searching symbols:', error);
-    return null;
+    throw error;
   }
 }
 

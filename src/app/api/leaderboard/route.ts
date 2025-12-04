@@ -111,7 +111,25 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Calculate leaderboard entries
+    // Get additional metrics from analytics events if available
+    let analyticsData: any[] = [];
+    if (supabase) {
+      try {
+        const { data: analyticsEvents } = await supabase
+          .from('analytics_events')
+          .select('user_id, event_type, score, scenario_id, timestamp')
+          .in('user_id', Array.from(userStats.keys()));
+
+        if (analyticsEvents) {
+          analyticsData = analyticsEvents;
+        }
+      } catch (error) {
+        console.error('Error fetching analytics for leaderboard:', error);
+        // Continue without analytics data
+      }
+    }
+
+    // Calculate comprehensive leaderboard entries with more data points
     const leaderboard = Array.from(userStats.values())
       .map((stats) => {
         const averageRating = stats.ratings.length > 0
@@ -120,7 +138,43 @@ export async function GET(request: NextRequest) {
         const winRate = stats.totalSessions > 0
           ? (stats.wins / stats.totalSessions) * 100
           : 0;
-        const totalScore = averageRating * 100 + winRate; // Combined score
+
+        // Get analytics metrics for this user
+        const userAnalytics = analyticsData.filter(a => a.user_id === stats.userId);
+        const completedScenarios = userAnalytics.filter(a => a.event_type === 'scenario_complete').length;
+        const startedScenarios = userAnalytics.filter(a => a.event_type === 'scenario_start').length;
+        const totalTurns = userAnalytics.filter(a => a.event_type === 'turn_submit').length;
+        const scores = userAnalytics.filter(a => a.score !== undefined).map(a => a.score);
+        const averageScore = scores.length > 0
+          ? scores.reduce((sum, s) => sum + s, 0) / scores.length
+          : 0;
+        const completionRate = startedScenarios > 0
+          ? (completedScenarios / startedScenarios) * 100
+          : 0;
+
+        // Category breakdown from ratings
+        const categoryRatings = new Map<string, number[]>();
+        ratings?.forEach((rating: any) => {
+          if (rating.rated_user_id === stats.userId) {
+            if (!categoryRatings.has(rating.category)) {
+              categoryRatings.set(rating.category, []);
+            }
+            categoryRatings.get(rating.category)!.push(rating.rating);
+          }
+        });
+
+        const categoryAverages: Record<string, number> = {};
+        categoryRatings.forEach((ratings, category) => {
+          categoryAverages[category] = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+        });
+
+        // Calculate total score with more factors
+        const totalScore = (
+          averageRating * 40 +           // 40% weight on ratings
+          winRate * 0.3 +                // 30% weight on win rate
+          averageScore * 0.2 +           // 20% weight on scenario scores
+          completionRate * 0.1           // 10% weight on completion rate
+        );
 
         return {
           userId: stats.userId,
@@ -131,6 +185,15 @@ export async function GET(request: NextRequest) {
           totalRatings: stats.ratings.length,
           winRate: Math.round(winRate * 10) / 10,
           totalScore: Math.round(totalScore * 10) / 10,
+          // Additional metrics
+          completedScenarios,
+          startedScenarios,
+          totalTurns,
+          averageScore: Math.round(averageScore * 10) / 10,
+          completionRate: Math.round(completionRate * 10) / 10,
+          categoryAverages: Object.fromEntries(
+            Object.entries(categoryAverages).map(([k, v]) => [k, Math.round(v * 10) / 10])
+          ),
           rank: 0, // Will be set after sorting
         };
       })
@@ -141,7 +204,24 @@ export async function GET(request: NextRequest) {
         rank: index + 1,
       }));
 
-    return NextResponse.json({ leaderboard });
+    // Calculate aggregate statistics
+    const aggregateStats = {
+      totalUsers: leaderboard.length,
+      averageRating: leaderboard.length > 0
+        ? leaderboard.reduce((sum, e) => sum + e.averageRating, 0) / leaderboard.length
+        : 0,
+      averageWinRate: leaderboard.length > 0
+        ? leaderboard.reduce((sum, e) => sum + e.winRate, 0) / leaderboard.length
+        : 0,
+      totalSessions: leaderboard.reduce((sum, e) => sum + e.totalSessions, 0),
+      totalCompletedScenarios: leaderboard.reduce((sum, e) => sum + e.completedScenarios, 0),
+    };
+
+    return NextResponse.json({ 
+      leaderboard,
+      stats: aggregateStats,
+      generatedAt: new Date().toISOString(),
+    });
   } catch (error: any) {
     console.error('Leaderboard error:', error);
     return NextResponse.json(

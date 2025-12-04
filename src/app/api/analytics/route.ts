@@ -5,6 +5,13 @@ import { persistAnalyticsEvent } from '@/lib/database/persistence';
 import { addJob, JobType } from '@/lib/jobs/queue';
 import { log } from '@/lib/logger';
 import { handleError } from '@/lib/error-handler';
+import { createClient } from '@supabase/supabase-js';
+import { retryWithBackoff } from '@/lib/error-recovery';
+
+// Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // In-memory fallback (will be migrated to database)
 const events: TrainingEvent[] = [];
@@ -38,15 +45,39 @@ export async function POST(request: NextRequest) {
       userId: event.userId ? sanitizeInput(event.userId, 100) : undefined,
     };
 
+    // Try to save to Supabase if available
+    if (supabase) {
+      try {
+        await retryWithBackoff(async () => {
+          const { error } = await supabase
+            .from('analytics_events')
+            .insert({
+              event_type: sanitizedEvent.eventType,
+              user_id: sanitizedEvent.userId || null,
+              scenario_id: sanitizedEvent.scenarioId || null,
+              score: sanitizedEvent.score || null,
+              turn_number: sanitizedEvent.turnNumber || null,
+              metadata: sanitizedEvent.metadata || {},
+              timestamp: sanitizedEvent.timestamp || new Date().toISOString(),
+            });
+
+          if (error) throw error;
+        }, {
+          maxRetries: 2,
+          retryDelay: 500,
+        });
+      } catch (error) {
+        console.error('Failed to save to Supabase, using in-memory fallback:', error);
+        // Fall through to in-memory storage
+      }
+    }
+
     // Limit events array size (prevent memory issues)
     if (events.length > 10000) {
       events.splice(0, 1000); // Remove oldest 1000 events
     }
 
     events.push(sanitizedEvent);
-    
-    // Here you would save to your database (e.g., Supabase, PostgreSQL, etc.)
-    // await db.trainingEvents.create({ data: event });
     
     // Log without sensitive data
     console.log('Analytics event:', {
@@ -63,22 +94,145 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get('userId');
-  
-  // Sanitize userId if provided
-  const sanitizedUserId = userId ? sanitizeInput(userId, 100) : null;
-  
-  // Limit results to prevent large responses
-  const userEvents = sanitizedUserId 
-    ? events.filter(e => e.userId === sanitizedUserId).slice(-100) // Last 100 events
-    : events.slice(-100); // Last 100 events
-  
-  return NextResponse.json({ 
-    events: userEvents,
-    total: events.length,
-    returned: userEvents.length,
-  });
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    const includeStats = searchParams.get('includeStats') === 'true';
+    const limit = parseInt(searchParams.get('limit') || '100');
+    
+    // Sanitize userId if provided
+    const sanitizedUserId = userId ? sanitizeInput(userId, 100) : null;
+    
+    let userEvents: TrainingEvent[] = [];
+    let totalEvents = 0;
+    
+    // Try to fetch from Supabase if available
+    if (supabase) {
+      try {
+        let query = supabase
+          .from('analytics_events')
+          .select('*')
+          .order('timestamp', { ascending: false })
+          .limit(Math.min(limit, 1000));
+
+        if (sanitizedUserId) {
+          query = query.eq('user_id', sanitizedUserId);
+        }
+
+        const { data, error, count } = await retryWithBackoff(async () => {
+          const result = await query;
+          if (result.error) throw result.error;
+          return result;
+        }, {
+          maxRetries: 2,
+          retryDelay: 500,
+        });
+
+        if (data && !error) {
+          userEvents = data.map((row: any) => ({
+            eventType: row.event_type,
+            userId: row.user_id,
+            scenarioId: row.scenario_id,
+            score: row.score,
+            turnNumber: row.turn_number,
+            timestamp: row.timestamp,
+            metadata: row.metadata || {},
+          })) as TrainingEvent[];
+          
+          // Get total count
+          const { count: totalCount } = await supabase
+            .from('analytics_events')
+            .select('*', { count: 'exact', head: true });
+          totalEvents = totalCount || 0;
+        }
+      } catch (error) {
+        console.error('Failed to fetch from Supabase, using in-memory fallback:', error);
+        // Fall through to in-memory storage
+      }
+    }
+
+    // Fallback to in-memory if Supabase failed or not available
+    if (userEvents.length === 0) {
+      const allEvents = sanitizedUserId 
+        ? events.filter(e => e.userId === sanitizedUserId)
+        : events;
+      
+      userEvents = allEvents.slice(-limit);
+      totalEvents = allEvents.length;
+    }
+
+    // Calculate comprehensive stats if requested
+    let stats = null;
+    if (includeStats) {
+      const completedScenarios = userEvents.filter(e => e.eventType === 'scenario_complete').length;
+      const startedScenarios = userEvents.filter(e => e.eventType === 'scenario_start').length;
+      const totalTurns = userEvents.filter(e => e.eventType === 'turn_submit').length;
+      const scores = userEvents.filter(e => e.score !== undefined).map(e => e.score!);
+      const averageScore = scores.length > 0 
+        ? scores.reduce((sum, s) => sum + s, 0) / scores.length 
+        : 0;
+      
+      // Group by scenario
+      const scenarioStats = new Map<string, {
+        scenarioId: string;
+        starts: number;
+        completions: number;
+        averageScore: number;
+        totalTurns: number;
+      }>();
+
+      userEvents.forEach(event => {
+        if (event.scenarioId) {
+          if (!scenarioStats.has(event.scenarioId)) {
+            scenarioStats.set(event.scenarioId, {
+              scenarioId: event.scenarioId,
+              starts: 0,
+              completions: 0,
+              averageScore: 0,
+              totalTurns: 0,
+            });
+          }
+          const stats = scenarioStats.get(event.scenarioId)!;
+          if (event.eventType === 'scenario_start') stats.starts++;
+          if (event.eventType === 'scenario_complete') stats.completions++;
+          if (event.eventType === 'turn_submit') stats.totalTurns++;
+          if (event.score !== undefined) {
+            stats.averageScore = (stats.averageScore * (stats.completions - 1) + event.score) / stats.completions;
+          }
+        }
+      });
+
+      stats = {
+        totalScenarios: completedScenarios,
+        totalStarts: startedScenarios,
+        totalTurns,
+        averageScore: Math.round(averageScore * 10) / 10,
+        completionRate: startedScenarios > 0 ? (completedScenarios / startedScenarios) * 100 : 0,
+        scenarioBreakdown: Array.from(scenarioStats.values()),
+        eventTypeBreakdown: {
+          scenario_start: userEvents.filter(e => e.eventType === 'scenario_start').length,
+          scenario_complete: userEvents.filter(e => e.eventType === 'scenario_complete').length,
+          turn_submit: userEvents.filter(e => e.eventType === 'turn_submit').length,
+          feedback_view: userEvents.filter(e => e.eventType === 'feedback_view').length,
+          module_complete: userEvents.filter(e => e.eventType === 'module_complete').length,
+        },
+      };
+    }
+    
+    return NextResponse.json({ 
+      events: userEvents,
+      total: totalEvents,
+      returned: userEvents.length,
+      stats,
+      source: supabase ? 'supabase' : 'memory',
+    });
+  } catch (error) {
+    console.error('Analytics GET error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch analytics' },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(request: NextRequest) {
