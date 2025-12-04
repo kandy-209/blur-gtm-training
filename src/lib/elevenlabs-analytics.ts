@@ -108,10 +108,22 @@ export class ConversationAnalyticsTracker {
    * Track an event
    */
   trackEvent(event: AnalyticsEvent): void {
-    const analytics = this.conversations.get(event.conversationId || '');
+    // Extract conversationId from properties if not directly on event
+    const conversationId = event.conversationId || event.properties?.conversationId || '';
+    const analytics = this.conversations.get(conversationId);
     if (!analytics) return;
 
-    analytics.events.push(event);
+    // Ensure event has proper structure
+    const normalizedEvent: AnalyticsEvent = {
+      ...event,
+      type: event.type || event.eventName || 'analytics',
+      eventName: event.eventName || event.type,
+      properties: event.properties || {},
+      timestamp: event.timestamp || Date.now(),
+      conversationId: conversationId || event.conversationId
+    };
+
+    analytics.events.push(normalizedEvent);
   }
 
   /**

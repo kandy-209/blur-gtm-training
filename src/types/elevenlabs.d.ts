@@ -117,4 +117,6 @@ export interface TranscriptionEvent extends ElevenLabsWidgetEvent {
 export interface AnalyticsEvent extends ElevenLabsWidgetEvent {
   eventName?: string;
   properties?: Record<string, any>;
+  conversationId?: string; // Can be on event or in properties
+  userId?: string; // Can be on event or in properties
 }
