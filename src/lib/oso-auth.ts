@@ -135,21 +135,22 @@ export function filterAuthorized<T extends AuthorizedResource>(
   
   if (!user) {
     userContext = { id: 'anonymous', role: 'guest', isGuest: true };
-  } else if ('isGuest' in user || (user as any).isGuest !== undefined) {
-    const isGuest = 'isGuest' in user ? user.isGuest : (user as any).isGuest;
-    userContext = {
-      id: (user as any).id || 'anonymous',
-      role: 'guest',
-      isGuest: isGuest || false,
-    };
   } else if ((user as any).role !== undefined && typeof (user as any).isGuest === 'boolean') {
-    // Already a UserContext with all required fields
+    // Already a UserContext with all required fields - check this FIRST
     userContext = {
       id: (user as any).id || 'anonymous',
       role: (user as any).role,
       isGuest: (user as any).isGuest,
     };
+  } else if ('isGuest' in user && (user as any).isGuest === true) {
+    // GuestUser type - only treat as guest if isGuest is explicitly true
+    userContext = {
+      id: (user as any).id || 'anonymous',
+      role: 'guest',
+      isGuest: true,
+    };
   } else {
+    // AuthUser (Supabase User) - check user_metadata for role
     const userRole = (user as any).user_metadata?.role || 'user';
     userContext = {
       id: (user as any).id || 'anonymous',
