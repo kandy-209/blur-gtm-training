@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
           query = query.eq('user_id', sanitizedUserId);
         }
 
-        const { data, error, count } = await retryWithBackoff(async () => {
+        const retryResult = await retryWithBackoff(async () => {
           const result = await query;
           if (result.error) throw result.error;
           return result;
@@ -128,22 +128,30 @@ export async function GET(request: NextRequest) {
           retryDelay: 500,
         });
 
-        if (data && !error) {
-          userEvents = data.map((row: any) => ({
-            eventType: row.event_type,
-            userId: row.user_id,
-            scenarioId: row.scenario_id,
-            score: row.score,
-            turnNumber: row.turn_number,
-            timestamp: row.timestamp,
-            metadata: row.metadata || {},
-          })) as TrainingEvent[];
-          
-          // Get total count
-          const { count: totalCount } = await supabase
-            .from('analytics_events')
-            .select('*', { count: 'exact', head: true });
-          totalEvents = totalCount || 0;
+        if (retryResult.success && retryResult.data) {
+          const queryResult = retryResult.data as { data: any[] | null; error: any; count: number | null };
+          if (queryResult.data && !queryResult.error) {
+            userEvents = queryResult.data.map((row: any) => ({
+              eventType: row.event_type,
+              userId: row.user_id,
+              scenarioId: row.scenario_id,
+              score: row.score,
+              turnNumber: row.turn_number,
+              timestamp: row.timestamp,
+              metadata: row.metadata || {},
+            })) as TrainingEvent[];
+            
+            // Use count from query result if available, otherwise fetch separately
+            if (queryResult.count !== null && queryResult.count !== undefined) {
+              totalEvents = queryResult.count;
+            } else {
+              // Get total count
+              const { count: totalCount } = await supabase
+                .from('analytics_events')
+                .select('*', { count: 'exact', head: true });
+              totalEvents = totalCount || 0;
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to fetch from Supabase, using in-memory fallback:', error);
