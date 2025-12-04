@@ -7,7 +7,7 @@ import {
   Volume2, X, Minimize2, Maximize2, Download, RotateCcw, Loader2, 
   History, Settings, Play, Pause, SkipForward, SkipBack, 
   Mic, MicOff, VolumeX, Volume1, Sparkles, TrendingUp, Clock,
-  MessageSquare, User, Bot, FileText, Share2, Copy, CheckCircle2
+  MessageSquare, User, Bot, FileText, Share2, Copy, CheckCircle2, BarChart3
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -16,8 +16,9 @@ import { Toast } from '@/components/ErrorToast';
 import { cn } from '@/lib/utils';
 import type { Scenario } from '@/types/roleplay';
 import type { ConversationEvent, MessageEvent, ErrorEvent, VoiceEvent, AnalyticsEvent } from '@/types/elevenlabs';
-import { conversationAnalytics } from '@/lib/elevenlabs-analytics';
+import { conversationAnalytics, type ConversationMetrics } from '@/lib/elevenlabs-analytics';
 import { formatDistanceToNow } from 'date-fns';
+import { ConversationInsights } from '@/components/ElevenLabsConversationInsights';
 
 interface ElevenLabsConvAIProps {
   agentId: string;
@@ -79,6 +80,8 @@ export default function ElevenLabsConvAI({
   const [conversationHistory, setConversationHistory] = useState<MessageEvent[]>([]);
   const [audioLevel, setAudioLevel] = useState(0);
   const [currentTip, setCurrentTip] = useState<string | null>(null);
+  const [showInsights, setShowInsights] = useState(false);
+  const [conversationMetrics, setConversationMetrics] = useState<ConversationMetrics | null>(null);
   const widgetRef = useRef<HTMLDivElement>(null);
   const widgetElementRef = useRef<HTMLElement | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -253,8 +256,16 @@ Stay in character throughout the conversation. Be realistic and challenging but 
         });
         
         const metrics = await conversationAnalytics.endConversation(conversationId);
-        if (metrics && onConversationComplete) {
-          onConversationComplete(conversationId, conversationState.messages);
+        if (metrics) {
+          setConversationMetrics(metrics);
+          showToast('Conversation insights ready! Click the analytics button to view.', 'success');
+          // Auto-show insights after a short delay
+          setTimeout(() => {
+            setShowInsights(true);
+          }, 1500);
+          if (onConversationComplete) {
+            onConversationComplete(conversationId, conversationState.messages);
+          }
         }
       }
     };
@@ -402,6 +413,8 @@ Stay in character throughout the conversation. Be realistic and challenging but 
     setConversationHistory([]);
     setConversationId(null);
     setError(null);
+    setShowInsights(false);
+    setConversationMetrics(null);
     showToast('Conversation reset', 'info');
     
     if (widgetElementRef.current) {
@@ -510,6 +523,21 @@ Stay in character throughout the conversation. Be realistic and challenging but 
         </div>
       )}
 
+      {/* Conversation Insights Modal */}
+      {showInsights && conversationMetrics && (
+        <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="max-h-[90vh] overflow-y-auto">
+            <ConversationInsights
+              metrics={conversationMetrics}
+              onClose={() => {
+                setShowInsights(false);
+                setConversationMetrics(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Widget Container */}
       {isOpen && (
         <div className={cn("fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in", className)}>
@@ -579,6 +607,17 @@ Stay in character throughout the conversation. Be realistic and challenging but 
                     >
                       <History className="h-4 w-4" />
                     </Button>
+                    {conversationMetrics && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowInsights(true)}
+                        className="h-9 w-9 hover:bg-purple-100"
+                        title="View Insights"
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
