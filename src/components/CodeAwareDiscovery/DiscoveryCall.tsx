@@ -189,12 +189,12 @@ export function DiscoveryCall({ callId, companyId, personaId }: DiscoveryCallPro
       </div>
 
       {/* Sidebar */}
-      <aside className="col-span-4">
+      <aside className="lg:col-span-4 w-full lg:w-auto">
         <Tabs defaultValue="context" className="h-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="context">Context</TabsTrigger>
-            <TabsTrigger value="metrics">Metrics</TabsTrigger>
-            <TabsTrigger value="feedback">Feedback</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+            <TabsTrigger value="context" className="text-xs sm:text-sm">Context</TabsTrigger>
+            <TabsTrigger value="metrics" className="text-xs sm:text-sm">Metrics</TabsTrigger>
+            <TabsTrigger value="feedback" className="text-xs sm:text-sm">Feedback</TabsTrigger>
           </TabsList>
           <TabsContent value="context" className="mt-4">
             <Card className="p-4">
