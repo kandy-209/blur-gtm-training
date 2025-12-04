@@ -98,25 +98,47 @@ function AnalyticsDashboard() {
   const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout | null = null;
+
     const fetchData = async () => {
+      if (!isMounted) return;
+      
       loadingState.startLoading();
 
       try {
-        const result = await retryWithBackoff(
-          async () => {
-            const newStats = analytics.getStats();
-            const events = analytics.getEvents().slice(-10).reverse();
-            return { stats: newStats, events };
-          },
-          {
-            maxRetries: 3,
-            retryDelay: 1000,
-            shouldRetry: (error) => isRetryableError(error),
-            onRetry: (attempt) => {
-              announce(`Retrying... Attempt ${attempt}`);
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 5000);
+        });
+
+        const result = await Promise.race([
+          retryWithBackoff(
+            async () => {
+              const newStats = analytics.getStats();
+              const events = analytics.getEvents().slice(-10).reverse();
+              return { stats: newStats, events };
             },
-          }
-        );
+            {
+              maxRetries: 2, // Reduced retries
+              retryDelay: 500, // Reduced delay
+              shouldRetry: (error) => isRetryableError(error),
+              onRetry: (attempt) => {
+                if (isMounted) {
+                  announce(`Retrying... Attempt ${attempt}`);
+                }
+              },
+            }
+          ),
+          timeoutPromise,
+        ]) as any;
+
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+
+        if (!isMounted) return;
 
         if (result.success && result.data) {
           updateStatsOptimistically(result.data.stats);
@@ -125,17 +147,48 @@ function AnalyticsDashboard() {
         } else {
           throw result.error || new Error('Failed to load analytics');
         }
-      } catch (error) {
+      } catch (error: any) {
+        if (!isMounted) return;
         console.error('Error updating stats:', error);
-        announce('Failed to load analytics. Please refresh the page.');
+        if (error.message === 'Request timeout') {
+          announce('Analytics loading timed out. Showing cached data.');
+        } else {
+          announce('Failed to load analytics. Showing cached data.');
+        }
+        // Still show cached data
+        try {
+          const cachedStats = analytics.getStats();
+          const cachedEvents = analytics.getEvents().slice(-10).reverse();
+          updateStatsOptimistically(cachedStats);
+          setRecentEvents(cachedEvents);
+        } catch (e) {
+          // Ignore cache errors
+        }
       } finally {
-        loadingState.stopLoading();
+        if (isMounted) {
+          loadingState.stopLoading();
+        }
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
       }
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5000);
-    return () => clearInterval(interval);
+    // Increase interval to reduce load - only refresh every 30 seconds
+    const interval = setInterval(() => {
+      if (isMounted) {
+        fetchData();
+      }
+    }, 30000);
+    
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [loadingState, updateStatsOptimistically, announce]);
 
   const handleDeleteEvent = async (eventIndex: number, event: TrainingEvent) => {

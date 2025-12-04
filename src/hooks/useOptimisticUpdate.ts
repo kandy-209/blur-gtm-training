@@ -17,7 +17,10 @@ export function useOptimisticUpdate<T>(initialData: T, options: OptimisticUpdate
 
   const updateOptimistically = useCallback(async (optimisticData: T) => {
     // Store previous state for potential rollback
-    previousDataRef.current = data;
+    setData((currentData) => {
+      previousDataRef.current = currentData;
+      return currentData;
+    });
     
     // Optimistically update UI
     setData(optimisticData);
@@ -46,12 +49,14 @@ export function useOptimisticUpdate<T>(initialData: T, options: OptimisticUpdate
 
       throw error;
     }
-  }, [data, onUpdate, onRollback, onError, rollbackOnError]);
+  }, [onUpdate, onRollback, onError, rollbackOnError]);
 
   const setDataDirectly = useCallback((newData: T) => {
-    previousDataRef.current = data;
-    setData(newData);
-  }, [data]);
+    setData((currentData) => {
+      previousDataRef.current = currentData;
+      return newData;
+    });
+  }, []);
 
   return {
     data,

@@ -80,17 +80,21 @@ export default function CompanyLookupPage() {
       
       if (data.error) {
         // Show helpful error message
-        if (data.error.includes('API key not configured')) {
-          setError('Alpha Vantage API key is not configured. Please add ALPHA_VANTAGE_API_KEY to your .env.local file.');
+        if (data.error.includes('API key not configured') || response.status === 503) {
+          setError('Company search is currently unavailable. The Alpha Vantage API key needs to be configured. This feature will be available once configured.');
         } else {
-          setError(data.error);
+          setError(data.error || 'Failed to search for companies. Please try again.');
         }
         setSearchResults([]);
       } else {
         const results = data.results || [];
         if (results.length === 0 && data.message) {
           // Show helpful message when no results found
-          setError(data.message);
+          setError(null); // Clear error, show message instead
+          setSearchResults([]);
+          // Show info message in UI
+        } else {
+          setError(null);
         }
         setSearchResults(results);
         // #region debug log

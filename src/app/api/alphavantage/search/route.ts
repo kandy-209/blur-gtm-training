@@ -26,10 +26,12 @@ export async function GET(request: NextRequest) {
 
     // Check API key before proceeding
     if (!process.env.ALPHA_VANTAGE_API_KEY || process.env.ALPHA_VANTAGE_API_KEY.trim() === '') {
+      console.warn('Alpha Vantage API key not configured. Company search feature unavailable.');
       return NextResponse.json(
         { 
-          error: 'Alpha Vantage API key not configured. Please set ALPHA_VANTAGE_API_KEY in your environment variables.',
-          results: []
+          error: 'Company search is currently unavailable. This feature requires an Alpha Vantage API key to be configured.',
+          results: [],
+          message: 'To enable company search, add ALPHA_VANTAGE_API_KEY to your environment variables.'
         },
         { status: 503 }
       );
