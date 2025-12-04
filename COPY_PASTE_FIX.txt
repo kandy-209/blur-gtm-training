@@ -1,0 +1,8 @@
+git reset --soft HEAD~1
+
+git reset HEAD .github/workflows/daily-dependency-check.yml
+
+git commit -m "Fix: Add null checks for dataSources and other improvements"
+
+git push origin main
+

@@ -242,7 +242,7 @@ function VoiceCoachingTestPageContent() {
   };
 
   const getMetricColor = (metric: keyof VoiceMetrics, value: number): string => {
-    const targets = {
+    const targets: Partial<Record<Exclude<keyof VoiceMetrics, 'timestamp'>, { min: number; max: number }>> = {
       pace: { min: 140, max: 180 },
       pitch: { min: 85, max: 255 },
       volume: { min: -18, max: -6 },
@@ -251,7 +251,7 @@ function VoiceCoachingTestPageContent() {
       confidence: { min: 70, max: 100 }
     };
 
-    const target = targets[metric];
+    const target = targets[metric as Exclude<keyof VoiceMetrics, 'timestamp'>];
     if (!target) return 'bg-gray-500';
 
     if (value >= target.min && value <= target.max) return 'bg-green-500';

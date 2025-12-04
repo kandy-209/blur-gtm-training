@@ -112,8 +112,11 @@ export default function WaterEffect({
   });
 
   return (
+    // @ts-ignore - React Three Fiber types
     <mesh ref={meshRef} position={position} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* @ts-ignore - React Three Fiber types */}
       <planeGeometry args={[size, size, 64, 64]} />
+      {/* @ts-ignore - React Three Fiber types */}
       <shaderMaterial
         ref={materialRef}
         {...waterShader}

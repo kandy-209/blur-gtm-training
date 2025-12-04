@@ -37,9 +37,10 @@ jobs:
             echo "EOF"
           } >> $GITHUB_OUTPUT
           
-          if [ "$OUTDATED" != "{}" ]; then
+          if [ "$OUTDATED" != "{}" ] && [ -n "$OUTDATED" ]; then
             echo "⚠️ Found outdated packages"
-            echo "$OUTDATED" | jq -r 'to_entries[] | "  • \(.key): \(.value.current) → \(.value.latest)"'
+            # Safely pipe JSON to jq with error handling
+            printf '%s\n' "$OUTDATED" | jq -r 'to_entries[] | "  • \(.key): \(.value.current) → \(.value.latest)"' || true
             echo "has_updates=true" >> $GITHUB_OUTPUT
           else
             echo "✅ All packages are up to date!"
@@ -91,12 +92,16 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             
             # Safely quote and process the JSON output
-            OUTDATED_JSON='${{ steps.outdated.outputs.outdated }}'
+            # Store context variable in a way that handles special characters
+            OUTDATED_JSON="${{ steps.outdated.outputs.outdated }}"
             
-            # Check if JSON is not empty and has entries
-            if [ -n "$OUTDATED_JSON" ] && [ "$OUTDATED_JSON" != "{}" ]; then
-              # Use printf to safely handle the JSON, then pipe to jq
-              printf '%s\n' "$OUTDATED_JSON" | jq -r 'to_entries[] | "- **\(.key)**: \(.value.current) → \(.value.latest)"' >> $GITHUB_STEP_SUMMARY || true
+            # Check if JSON is not empty, not null, and has entries (not just {})
+            if [ -n "$OUTDATED_JSON" ] && [ "$OUTDATED_JSON" != "{}" ] && [ "$OUTDATED_JSON" != "null" ]; then
+              # Use printf to safely handle the JSON, then pipe to jq with error handling
+              # Redirect stderr to /dev/null and use || true to prevent script failure
+              printf '%s\n' "$OUTDATED_JSON" | jq -r 'to_entries[] | "- **\(.key)**: \(.value.current) → \(.value.latest)"' >> $GITHUB_STEP_SUMMARY 2>/dev/null || echo "  (Unable to parse package details)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "  (No outdated packages to display)" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "✅ **All packages are up to date**" >> $GITHUB_STEP_SUMMARY

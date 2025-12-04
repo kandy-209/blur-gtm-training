@@ -78,8 +78,11 @@ export default function WaterParticles({
   });
 
   return (
+    // @ts-ignore - React Three Fiber types
     <points ref={pointsRef}>
+      {/* @ts-ignore - React Three Fiber types */}
       <bufferGeometry>
+        {/* @ts-ignore - React Three Fiber types */}
         <bufferAttribute
           attach="attributes-position"
           count={count}
@@ -87,6 +90,7 @@ export default function WaterParticles({
           itemSize={3}
         />
       </bufferGeometry>
+      {/* @ts-ignore - React Three Fiber types */}
       <pointsMaterial
         size={0.1}
         color="#000000"

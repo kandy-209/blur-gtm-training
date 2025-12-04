@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import type { VoiceMetricsSnapshot } from '@/lib/voice-coaching/types';
+import type { VoiceCoachingMetrics } from '@/types/database';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
@@ -65,9 +66,9 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('voice_coaching_metrics')
-      .insert(record)
+      .insert(record as any)
       .select()
-      .single();
+      .single() as { data: VoiceCoachingMetrics | null; error: any };
 
     if (error) {
       console.error('Error saving voice metrics:', error);
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      id: data.id,
+      id: data?.id,
       metrics: data
     });
   } catch (error) {
@@ -118,7 +119,7 @@ export async function GET(request: NextRequest) {
       .from('voice_coaching_metrics')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('timestamp', { ascending: true });
+      .order('timestamp', { ascending: true }) as { data: VoiceCoachingMetrics[] | null; error: any };
 
     if (error) {
       console.error('Error fetching voice metrics:', error);
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate averages
-    const metrics = data || [];
+    const metrics: VoiceCoachingMetrics[] = data || [];
     const averages = {
       pace: metrics.length > 0
         ? metrics.reduce((sum, m) => sum + (m.pace_wpm || 0), 0) / metrics.length

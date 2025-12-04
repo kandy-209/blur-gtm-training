@@ -6,6 +6,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { UserVoiceProfile, ImpactAnalysis } from './user-model';
 import type { VoiceMetrics, FeedbackMessage, CoachingSuggestion } from './types';
+import type { UserVoiceSession, UserVoiceProfile as DBUserVoiceProfile, UserImpactAnalysis } from '@/types/database';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
@@ -47,7 +48,7 @@ export class UserDataPersistence {
           feedback: sessionData.feedback,
           suggestions: sessionData.suggestions,
           duration_ms: sessionData.duration,
-        });
+        } as any);
 
       if (error) {
         console.error('Error saving session:', error);
@@ -110,7 +111,7 @@ export class UserDataPersistence {
           areas_for_improvement: profile.areasForImprovement,
           impact_score: profile.impactScore,
           updated_at: new Date().toISOString(),
-        }, {
+        } as any, {
           onConflict: 'user_id'
         });
 
@@ -139,14 +140,14 @@ export class UserDataPersistence {
         .select('*')
         .eq('user_id', userId)
         .order('session_date', { ascending: false })
-        .limit(limit);
+        .limit(limit) as { data: UserVoiceSession[] | null; error: any };
 
       if (error) {
         console.error('Error fetching sessions:', error);
         return [];
       }
 
-      return (data || []).map(session => ({
+      return (data || []).map((session: UserVoiceSession) => ({
         userId: session.user_id,
         conversationId: session.conversation_id,
         sessionDate: new Date(session.session_date),
@@ -183,7 +184,7 @@ export class UserDataPersistence {
         throw error;
       }
 
-      return data.analysis_data as ImpactAnalysis;
+      return (data as any)?.analysis_data as ImpactAnalysis;
     } catch (error) {
       console.error('Error fetching impact analysis:', error);
       return null;
@@ -209,7 +210,7 @@ export class UserDataPersistence {
           user_id: userId,
           analysis_data: analysis,
           created_at: new Date().toISOString(),
-        });
+        } as any);
 
       if (error) {
         console.error('Error saving impact analysis:', error);

@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { CoachingEngine } from '@/lib/voice-coaching/coaching-engine';
 import type { VoiceMetrics } from '@/lib/voice-coaching/types';
+import type { VoiceCoachingMetrics } from '@/types/database';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       .from('voice_coaching_metrics')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('timestamp', { ascending: true });
+      .order('timestamp', { ascending: true }) as { data: VoiceCoachingMetrics[] | null; error: any };
 
     if (metricsError) {
       console.error('Error fetching metrics:', metricsError);
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     const allSuggestions: any[] = [];
 
     // Analyze each metric snapshot
-    for (const metricRecord of metricsData) {
+    for (const metricRecord of (metricsData || [])) {
       const metrics: VoiceMetrics = {
         pace: metricRecord.pace_wpm || 0,
         pitch: metricRecord.pitch_hz || 0,

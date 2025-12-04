@@ -75,12 +75,20 @@ export function ImprovementTimeline({ trends }: ImprovementTimelineProps) {
                 </div>
 
                 {/* Baseline Line */}
-                <div
-                  className="absolute left-0 right-0 border-t-2 border-dashed border-gray-400"
-                  style={{
-                    bottom: `${((trend.baseline - Math.min(...trend.sessions.map(s => s.value))) / (Math.max(...trend.sessions.map(s => s.value)) - Math.min(...trend.sessions.map(s => s.value)) || 1)) * 100)}%`,
-                  }}
-                />
+                {(() => {
+                  const minValue = Math.min(...trend.sessions.map(s => s.value));
+                  const maxValue = Math.max(...trend.sessions.map(s => s.value));
+                  const range = maxValue - minValue || 1;
+                  const baselinePosition = ((trend.baseline - minValue) / range) * 100;
+                  return (
+                    <div
+                      className="absolute left-0 right-0 border-t-2 border-dashed border-gray-400"
+                      style={{
+                        bottom: `${baselinePosition}%`,
+                      }}
+                    />
+                  );
+                })()}
               </div>
             </div>
           ))}
