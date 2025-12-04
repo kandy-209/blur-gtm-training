@@ -365,10 +365,10 @@ Stay in character throughout the conversation. Be realistic and challenging but 
       widgetElement.removeEventListener('message-sent', handleMessageSent as unknown as EventListener);
       widgetElement.removeEventListener('message-received', handleMessageReceived as unknown as EventListener);
       widgetElement.removeEventListener('error', handleError as unknown as EventListener);
-      widgetElement.removeEventListener('voice-start', handleVoiceStart as EventListener);
-      widgetElement.removeEventListener('voice-end', handleVoiceEnd as EventListener);
-      widgetElement.removeEventListener('transcription-start', handleTranscriptionStart as EventListener);
-      widgetElement.removeEventListener('transcription-end', handleTranscriptionEnd as EventListener);
+      widgetElement.removeEventListener('voice-start', handleVoiceStart as unknown as EventListener);
+      widgetElement.removeEventListener('voice-end', handleVoiceEnd as unknown as EventListener);
+      widgetElement.removeEventListener('transcription-start', handleTranscriptionStart as unknown as EventListener);
+      widgetElement.removeEventListener('transcription-end', handleTranscriptionEnd as unknown as EventListener);
     };
   }, [isLoaded, isOpen, conversationId, userId, agentId, scenario?.id, onConversationComplete, onError, conversationState.messages, showToast]);
 

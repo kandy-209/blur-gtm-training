@@ -2,8 +2,65 @@
  * Tests for Company Enrichment API
  */
 
+// Mock next/server before importing
+jest.mock('next/server', () => {
+  class MockNextRequest {
+    public headers: Headers;
+    public nextUrl: { searchParams: URLSearchParams };
+    
+    constructor(url: string | URL, init?: RequestInit) {
+      this.headers = new Headers(init?.headers);
+      const urlObj = typeof url === 'string' ? new URL(url) : url;
+      this.nextUrl = { searchParams: urlObj.searchParams };
+    }
+    
+    async json() {
+      return {};
+    }
+    
+    async text() {
+      return '';
+    }
+  }
+  
+  class MockNextResponse {
+    public status: number;
+    public headers: Headers;
+    private _body: any;
+    
+    constructor(body?: any, init?: ResponseInit) {
+      this.status = init?.status ?? 200;
+      this.headers = new Headers(init?.headers);
+      this._body = body;
+    }
+    
+    static json(body: any, init?: ResponseInit) {
+      return new MockNextResponse(JSON.stringify(body), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      });
+    }
+    
+    async json() {
+      return typeof this._body === 'string' ? JSON.parse(this._body) : this._body;
+    }
+    
+    async text() {
+      return typeof this._body === 'string' ? this._body : JSON.stringify(this._body);
+    }
+  }
+  
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: MockNextResponse,
+  };
+});
+
 import { GET } from '@/app/api/company/enrich/route';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Mock dependencies
 jest.mock('@/lib/alphavantage-enhanced', () => ({
@@ -11,11 +68,11 @@ jest.mock('@/lib/alphavantage-enhanced', () => ({
 }));
 
 jest.mock('@/lib/company-enrichment-apis', () => ({
-  enrichCompanyMultiSource: jest.fn(),
+  enrichCompanyMultiSource: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('@/lib/news-sentiment-api', () => ({
-  getCompanyNewsFromNewsAPI: jest.fn(),
+  getCompanyNewsFromNewsAPI: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('@/lib/logger', () => ({
@@ -29,11 +86,30 @@ jest.mock('@/lib/logger', () => ({
 
 jest.mock('@/lib/error-handler', () => ({
   handleError: jest.fn((error, requestId) => {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return NextResponse.json(
+      { error: error?.message || 'Internal server error' },
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }),
+}));
+
+jest.mock('@/lib/security', () => ({
+  sanitizeInput: jest.fn((input: string, maxLength?: number) => {
+    if (!input || typeof input !== 'string') {
+      return '';
+    }
+    return input.slice(0, maxLength || input.length);
+  }),
+}));
+
+jest.mock('@/lib/cache-headers', () => ({
+  CachePresets: {
+    noCache: () => 'no-cache, must-revalidate, proxy-revalidate',
+    companyAnalysis: () => 'public, max-age=300, stale-while-revalidate=600',
+  },
 }));
 
 describe('Company Enrich API', () => {
@@ -87,14 +163,25 @@ describe('Company Enrich API', () => {
 
   it('should handle errors gracefully', async () => {
     const { getComprehensiveCompanyData } = require('@/lib/alphavantage-enhanced');
+    const { enrichCompanyMultiSource } = require('@/lib/company-enrichment-apis');
+    const { getCompanyNewsFromNewsAPI } = require('@/lib/news-sentiment-api');
+    
+    // Mock all to reject to test error handling
     getComprehensiveCompanyData.mockRejectedValue(new Error('API Error'));
+    enrichCompanyMultiSource.mockRejectedValue(new Error('Enrichment Error'));
+    getCompanyNewsFromNewsAPI.mockRejectedValue(new Error('News Error'));
 
     const request = new NextRequest(
       'http://localhost/api/company/enrich?symbol=AAPL'
     );
     const response = await GET(request);
+    const data = await response.json();
 
-    expect(response.status).toBe(500);
+    // Route uses Promise.allSettled, so it returns 200 even if all sources fail
+    expect(response.status).toBe(200);
+    expect(data.financial).toBeNull();
+    expect(data.enrichment).toBeNull();
+    expect(data.news).toBeNull();
   });
 });
 

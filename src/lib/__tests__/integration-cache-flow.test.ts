@@ -14,8 +14,10 @@ jest.mock('../redis', () => ({
 jest.mock('next/cache', () => ({
   unstable_cache: jest.fn((fn: any) => {
     return async () => {
-      const result = await fn();
-      return { data: result, timestamp: Date.now() };
+      const entry = await fn();
+      // The function passed to unstable_cache returns a CacheEntry { data, timestamp }
+      // Return it directly
+      return entry;
     };
   }),
 }));
@@ -126,6 +128,7 @@ describe('Integration: Complete Cache Flow', () => {
     });
 
     expect(result.data).toEqual({ data: 'value' });
+    expect(result).toHaveProperty('timestamp');
     expect(fetcher).toHaveBeenCalled();
   });
 

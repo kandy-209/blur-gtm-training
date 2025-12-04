@@ -5,21 +5,23 @@
 import { enrichFromClearbit, enrichCompanyMultiSource } from '../company-enrichment-apis';
 
 jest.mock('../next-cache-wrapper', () => ({
-  cachedRouteHandler: jest.fn((key, fetcher, options) => {
-    return Promise.resolve({
-      data: fetcher(),
+  cachedRouteHandler: jest.fn(async (key, fetcher, options) => {
+    const result = await fetcher();
+    return {
+      data: result,
       timestamp: new Date().toISOString(),
       cached: false,
-    });
+    };
   }),
 }));
 
 jest.mock('../error-recovery', () => ({
-  retryWithBackoff: jest.fn((fn) => {
-    return Promise.resolve({
+  retryWithBackoff: jest.fn(async (fn) => {
+    const result = await fn();
+    return {
       success: true,
-      data: fn(),
-    });
+      data: result,
+    };
   }),
 }));
 
@@ -83,6 +85,7 @@ describe('company-enrichment-apis', () => {
       mockFetch.mockResolvedValueOnce({
         status: 404,
         ok: false,
+        json: async () => ({}),
       });
 
       const result = await enrichFromClearbit('nonexistent.com');

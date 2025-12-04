@@ -5,8 +5,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { MessageEvent } from '@/types/elevenlabs';
-import type { ConversationMetrics, ConversationAnalytics } from './elevenlabs-analytics';
-import type { ConversationRecord } from '@/types/database';
+import type { ConversationAnalytics, ConversationMetrics } from './elevenlabs-analytics';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
@@ -101,7 +100,7 @@ export class ElevenLabsConversationDB {
         id: conversationId,
         ...record,
         updated_at: new Date().toISOString(),
-      } as any, {
+      }, {
         onConflict: 'id'
       });
 
@@ -223,7 +222,7 @@ export class ElevenLabsConversationDB {
       throw new Error(`Failed to fetch stats: ${error.message}`);
     }
 
-    const conversations = (data || []) as ConversationRecord[];
+    const conversations = data || [];
     const totalConversations = conversations.length;
     const totalMessages = conversations.reduce((sum, c) => sum + (c.message_count || 0), 0);
     const totalDuration = conversations.reduce((sum, c) => sum + (c.duration_ms || 0), 0);

@@ -1,19 +1,116 @@
+// Mock next/server before importing
+jest.mock('next/server', () => {
+  class MockNextRequest {
+    public headers: Headers;
+    public nextUrl: { searchParams: URLSearchParams };
+    
+    constructor(url: string | URL, init?: RequestInit) {
+      this.headers = new Headers(init?.headers);
+      const urlObj = typeof url === 'string' ? new URL(url) : url;
+      this.nextUrl = { searchParams: urlObj.searchParams };
+    }
+    
+    async json() {
+      return {};
+    }
+    
+    async text() {
+      return '';
+    }
+  }
+  
+  class MockNextResponse {
+    public status: number;
+    public headers: Headers;
+    private _body: any;
+    
+    constructor(body?: any, init?: ResponseInit) {
+      this.status = init?.status ?? 200;
+      this.headers = new Headers(init?.headers);
+      this._body = body;
+    }
+    
+    static json(body: any, init?: ResponseInit) {
+      return new MockNextResponse(JSON.stringify(body), {
+        ...init,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers,
+        },
+      });
+    }
+    
+    async json() {
+      return typeof this._body === 'string' ? JSON.parse(this._body) : this._body;
+    }
+    
+    async text() {
+      return typeof this._body === 'string' ? this._body : JSON.stringify(this._body);
+    }
+  }
+  
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: MockNextResponse,
+  };
+});
+
 import { GET } from '@/app/api/alphavantage/search/route';
+import { NextRequest, NextResponse } from 'next/server';
 import { searchSymbol, getQuote, getCompanyOverview } from '@/lib/alphavantage-simple';
 import { retryWithBackoff } from '@/lib/error-recovery';
 
 // Mock dependencies
 jest.mock('@/lib/alphavantage-simple');
 jest.mock('@/lib/error-recovery');
-
-// Mock NextRequest
-class MockNextRequest {
-  public nextUrl: URL;
-  
-  constructor(public url: string) {
-    this.nextUrl = new URL(url);
-  }
-}
+jest.mock('@/lib/alphavantage-enhanced', () => ({
+  getEnhancedQuote: jest.fn(),
+  getEnhancedCompanyOverview: jest.fn(),
+}));
+jest.mock('@/lib/next-cache-wrapper', () => ({
+  cachedRouteHandler: jest.fn(async (key, fetcher, options) => {
+    const result = await fetcher();
+    return {
+      data: result,
+      timestamp: new Date().toISOString(),
+      cached: false,
+      age: 0,
+    };
+  }),
+}));
+jest.mock('@/lib/security', () => ({
+  sanitizeInput: jest.fn((input: string, maxLength?: number) => {
+    if (!input || typeof input !== 'string') {
+      return '';
+    }
+    return input.slice(0, maxLength || input.length);
+  }),
+}));
+jest.mock('@/lib/cache-headers', () => ({
+  CachePresets: {
+    noCache: () => 'no-cache, must-revalidate, proxy-revalidate',
+    apiStable: (seconds: number) => `public, max-age=${seconds}`,
+  },
+}));
+jest.mock('@/lib/logger', () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+  generateRequestId: jest.fn(() => 'test-request-id'),
+}));
+jest.mock('@/lib/error-handler', () => ({
+  handleError: jest.fn((error, requestId) => {
+    return NextResponse.json(
+      { error: error?.message || 'Internal server error', results: [] },
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }),
+}));
 
 describe('/api/alphavantage/search - Enhanced', () => {
   beforeEach(() => {
@@ -38,7 +135,7 @@ describe('/api/alphavantage/search - Enhanced', () => {
         attempts: 1,
       });
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 
@@ -54,19 +151,19 @@ describe('/api/alphavantage/search - Enhanced', () => {
         attempts: 1,
       });
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Nonexistent') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Nonexistent');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.results).toEqual([]);
-      expect(data.message).toContain('No results found');
+      expect(data.total).toBe(0);
     });
 
     it('should return 503 when API key is missing', async () => {
       delete process.env.ALPHA_VANTAGE_API_KEY;
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 
@@ -75,7 +172,7 @@ describe('/api/alphavantage/search - Enhanced', () => {
     });
 
     it('should require keyword parameter', async () => {
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search');
       const response = await GET(request);
       const data = await response.json();
 
@@ -118,24 +215,18 @@ describe('/api/alphavantage/search - Enhanced', () => {
         profitMargin: '0.25',
       };
 
-      (retryWithBackoff as jest.Mock)
-        .mockResolvedValueOnce({
-          success: true,
-          data: mockSearchResults,
-          attempts: 1,
-        })
-        .mockResolvedValueOnce({
-          success: true,
-          data: mockQuote,
-          attempts: 1,
-        })
-        .mockResolvedValueOnce({
-          success: true,
-          data: mockOverview,
-          attempts: 1,
-        });
+      const { getEnhancedQuote, getEnhancedCompanyOverview } = require('@/lib/alphavantage-enhanced');
+      
+      (retryWithBackoff as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockSearchResults,
+        attempts: 1,
+      });
+      
+      getEnhancedQuote.mockResolvedValue(mockQuote);
+      getEnhancedCompanyOverview.mockResolvedValue(mockOverview);
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple&includeDetails=true') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple&includeDetails=true');
       const response = await GET(request);
       const data = await response.json();
 
@@ -153,16 +244,18 @@ describe('/api/alphavantage/search - Enhanced', () => {
         { symbol: 'AAPL', name: 'Apple Inc.' },
       ];
 
-      (retryWithBackoff as jest.Mock)
-        .mockResolvedValueOnce({
-          success: true,
-          data: mockSearchResults,
-          attempts: 1,
-        })
-        .mockRejectedValueOnce(new Error('Quote fetch failed'))
-        .mockRejectedValueOnce(new Error('Overview fetch failed'));
+      const { getEnhancedQuote, getEnhancedCompanyOverview } = require('@/lib/alphavantage-enhanced');
+      
+      (retryWithBackoff as jest.Mock).mockResolvedValue({
+        success: true,
+        data: mockSearchResults,
+        attempts: 1,
+      });
+      
+      getEnhancedQuote.mockRejectedValue(new Error('Quote fetch failed'));
+      getEnhancedCompanyOverview.mockRejectedValue(new Error('Overview fetch failed'));
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple&includeDetails=true') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple&includeDetails=true');
       const response = await GET(request);
       const data = await response.json();
 
@@ -181,7 +274,7 @@ describe('/api/alphavantage/search - Enhanced', () => {
         attempts: 2, // Retried once
       });
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 
@@ -196,7 +289,7 @@ describe('/api/alphavantage/search - Enhanced', () => {
         attempts: 3,
       });
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 
@@ -212,19 +305,19 @@ describe('/api/alphavantage/search - Enhanced', () => {
         attempts: 3,
       });
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.results).toEqual([]);
-      expect(data.message).toContain('No results found');
+      expect(data.total).toBe(0);
     });
 
     it('should handle unexpected errors', async () => {
       (retryWithBackoff as jest.Mock).mockRejectedValue(new Error('Unexpected error'));
 
-      const request = new MockNextRequest('http://localhost/api/alphavantage/search?keyword=Apple') as any;
+      const request = new NextRequest('http://localhost/api/alphavantage/search?keyword=Apple');
       const response = await GET(request);
       const data = await response.json();
 

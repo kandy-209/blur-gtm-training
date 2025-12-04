@@ -112,7 +112,7 @@ export async function getCompanyNewsFromNewsAPI(
 /**
  * Simple sentiment analysis (can be enhanced with AI)
  */
-function analyzeSentiment(articles: NewsArticle[]): CompanyNews['sentimentSummary'] {
+export function analyzeSentiment(articles: NewsArticle[]): CompanyNews['sentimentSummary'] {
   let positive = 0;
   let negative = 0;
   let neutral = 0;

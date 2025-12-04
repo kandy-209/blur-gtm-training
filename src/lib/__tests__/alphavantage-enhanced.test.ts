@@ -2,6 +2,9 @@
  * Tests for Enhanced Alpha Vantage Integration
  */
 
+// Set env var before importing (module reads it at load time)
+process.env.ALPHA_VANTAGE_API_KEY = 'test-key';
+
 import {
   getEnhancedQuote,
   getEnhancedCompanyOverview,
@@ -12,12 +15,13 @@ import {
 
 // Mock the cache wrapper
 jest.mock('../next-cache-wrapper', () => ({
-  cachedRouteHandler: jest.fn((key, fetcher, options) => {
-    return Promise.resolve({
-      data: fetcher(),
+  cachedRouteHandler: jest.fn(async (key, fetcher, options) => {
+    const result = await fetcher();
+    return {
+      data: result,
       timestamp: new Date().toISOString(),
       cached: false,
-    });
+    };
   }),
 }));
 
@@ -32,11 +36,21 @@ jest.mock('../logger', () => ({
 
 // Mock error recovery
 jest.mock('../error-recovery', () => ({
-  retryWithBackoff: jest.fn((fn) => {
-    return Promise.resolve({
-      success: true,
-      data: fn(),
-    });
+  retryWithBackoff: jest.fn(async (fn, options) => {
+    try {
+      const result = await fn();
+      return {
+        success: true,
+        data: result,
+        attempts: 1,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error : new Error(String(error)),
+        attempts: 1,
+      };
+    }
   }),
 }));
 
@@ -94,6 +108,7 @@ describe('alphavantage-enhanced', () => {
     it('should handle API errors', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => ({
           'Error Message': 'Invalid API call',
         }),
