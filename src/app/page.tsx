@@ -17,7 +17,8 @@ import {
   Target,
   HelpCircle,
   ThumbsUp,
-  Search
+  Search,
+  Phone
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useEffect, useRef } from 'react';
@@ -99,6 +100,12 @@ export default function HomePage() {
                   <ArrowRight className="ml-2.5 h-4 w-4" />
                 </Button>
               </Link>
+              <Link href="/sales-training" suppressHydrationWarning>
+                <Button size="lg" className="w-full sm:w-auto btn-liquid bg-blue-600 hover:bg-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 font-semibold">
+                  <Phone className="mr-2.5 h-5 w-5" />
+                  Phone Call Training
+                </Button>
+              </Link>
               <Link href="/analytics" suppressHydrationWarning>
                 <Button size="lg" variant="outline" className="w-full sm:w-auto btn-liquid border-2 border-gray-200 hover:border-gray-300 hover:bg-white/80 backdrop-blur-sm transition-all duration-300 font-semibold">
                   <BarChart3 className="mr-2.5 h-5 w-5" />
@@ -124,8 +131,37 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Quick Start Scenarios - Premium Design */}
+          {/* Phone Training Feature Card */}
           <div className="mt-32 sm:mt-40">
+            <Link href="/sales-training" suppressHydrationWarning className="block mb-16">
+              <Card className="card-premium card-liquid hover:shadow-2xl transition-all duration-300 border-2 border-blue-200 hover:border-blue-400 bg-gradient-to-br from-blue-50 to-white hover:-translate-y-1">
+                <CardContent className="p-8">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-shrink-0">
+                      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
+                        <Phone className="h-10 w-10 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+                        Real Phone Call Training
+                      </CardTitle>
+                      <CardDescription className="text-base text-gray-600 mb-4">
+                        Practice with real phone calls using VAPI. Get instant AI analysis on your objection handling, closing techniques, and communication skills.
+                      </CardDescription>
+                      <div className="flex items-center gap-2 text-blue-600 font-semibold">
+                        <span>Start Phone Training</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Quick Start Scenarios - Premium Design */}
+          <div className="mt-16">
             <div className="mb-16 text-center">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">Ready to Level Up?</h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
