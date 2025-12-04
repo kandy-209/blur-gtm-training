@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, memo, useEffect } from 'react';
+import { useState, useMemo, memo, useEffect, useCallback, Suspense } from 'react';
 import { scenarios } from '@/data/scenarios';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { ScenarioPreviewModal } from '@/components/ScenarioPreviewModal';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Scenario } from '@/types/roleplay';
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import { 
   Search, 
   Filter, 
@@ -27,7 +28,9 @@ import {
   PlayCircle,
   BarChart3,
   Sparkles,
-  Eye
+  Eye,
+  X,
+  Loader2
 } from 'lucide-react';
 
 const categoryIcons: Record<string, any> = {
@@ -48,13 +51,39 @@ const categoryColors: Record<string, string> = {
   'Code_Quality': 'bg-indigo-100 text-indigo-700 border-indigo-200',
 };
 
+// Debounce hook for search
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 function ScenariosPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'name' | 'category' | 'difficulty'>('name');
   const [previewScenario, setPreviewScenario] = useState<Scenario | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
   const { user } = useAuth();
+
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Update searching state
+  useEffect(() => {
+    setIsSearching(searchQuery !== debouncedSearchQuery);
+  }, [searchQuery, debouncedSearchQuery]);
 
   // Simulate loading for scenarios (in real app, this would be API call)
   useEffect(() => {
@@ -68,13 +97,13 @@ function ScenariosPage() {
     return Array.from(cats);
   }, []);
 
-  // Filter and sort scenarios
+  // Filter and sort scenarios with debounced search
   const filteredScenarios = useMemo(() => {
     let filtered = scenarios.filter(scenario => {
       const matchesSearch = 
-        scenario.persona.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        scenario.objection_statement.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        scenario.keyPoints.some(kp => kp.toLowerCase().includes(searchQuery.toLowerCase()));
+        scenario.persona.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        scenario.objection_statement.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        scenario.keyPoints.some(kp => kp.toLowerCase().includes(debouncedSearchQuery.toLowerCase()));
       
       const matchesCategory = selectedCategory === 'all' || scenario.objection_category === selectedCategory;
       
@@ -92,7 +121,14 @@ function ScenariosPage() {
     });
 
     return filtered;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [debouncedSearchQuery, selectedCategory, sortBy]);
+
+  // Clear filters handler
+  const clearFilters = useCallback(() => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSortBy('name');
+  }, []);
 
   const getCategoryIcon = (category: string) => {
     const Icon = categoryIcons[category] || Target;
@@ -140,7 +176,8 @@ function ScenariosPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
+      <ErrorBoundaryWithContext component="ScenariosPage" severity="high">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
         {/* Header Section */}
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
@@ -214,10 +251,22 @@ function ScenariosPage() {
                 placeholder="Search scenarios..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 sm:h-11 text-sm sm:text-base"
+                className="pl-10 pr-10 h-10 sm:h-11 text-sm sm:text-base"
                 aria-label="Search scenarios"
                 aria-describedby="search-help"
               />
+              {isSearching && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+              )}
+              {searchQuery && !isSearching && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
               <div id="search-help" className="sr-only">
                 Search scenarios by persona name, objection statement, or key points
               </div>
@@ -252,18 +301,18 @@ function ScenariosPage() {
           </div>
 
           {/* Active Filters */}
-          {(searchQuery || selectedCategory !== 'all') && (
+          {(debouncedSearchQuery || selectedCategory !== 'all') && (
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs sm:text-sm text-muted-foreground">Active filters:</span>
-              {searchQuery && (
+              {debouncedSearchQuery && (
                 <Badge variant="secondary" className="gap-1 text-xs sm:text-sm px-2 py-1">
-                  <span className="truncate max-w-[120px] sm:max-w-none">Search: {searchQuery}</span>
+                  <span className="truncate max-w-[120px] sm:max-w-none">Search: {debouncedSearchQuery}</span>
                   <button
                     onClick={() => setSearchQuery('')}
                     className="ml-1 hover:text-destructive flex-shrink-0"
                     aria-label="Clear search"
                   >
-                    ×
+                    <X className="h-3 w-3" />
                   </button>
                 </Badge>
               )}
@@ -275,9 +324,19 @@ function ScenariosPage() {
                     className="ml-1 hover:text-destructive flex-shrink-0"
                     aria-label="Clear category filter"
                   >
-                    ×
+                    <X className="h-3 w-3" />
                   </button>
                 </Badge>
+              )}
+              {(debouncedSearchQuery || selectedCategory !== 'all') && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="h-7 text-xs sm:text-sm"
+                >
+                  Clear all
+                </Button>
               )}
             </div>
           )}
@@ -294,14 +353,19 @@ function ScenariosPage() {
           <EmptyState
             icon={Search}
             title="No scenarios found"
-            description="Try adjusting your search or filter criteria"
-            action={{
-              label: 'Clear Filters',
-              onClick: () => {
-                setSearchQuery('');
-                setSelectedCategory('all');
-              }
-            }}
+            description={
+              debouncedSearchQuery || selectedCategory !== 'all'
+                ? "Try adjusting your search or filter criteria"
+                : "No scenarios available at this time"
+            }
+            action={
+              debouncedSearchQuery || selectedCategory !== 'all'
+                ? {
+                    label: 'Clear Filters',
+                    onClick: clearFilters
+                  }
+                : undefined
+            }
           />
         ) : (
           <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -316,16 +380,16 @@ function ScenariosPage() {
                 >
                   {/* Category Badge */}
                   <Badge 
-                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 ${categoryColor} px-2 py-1 rounded-md text-[10px] sm:text-xs font-medium flex items-center gap-1 z-10 shadow-sm`}
+                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 ${categoryColor} px-2 py-1 rounded-md text-[10px] sm:text-xs font-medium flex items-center gap-1 z-10 shadow-sm max-w-[120px] sm:max-w-[140px]`}
                     variant="outline"
                     aria-label={`Category: ${scenario.objection_category.replace(/_/g, ' ')}`}
                   >
                     <CategoryIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" aria-hidden="true" />
-                    <span className="truncate max-w-[100px] sm:max-w-none">{scenario.objection_category.replace(/_/g, ' ')}</span>
+                    <span className="truncate">{scenario.objection_category.replace(/_/g, ' ')}</span>
                   </Badge>
 
-                  <CardHeader className="pb-3 sm:pb-4 pt-5 sm:pt-6 px-4 sm:px-6">
-                    <CardTitle className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2 pr-16 sm:pr-20 line-clamp-2">
+                  <CardHeader className="pb-3 sm:pb-4 pt-5 sm:pt-6 px-4 sm:px-6 relative">
+                    <CardTitle className="text-base sm:text-lg font-semibold mb-1.5 sm:mb-2 pr-28 sm:pr-36 line-clamp-2">
                       {scenario.persona.name}
                     </CardTitle>
                     <CardDescription className="text-xs sm:text-sm line-clamp-2 leading-relaxed">
@@ -424,12 +488,23 @@ function ScenariosPage() {
         </div>
       </div>
 
-      {/* Preview Modal */}
-      <ScenarioPreviewModal
-        scenario={previewScenario}
-        open={!!previewScenario}
-        onClose={() => setPreviewScenario(null)}
-      />
+          {/* Results Count */}
+          {!isLoading && filteredScenarios.length > 0 && (
+            <div className="mt-4 sm:mt-6 text-sm text-muted-foreground">
+              Showing {filteredScenarios.length} of {scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}
+            </div>
+          )}
+        </div>
+
+        {/* Preview Modal */}
+        <ErrorBoundaryWithContext component="ScenarioPreviewModal" severity="low">
+          <ScenarioPreviewModal
+            scenario={previewScenario}
+            open={!!previewScenario}
+            onClose={() => setPreviewScenario(null)}
+          />
+        </ErrorBoundaryWithContext>
+      </ErrorBoundaryWithContext>
     </ProtectedRoute>
   );
 }
