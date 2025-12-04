@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit2, Search, Upload, Download, Copy, Eye, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import Link from 'next/link';
 
 const STORAGE_KEY = 'scenario_builder_scenarios';
@@ -41,6 +42,8 @@ export default function ScenarioBuilderPage() {
 
   const [newKeyPoint, setNewKeyPoint] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importSuccess, setImportSuccess] = useState<string | null>(null);
 
   // Load scenarios from localStorage on mount (client-side only)
   useEffect(() => {
@@ -56,6 +59,9 @@ export default function ScenarioBuilderPage() {
       }
     } catch (error) {
       console.error('Failed to load scenarios from storage:', error);
+      // Show user-friendly error but don't crash
+      setImportError('Failed to load saved scenarios. Using defaults.');
+      setTimeout(() => setImportError(null), 5000);
     }
   }, []);
 
@@ -68,6 +74,9 @@ export default function ScenarioBuilderPage() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(localScenarios));
       } catch (error) {
         console.error('Failed to save scenarios to storage:', error);
+        // Show user-friendly error
+        setImportError('Failed to save scenarios to storage. Your changes may not persist.');
+        setTimeout(() => setImportError(null), 5000);
       }
     }
   }, [localScenarios]);
@@ -217,6 +226,9 @@ export default function ScenarioBuilderPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setImportError(null);
+    setImportSuccess(null);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -227,17 +239,25 @@ export default function ScenarioBuilderPage() {
           const newScenarios = imported.filter((s: Scenario) => !existingIds.has(s.id));
           if (newScenarios.length > 0) {
             setLocalScenarios([...localScenarios, ...newScenarios]);
-            alert(`Imported ${newScenarios.length} new scenario(s)`);
+            setImportSuccess(`Successfully imported ${newScenarios.length} new scenario(s)`);
+            setTimeout(() => setImportSuccess(null), 5000);
           } else {
-            alert('No new scenarios to import (all already exist)');
+            setImportError('No new scenarios to import (all already exist)');
+            setTimeout(() => setImportError(null), 5000);
           }
         } else {
-          alert('Invalid file format. Expected an array of scenarios.');
+          setImportError('Invalid file format. Expected an array of scenarios.');
+          setTimeout(() => setImportError(null), 5000);
         }
       } catch (error) {
-        alert('Failed to parse JSON file. Please check the format.');
+        setImportError('Failed to parse JSON file. Please check the format.');
         console.error('Import error:', error);
+        setTimeout(() => setImportError(null), 5000);
       }
+    };
+    reader.onerror = () => {
+      setImportError('Failed to read file. Please try again.');
+      setTimeout(() => setImportError(null), 5000);
     };
     reader.readAsText(file);
     // Reset input
@@ -274,9 +294,44 @@ export default function ScenarioBuilderPage() {
 
   return (
     <ProtectedRoute>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <ErrorBoundaryWithContext component="ScenarioBuilderPage">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          {/* Error/Success Messages */}
+          {importError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-900">Error</p>
+                <p className="text-sm text-red-700 mt-1">{importError}</p>
+              </div>
+              <button
+                onClick={() => setImportError(null)}
+                className="text-red-600 hover:text-red-800"
+                aria-label="Dismiss error"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+          {importSuccess && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3">
+              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-900">Success</p>
+                <p className="text-sm text-green-700 mt-1">{importSuccess}</p>
+              </div>
+              <button
+                onClick={() => setImportSuccess(null)}
+                className="text-green-600 hover:text-green-800"
+                aria-label="Dismiss success message"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Scenario Builder</h1>
             <p className="text-gray-600 mt-2">Create and manage training scenarios for role-play practice</p>
@@ -727,7 +782,8 @@ export default function ScenarioBuilderPage() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </ErrorBoundaryWithContext>
     </ProtectedRoute>
   );
 }
