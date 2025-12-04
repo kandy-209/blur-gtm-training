@@ -273,15 +273,11 @@ export async function cachedRouteHandler<T>(
     });
     
     // Ensure result has proper structure
-    const resultData = (result && typeof result === 'object' && 'data' in result) 
-      ? (result as CacheEntry<T>).data 
-      : (result as T);
-    const resultTimestamp = (result && typeof result === 'object' && 'timestamp' in result)
-      ? (result as CacheEntry<T>).timestamp
-      : Date.now();
+    const resultData = result?.data ?? result;
+    const resultTimestamp = result?.timestamp ?? Date.now();
     
     return {
-      data: resultData as T,
+      data: resultData,
       timestamp: new Date(resultTimestamp).toISOString(),
       cached: false,
       expiresAt: new Date(resultTimestamp + revalidate * 1000).toISOString(),

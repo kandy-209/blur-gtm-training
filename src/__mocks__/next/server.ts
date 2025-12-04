@@ -42,9 +42,6 @@ if (typeof global.Response === 'undefined') {
       if (this.bodyUsed) {
         throw new Error('Body already consumed');
       }
-      // Set bodyUsed before processing to match Fetch API spec
-      this.bodyUsed = true;
-      
       if (this.body) {
         const reader = this.body.getReader();
         const chunks: Uint8Array[] = [];
@@ -56,6 +53,7 @@ if (typeof global.Response === 'undefined') {
         }
         const decoder = new TextDecoder();
         const text = chunks.map(chunk => decoder.decode(chunk)).join('');
+        this.bodyUsed = true;
         return JSON.parse(text || '{}');
       }
       return {};
@@ -65,9 +63,6 @@ if (typeof global.Response === 'undefined') {
       if (this.bodyUsed) {
         throw new Error('Body already consumed');
       }
-      // Set bodyUsed before processing to match Fetch API spec
-      this.bodyUsed = true;
-      
       if (this.body) {
         const reader = this.body.getReader();
         const chunks: Uint8Array[] = [];
@@ -78,6 +73,7 @@ if (typeof global.Response === 'undefined') {
           if (value) chunks.push(value);
         }
         const decoder = new TextDecoder();
+        this.bodyUsed = true;
         return chunks.map(chunk => decoder.decode(chunk)).join('');
       }
       return '';
@@ -130,15 +126,12 @@ if (typeof global.Request === 'undefined') {
       if (this.bodyUsed) {
         throw new Error('Body already consumed');
       }
-      // Set bodyUsed before processing to match Fetch API spec
-      this.bodyUsed = true;
-      
       if (this._init?.body && typeof this._init.body === 'string') {
         try {
+          this.bodyUsed = true;
           return JSON.parse(this._init.body || '{}');
-        } catch (error) {
-          // Re-throw parse errors instead of silently returning {}
-          throw error;
+        } catch {
+          return {};
         }
       }
       return {};

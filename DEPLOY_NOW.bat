@@ -34,7 +34,8 @@ echo   [OK] All files staged
 
 echo.
 echo [3/5] Committing changes...
-call git commit -m "Fix: GitHub Actions workflow jq error handling and LiquidGlossCanvas bugs - All fixes verified and ready" 2>nul
+<<<<<<< HEAD
+call git commit -m "Fix: GitHub Actions workflow - env variable quoting, jq error handling, and PR trigger - All bugs fixed" 2>nul
 if errorlevel 1 (
     echo   [INFO] Nothing to commit or already committed
 ) else (

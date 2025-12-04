@@ -6,30 +6,39 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
-// ⚠️ SECURITY: Never hardcode credentials! Always use environment variables.
+// ⚠️ SECURITY: S3 configuration must be provided via environment variables
+// Never hardcode credentials or production values in source code!
 const S3_ENDPOINT = process.env.S3_ENDPOINT;
 const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 const S3_BUCKET = process.env.S3_BUCKET;
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
 
-// Validate required S3 credentials
+// Validate required configuration
+// All S3 values must be explicitly set to prevent cross-environment contamination
 if (!S3_ENDPOINT || !S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY || !S3_BUCKET) {
-  console.warn('S3 credentials not configured. S3 storage features will be disabled.');
+  const missing = [];
+  if (!S3_ENDPOINT) missing.push('S3_ENDPOINT');
+  if (!S3_ACCESS_KEY_ID) missing.push('S3_ACCESS_KEY_ID');
+  if (!S3_SECRET_ACCESS_KEY) missing.push('S3_SECRET_ACCESS_KEY');
+  if (!S3_BUCKET) missing.push('S3_BUCKET');
+  
+  throw new Error(
+    `S3 configuration is required. Please set the following environment variables: ${missing.join(', ')}. ` +
+    `Never use hardcoded fallback values to prevent cross-environment data contamination.`
+  );
 }
 
-// Initialize S3 client (only if credentials are configured)
-const s3Client = (S3_ENDPOINT && S3_ACCESS_KEY_ID && S3_SECRET_ACCESS_KEY && S3_BUCKET)
-  ? new S3Client({
-      endpoint: S3_ENDPOINT,
-      region: S3_REGION,
-      credentials: {
-        accessKeyId: S3_ACCESS_KEY_ID,
-        secretAccessKey: S3_SECRET_ACCESS_KEY,
-      },
-      forcePathStyle: true, // Required for custom endpoints
-    })
-  : null;
+// Initialize S3 client
+const s3Client = new S3Client({
+  endpoint: S3_ENDPOINT,
+  region: S3_REGION,
+  credentials: {
+    accessKeyId: S3_ACCESS_KEY_ID,
+    secretAccessKey: S3_SECRET_ACCESS_KEY,
+  },
+  forcePathStyle: true, // Required for custom endpoints
+});
 
 /**
  * Store company analysis result in S3
@@ -39,11 +48,6 @@ export async function storeAnalysis(
   analysis: any,
   metadata?: { companyName?: string; analysisDate?: string }
 ): Promise<string | null> {
-  if (!s3Client) {
-    console.warn('S3 client not initialized. Skipping storage.');
-    return null;
-  }
-  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/${Date.now()}.json`;
     const data = JSON.stringify({
@@ -78,10 +82,6 @@ export async function storeAnalysis(
  * Retrieve latest company analysis from S3
  */
 export async function getLatestAnalysis(ticker: string): Promise<any | null> {
-  if (!s3Client) {
-    return null;
-  }
-  
   try {
     // Try to get the most recent analysis
     // In production, you'd list objects and get the latest
@@ -111,10 +111,6 @@ export async function getLatestAnalysis(ticker: string): Promise<any | null> {
  * Check if analysis exists and is fresh (within cache TTL)
  */
 export async function isAnalysisCached(ticker: string, ttlHours: number = 24): Promise<boolean> {
-  if (!s3Client) {
-    return false;
-  }
-  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/latest.json`;
     
@@ -144,11 +140,6 @@ export async function storeFiling(
   filingText: string,
   filingType: string = '10-K'
 ): Promise<string | null> {
-  if (!s3Client) {
-    console.warn('S3 client not initialized. Skipping filing storage.');
-    return null;
-  }
-  
   try {
     const key = `filings/${ticker.toUpperCase()}/${filingType}/${Date.now()}.txt`;
     
