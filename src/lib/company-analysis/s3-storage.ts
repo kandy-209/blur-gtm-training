@@ -6,39 +6,72 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
-// ⚠️ SECURITY: S3 configuration must be provided via environment variables
-// Never hardcode credentials or production values in source code!
+// ⚠️ SECURITY: Never hardcode credentials! Always use environment variables.
 const S3_ENDPOINT = process.env.S3_ENDPOINT;
 const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
 const S3_BUCKET = process.env.S3_BUCKET;
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
 
-// Validate required configuration
-// All S3 values must be explicitly set to prevent cross-environment contamination
-if (!S3_ENDPOINT || !S3_ACCESS_KEY_ID || !S3_SECRET_ACCESS_KEY || !S3_BUCKET) {
-  const missing = [];
-  if (!S3_ENDPOINT) missing.push('S3_ENDPOINT');
-  if (!S3_ACCESS_KEY_ID) missing.push('S3_ACCESS_KEY_ID');
-  if (!S3_SECRET_ACCESS_KEY) missing.push('S3_SECRET_ACCESS_KEY');
-  if (!S3_BUCKET) missing.push('S3_BUCKET');
-  
-  throw new Error(
-    `S3 configuration is required. Please set the following environment variables: ${missing.join(', ')}. ` +
-    `Never use hardcoded fallback values to prevent cross-environment data contamination.`
-  );
-}
+// Check if S3 credentials are configured (without throwing)
+const isS3Configured = Boolean(
+  S3_ENDPOINT && 
+  S3_ACCESS_KEY_ID && 
+  S3_SECRET_ACCESS_KEY && 
+  S3_BUCKET &&
+  S3_ENDPOINT.trim() !== '' &&
+  S3_ACCESS_KEY_ID.trim() !== '' &&
+  S3_SECRET_ACCESS_KEY.trim() !== '' &&
+  S3_BUCKET.trim() !== ''
+);
 
-// Initialize S3 client
-const s3Client = new S3Client({
-  endpoint: S3_ENDPOINT,
-  region: S3_REGION,
-  credentials: {
-    accessKeyId: S3_ACCESS_KEY_ID,
-    secretAccessKey: S3_SECRET_ACCESS_KEY,
-  },
-  forcePathStyle: true, // Required for custom endpoints
-});
+// Lazy initialization - only create client when actually needed
+let s3Client: S3Client | null = null;
+let s3ClientInitialized = false;
+let s3ClientError: Error | null = null;
+
+/**
+ * Get or initialize the S3 client lazily
+ * Returns null if S3 is not configured or initialization fails
+ */
+function getS3Client(): S3Client | null {
+  // Return cached client if already initialized successfully
+  if (s3ClientInitialized) {
+    return s3Client;
+  }
+
+  // Mark as initialized to prevent retry loops
+  s3ClientInitialized = true;
+
+  // Check if credentials are configured
+  if (!isS3Configured) {
+    // Only log warning once, not on every function call
+    if (!s3ClientError) {
+      console.warn('S3 credentials not configured. S3 storage features will be disabled.');
+    }
+    return null;
+  }
+
+  // Try to initialize the client
+  try {
+    s3Client = new S3Client({
+      endpoint: S3_ENDPOINT!,
+      region: S3_REGION,
+      credentials: {
+        accessKeyId: S3_ACCESS_KEY_ID!,
+        secretAccessKey: S3_SECRET_ACCESS_KEY!,
+      },
+      forcePathStyle: true, // Required for custom endpoints
+    });
+    return s3Client;
+  } catch (error) {
+    // Store error to prevent repeated initialization attempts
+    s3ClientError = error instanceof Error ? error : new Error(String(error));
+    console.error('Failed to initialize S3 client:', s3ClientError.message);
+    console.warn('S3 storage features will be disabled.');
+    return null;
+  }
+}
 
 /**
  * Store company analysis result in S3
@@ -48,6 +81,11 @@ export async function storeAnalysis(
   analysis: any,
   metadata?: { companyName?: string; analysisDate?: string }
 ): Promise<string | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/${Date.now()}.json`;
     const data = JSON.stringify({
@@ -60,9 +98,9 @@ export async function storeAnalysis(
     }, null, 2);
 
     const upload = new Upload({
-      client: s3Client,
+      client,
       params: {
-        Bucket: S3_BUCKET,
+        Bucket: S3_BUCKET!,
         Key: key,
         Body: data,
         ContentType: 'application/json',
