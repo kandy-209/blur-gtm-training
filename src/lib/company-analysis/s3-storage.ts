@@ -1,6 +1,10 @@
 /**
  * S3 Storage for company analysis results
  * Stores analysis data for caching and historical tracking
+ * 
+ * This module uses lazy initialization to prevent startup crashes
+ * if S3 credentials are not configured. S3 features will gracefully
+ * degrade when credentials are missing or invalid.
  */
 
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
@@ -120,6 +124,11 @@ export async function storeAnalysis(
  * Retrieve latest company analysis from S3
  */
 export async function getLatestAnalysis(ticker: string): Promise<any | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     // Try to get the most recent analysis
     // In production, you'd list objects and get the latest
@@ -127,11 +136,11 @@ export async function getLatestAnalysis(ticker: string): Promise<any | null> {
     const key = `company-analysis/${ticker.toUpperCase()}/latest.json`;
 
     const command = new GetObjectCommand({
-      Bucket: S3_BUCKET,
+      Bucket: S3_BUCKET!,
       Key: key,
     });
 
-    const response = await s3Client.send(command);
+    const response = await client.send(command);
     const body = await response.Body?.transformToString();
     
     if (!body) {
@@ -149,15 +158,20 @@ export async function getLatestAnalysis(ticker: string): Promise<any | null> {
  * Check if analysis exists and is fresh (within cache TTL)
  */
 export async function isAnalysisCached(ticker: string, ttlHours: number = 24): Promise<boolean> {
+  const client = getS3Client();
+  if (!client) {
+    return false; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/latest.json`;
     
     const command = new HeadObjectCommand({
-      Bucket: S3_BUCKET,
+      Bucket: S3_BUCKET!,
       Key: key,
     });
 
-    const response = await s3Client.send(command);
+    const response = await client.send(command);
     
     if (!response.LastModified) {
       return false;
@@ -178,13 +192,18 @@ export async function storeFiling(
   filingText: string,
   filingType: string = '10-K'
 ): Promise<string | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `filings/${ticker.toUpperCase()}/${filingType}/${Date.now()}.txt`;
     
     const upload = new Upload({
-      client: s3Client,
+      client,
       params: {
-        Bucket: S3_BUCKET,
+        Bucket: S3_BUCKET!,
         Key: key,
         Body: filingText,
         ContentType: 'text/plain',
