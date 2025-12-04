@@ -77,6 +77,3 @@ TESTING_IN_PROGRESS.md
 !HOW_TO_RUN_TESTS.md
 !TEST_RUNNER.md
 !START_HERE_TESTING.md
-
-# GitHub Actions workflow (requires workflow scope)
-.github/workflows/daily-dependency-check.yml

@@ -39,7 +39,7 @@ export function SkipLinks() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-0 left-0 z-[110] w-full bg-black text-white p-2 shadow-lg">
+    <div className="fixed top-0 left-0 z-[100] w-full bg-black text-white p-2 shadow-lg">
       <nav aria-label="Skip links">
         <ul className="flex flex-wrap gap-4 justify-center">
           {skipLinks.map((link) => (

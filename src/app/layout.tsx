@@ -12,13 +12,7 @@ import WebVitals from '@/components/WebVitals';
 import { UpdateNotification } from '@/components/UpdateNotification';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { initSentry } from '@/lib/sentry';
 import type { Metadata } from 'next';
-
-// Initialize Sentry for error tracking
-if (typeof window === 'undefined') {
-  initSentry();
-}
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
 const siteName = 'Cursor Enterprise GTM Training Platform';
