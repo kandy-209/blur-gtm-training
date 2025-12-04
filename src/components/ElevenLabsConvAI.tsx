@@ -276,8 +276,8 @@ Stay in character throughout the conversation. Be realistic and challenging but 
         role: 'user',
         message: event.detail?.message || '',
         timestamp: Date.now(),
-        conversationId,
-        userId
+        conversationId: conversationId || undefined,
+        userId: userId || undefined
       };
       
       setConversationState(prev => ({
@@ -299,8 +299,8 @@ Stay in character throughout the conversation. Be realistic and challenging but 
         role: 'assistant',
         message: event.detail?.message || '',
         timestamp: Date.now(),
-        conversationId,
-        userId
+        conversationId: conversationId || undefined,
+        userId: userId || undefined
       };
       
       setConversationState(prev => ({
@@ -325,8 +325,9 @@ Stay in character throughout the conversation. Be realistic and challenging but 
         timestamp: Date.now()
       };
       
-      setError(errorEvent.message);
-      showToast(errorEvent.message, 'error');
+      const errorMessage = errorEvent.message || 'An error occurred';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
       if (onError) {
         onError(errorEvent);
       }
@@ -348,26 +349,26 @@ Stay in character throughout the conversation. Be realistic and challenging but 
       setConversationState(prev => ({ ...prev, isRecording: false }));
     };
 
-    widgetElement.addEventListener('conversation-start', handleConversationStart as EventListener);
-    widgetElement.addEventListener('conversation-end', handleConversationEnd as EventListener);
-    widgetElement.addEventListener('message-sent', handleMessageSent as EventListener);
-    widgetElement.addEventListener('message-received', handleMessageReceived as EventListener);
-    widgetElement.addEventListener('error', handleError as EventListener);
+    widgetElement.addEventListener('conversation-start', handleConversationStart as unknown as EventListener);
+    widgetElement.addEventListener('conversation-end', handleConversationEnd as unknown as EventListener);
+    widgetElement.addEventListener('message-sent', handleMessageSent as unknown as EventListener);
+    widgetElement.addEventListener('message-received', handleMessageReceived as unknown as EventListener);
+    widgetElement.addEventListener('error', handleError as unknown as EventListener);
     widgetElement.addEventListener('voice-start', handleVoiceStart as EventListener);
     widgetElement.addEventListener('voice-end', handleVoiceEnd as EventListener);
     widgetElement.addEventListener('transcription-start', handleTranscriptionStart as EventListener);
     widgetElement.addEventListener('transcription-end', handleTranscriptionEnd as EventListener);
 
     return () => {
-      widgetElement.removeEventListener('conversation-start', handleConversationStart as EventListener);
-      widgetElement.removeEventListener('conversation-end', handleConversationEnd as EventListener);
-      widgetElement.removeEventListener('message-sent', handleMessageSent as EventListener);
-      widgetElement.removeEventListener('message-received', handleMessageReceived as EventListener);
-      widgetElement.removeEventListener('error', handleError as EventListener);
-      widgetElement.removeEventListener('voice-start', handleVoiceStart as EventListener);
-      widgetElement.removeEventListener('voice-end', handleVoiceEnd as EventListener);
-      widgetElement.removeEventListener('transcription-start', handleTranscriptionStart as EventListener);
-      widgetElement.removeEventListener('transcription-end', handleTranscriptionEnd as EventListener);
+      widgetElement.removeEventListener('conversation-start', handleConversationStart as unknown as EventListener);
+      widgetElement.removeEventListener('conversation-end', handleConversationEnd as unknown as EventListener);
+      widgetElement.removeEventListener('message-sent', handleMessageSent as unknown as EventListener);
+      widgetElement.removeEventListener('message-received', handleMessageReceived as unknown as EventListener);
+      widgetElement.removeEventListener('error', handleError as unknown as EventListener);
+      widgetElement.removeEventListener('voice-start', handleVoiceStart as unknown as EventListener);
+      widgetElement.removeEventListener('voice-end', handleVoiceEnd as unknown as EventListener);
+      widgetElement.removeEventListener('transcription-start', handleTranscriptionStart as unknown as EventListener);
+      widgetElement.removeEventListener('transcription-end', handleTranscriptionEnd as unknown as EventListener);
     };
   }, [isLoaded, isOpen, conversationId, userId, agentId, scenario?.id, onConversationComplete, onError, conversationState.messages, showToast]);
 
