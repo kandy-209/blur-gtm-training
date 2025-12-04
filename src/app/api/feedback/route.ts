@@ -137,7 +137,19 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
+    // Outer catch handles errors from:
+    // - parseJsonBody (if it throws instead of returning error response)
+    // - Any other unexpected errors in validation or processing
     console.error('Feedback submission error:', error);
+    
+    // Provide more specific error message based on error type
+    if (error instanceof SyntaxError) {
+      return createErrorResponse(
+        'Invalid request format. Please check your input.',
+        400
+      );
+    }
+    
     return createErrorResponse(
       'Failed to submit feedback. Please try again.',
       500
