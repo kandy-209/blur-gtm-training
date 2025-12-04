@@ -42,6 +42,11 @@ next-env.d.ts
 *.swo
 *~
 
+# Cursor IDE debug logs
+.cursor/
+*.debug.log
+debug.log
+
 # OS
 Thumbs.db
 
