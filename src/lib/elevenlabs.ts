@@ -243,11 +243,7 @@ export class ElevenLabsClient {
         receivedLength += value.byteLength;
         
         if (options.onChunk) {
-<<<<<<< HEAD
           options.onChunk(value.buffer);
-=======
-          options.onChunk(value.buffer || value);
->>>>>>> 7bebee991fdf787f8425e500f0aefecb178d47f0
         }
 
         if (options.onProgress && contentLength > 0) {

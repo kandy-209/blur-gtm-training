@@ -1,0 +1,15 @@
+git stash
+
+git pull origin main --no-rebase
+
+git stash pop
+
+git rm --cached .github/workflows/daily-dependency-check.yml
+
+git add .
+
+git commit -m "Fix: Add null checks for dataSources and merge remote changes"
+
+git push origin main
+
+
