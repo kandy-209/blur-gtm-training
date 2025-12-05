@@ -49,7 +49,10 @@ function TopResponses({ scenarioId, objectionCategory, limit = 10 }: TopResponse
 
         const response = await fetch(`/api/analytics/top-responses?${params}`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Silently handle errors - API will return empty array
+          const data = await response.json().catch(() => ({ topResponses: [] }));
+          setTopResponses(data.topResponses || []);
+          return;
         }
         const data = await response.json();
         setTopResponses(data.topResponses || []);

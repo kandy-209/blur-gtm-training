@@ -1353,8 +1353,12 @@
     will-change: transform;
     transform: translateZ(0);
     transition: transform 0.15s ease, opacity 0.15s ease;
-    contain: strict;
+    contain: layout style;
     isolation: isolate;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .btn-liquid::before {

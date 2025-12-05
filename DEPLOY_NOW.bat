@@ -34,8 +34,7 @@ echo   [OK] All files staged
 
 echo.
 echo [3/5] Committing changes...
-<<<<<<< HEAD
-call git commit -m "Fix: GitHub Actions workflow - env variable quoting, jq error handling, and PR trigger - All bugs fixed" 2>nul
+call git commit -m "Fix: Resolve merge conflicts and deploy updates" 2>nul
 if errorlevel 1 (
     echo   [INFO] Nothing to commit or already committed
 ) else (
@@ -66,4 +65,3 @@ echo   2. Vercel will auto-deploy (if connected)
 echo   3. Test the fixes
 echo.
 pause
-

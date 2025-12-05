@@ -143,11 +143,11 @@ export function getSecurityHeaders(): Record<string, string> {
     'Permissions-Policy': 'geolocation=(), microphone=(self), camera=()',
     'Content-Security-Policy': [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
       "font-src 'self' data:",
-      "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io",
+      "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io https://va.vercel-scripts.com https://api.vapi.ai",
       "media-src 'self' data: blob: https:",
       "frame-src 'self' https://*.elevenlabs.io",
     ].join('; '),

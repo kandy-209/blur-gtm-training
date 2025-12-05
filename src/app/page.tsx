@@ -93,23 +93,23 @@ export default function HomePage() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Link href="/scenarios" suppressHydrationWarning>
-                <Button size="lg" className="w-full sm:w-auto btn-liquid bg-gray-900 hover:bg-gray-800 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 font-semibold">
-                  <PlayCircle className="mr-2.5 h-5 w-5" />
-                  Begin Your Transformation
-                  <ArrowRight className="ml-2.5 h-4 w-4" />
+              <Link href="/scenarios" suppressHydrationWarning className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto btn-liquid bg-gray-900 hover:bg-gray-800 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 font-semibold px-6 py-3 min-h-[48px] flex items-center justify-center gap-2.5">
+                  <PlayCircle className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Begin Your Transformation</span>
+                  <ArrowRight className="h-4 w-4 flex-shrink-0" />
                 </Button>
               </Link>
-              <Link href="/sales-training" suppressHydrationWarning>
-                <Button size="lg" className="w-full sm:w-auto btn-liquid bg-blue-600 hover:bg-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 font-semibold">
-                  <Phone className="mr-2.5 h-5 w-5" />
-                  Phone Call Training
+              <Link href="/sales-training" suppressHydrationWarning className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto btn-liquid bg-blue-600 hover:bg-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 font-semibold px-6 py-3 min-h-[48px] flex items-center justify-center gap-2.5">
+                  <Phone className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Phone Call Training</span>
                 </Button>
               </Link>
-              <Link href="/analytics" suppressHydrationWarning>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto btn-liquid border-2 border-gray-200 hover:border-gray-300 hover:bg-white/80 backdrop-blur-sm transition-all duration-300 font-semibold">
-                  <BarChart3 className="mr-2.5 h-5 w-5" />
-                  Track Your Progress
+              <Link href="/analytics" suppressHydrationWarning className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto btn-liquid border-2 border-gray-200 hover:border-gray-300 hover:bg-white/80 backdrop-blur-sm transition-all duration-300 font-semibold px-6 py-3 min-h-[48px] flex items-center justify-center gap-2.5">
+                  <BarChart3 className="h-5 w-5 flex-shrink-0" />
+                  <span className="whitespace-nowrap">Track Your Progress</span>
                 </Button>
               </Link>
             </div>

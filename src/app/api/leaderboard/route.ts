@@ -219,8 +219,18 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Leaderboard error:', error);
+    
+    // Handle rate limiting from Supabase
+    if (error.message?.includes('rate limit') || error.message?.includes('Too Many Requests')) {
+      return NextResponse.json(
+        { error: 'Too Many Requests', leaderboard: [] },
+        { status: 429 }
+      );
+    }
+    
+    // Return empty leaderboard instead of error to prevent UI crashes
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch leaderboard' },
+      { error: error.message || 'Failed to fetch leaderboard', leaderboard: [] },
       { status: 500 }
     );
   }

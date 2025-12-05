@@ -7,17 +7,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sanitizeInput } from '@/lib/security';
 import { scenarios } from '@/data/scenarios';
 
+// MODAL_FUNCTION_URL is only used for GET requests and doesn't have testing issues
 const MODAL_FUNCTION_URL = process.env.MODAL_FUNCTION_URL || '';
-const VAPI_API_KEY = process.env.VAPI_API_KEY || '';
 
 /**
  * POST /api/vapi/sales-call
  * Initiate sales training call
  */
 export async function POST(request: NextRequest) {
+  // Read VAPI_API_KEY dynamically to support testing and runtime updates
+  const VAPI_API_KEY = process.env.VAPI_API_KEY || '';
+  
   try {
     const body = await request.json();
     const { phoneNumber, userId, scenarioId, trainingMode = 'practice' } = body;
+
+    console.log('Vapi call request:', { phoneNumber, userId, scenarioId, trainingMode, hasApiKey: !!VAPI_API_KEY });
 
     // Validate input
     if (!phoneNumber || !userId || !scenarioId) {
@@ -27,11 +32,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate phone number format
-    const sanitizedPhone = sanitizeInput(phoneNumber, 20);
-    if (!/^\+?[1-9]\d{1,14}$/.test(sanitizedPhone.replace(/\s/g, ''))) {
+    // Validate phone number format - remove all formatting first
+    const cleanedPhone = phoneNumber.replace(/\D/g, ''); // Remove all non-digits
+    
+    if (!cleanedPhone || cleanedPhone.length < 10) {
       return NextResponse.json(
-        { error: 'Invalid phone number format' },
+        { 
+          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          received: phoneNumber,
+          cleaned: cleanedPhone
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Format as E.164: +[country code][number]
+    let phoneForVapi: string;
+    if (cleanedPhone.length === 10) {
+      // US number without country code - add +1
+      phoneForVapi = `+1${cleanedPhone}`;
+    } else if (cleanedPhone.length === 11 && cleanedPhone.startsWith('1')) {
+      // US number with country code already
+      phoneForVapi = `+${cleanedPhone}`;
+    } else if (cleanedPhone.length >= 10 && cleanedPhone.length <= 15) {
+      // International number - add +
+      phoneForVapi = `+${cleanedPhone}`;
+    } else {
+      return NextResponse.json(
+        { 
+          error: 'Invalid phone number format. Phone number must be 10-15 digits.',
+          received: phoneNumber,
+          cleaned: cleanedPhone,
+          length: cleanedPhone.length
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Final validation: E.164 format (+ followed by 1-15 digits, first digit must be 1-9)
+    if (!/^\+[1-9]\d{9,14}$/.test(phoneForVapi)) {
+      console.error('Invalid phone number format:', { original: phoneNumber, cleaned: cleanedPhone, formatted: phoneForVapi });
+      return NextResponse.json(
+        { 
+          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          received: phoneNumber,
+          cleaned: cleanedPhone,
+          formatted: phoneForVapi
+        },
         { status: 400 }
       );
     }
@@ -45,74 +92,255 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!VAPI_API_KEY) {
+    if (!VAPI_API_KEY || VAPI_API_KEY.trim() === '') {
+      console.error('⚠️ Vapi API key not configured. Please add VAPI_API_KEY to your .env.local file');
+      console.error('Current VAPI_API_KEY value:', VAPI_API_KEY ? 'Set but empty' : 'Not set');
       return NextResponse.json(
-        { error: 'Vapi API key not configured' },
-        { status: 500 }
+        { 
+          error: 'Vapi API key not configured. Please add VAPI_API_KEY to your environment variables.',
+          helpUrl: 'https://vapi.ai/dashboard',
+          debug: {
+            hasKey: !!VAPI_API_KEY,
+            keyLength: VAPI_API_KEY?.length || 0,
+            keyPrefix: VAPI_API_KEY?.substring(0, 10) || 'none'
+          }
+        },
+        { status: 503 }
       );
+    }
+    
+    console.log('Vapi API key found, length:', VAPI_API_KEY.length);
+
+    // Build system prompt safely
+    let systemPrompt: string;
+    try {
+      systemPrompt = buildSystemPrompt(scenario);
+      if (!systemPrompt || systemPrompt.trim().length === 0) {
+        throw new Error('System prompt is empty');
+      }
+      console.log('System prompt built successfully, length:', systemPrompt.length);
+    } catch (promptError: any) {
+      console.error('Error building system prompt:', promptError);
+      console.error('Scenario data:', {
+        id: scenario.id,
+        hasPersona: !!scenario.persona,
+        personaName: scenario.persona?.name,
+        hasObjection: !!scenario.objection_statement,
+        hasKeyPoints: !!scenario.keyPoints
+      });
+      // Fallback prompt
+      systemPrompt = `You are ${scenario.persona?.name || 'a prospect'} evaluating Cursor Enterprise. 
+      Respond naturally to the sales rep's questions and objections. 
+      Objection: ${scenario.objection_statement || 'I need to think about it'}`;
+      
+      if (!systemPrompt || systemPrompt.trim().length === 0) {
+        throw new Error('Failed to create fallback system prompt');
+      }
     }
 
     // Create Vapi assistant with scenario context
+    // Vapi requires: name <= 40 chars, provider = '11labs' (not 'elevenlabs'), no transcriptionEnabled
+    const personaName = scenario.persona?.name || scenario.id || 'Unknown';
+    // Truncate persona name if needed to ensure total name is <= 40 chars
+    // Format: "Sales - [Persona]" where "Sales - " is 9 chars, leaving 31 for persona
+    const prefix = 'Sales - ';
+    const maxPersonaLength = 40 - prefix.length; // 31 chars for persona
+    let truncatedPersona = personaName;
+    if (personaName.length > maxPersonaLength) {
+      // Truncate and add ellipsis, ensuring total doesn't exceed maxPersonaLength
+      truncatedPersona = personaName.substring(0, maxPersonaLength - 3).trim() + '...';
+    }
+    const assistantName = `${prefix}${truncatedPersona}`.substring(0, 40); // Final safety check
+    
+    if (!assistantName || assistantName.length === 0 || assistantName.length > 40) {
+      console.error('Invalid assistant name generated:', { assistantName, length: assistantName?.length });
+      throw new Error(`Failed to generate valid assistant name (length: ${assistantName?.length || 0})`);
+    }
+    
+    console.log('Generated assistant name:', { assistantName, length: assistantName.length });
+    
+    // Validate required fields before creating request
+    const voiceId = process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+    const firstMessage = scenario.objection_statement || 'Hello, I received your call.';
+    
+    if (!voiceId || voiceId.trim().length === 0) {
+      throw new Error('ElevenLabs voice ID is required');
+    }
+    
+    if (!firstMessage || firstMessage.trim().length === 0) {
+      throw new Error('First message is required');
+    }
+    
+    const assistantRequest = {
+      name: assistantName,
+      model: {
+        provider: 'openai',
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: systemPrompt,
+          },
+        ],
+      },
+      voice: {
+        provider: '11labs', // Must be '11labs' not 'elevenlabs'
+        voiceId: voiceId,
+      },
+      firstMessage: firstMessage,
+      recordingEnabled: true,
+      // transcriptionEnabled is not a valid property - removed
+    };
+    
+    // Validate request structure
+    if (!assistantRequest.name || assistantRequest.name.length > 40) {
+      throw new Error(`Invalid assistant name: ${assistantRequest.name} (length: ${assistantRequest.name.length})`);
+    }
+    
+    if (!assistantRequest.voice.provider || assistantRequest.voice.provider !== '11labs') {
+      throw new Error(`Invalid voice provider: ${assistantRequest.voice.provider}`);
+    }
+
+    // Validate JSON serialization before sending
+    let requestBody: string;
+    try {
+      requestBody = JSON.stringify(assistantRequest);
+      // Test that it can be parsed back
+      JSON.parse(requestBody);
+    } catch (jsonError: any) {
+      console.error('Failed to serialize assistant request:', jsonError);
+      throw new Error(`Invalid assistant request data: ${jsonError.message}`);
+    }
+    
+    console.log('Creating Vapi assistant with request:', {
+      name: assistantRequest.name,
+      nameLength: assistantRequest.name.length,
+      model: assistantRequest.model.model,
+      voiceProvider: assistantRequest.voice.provider,
+      voiceId: assistantRequest.voice.voiceId,
+      hasFirstMessage: !!assistantRequest.firstMessage,
+      firstMessageLength: assistantRequest.firstMessage?.length || 0,
+      systemPromptLength: systemPrompt.length,
+      requestBodyLength: requestBody.length,
+    });
+
     const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${VAPI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        name: `Sales Training - ${scenario.persona.name}`,
-        model: {
-          provider: 'openai',
-          model: 'gpt-4',
-          messages: [
-            {
-              role: 'system',
-              content: buildSystemPrompt(scenario),
-            },
-          ],
-        },
-        voice: {
-          provider: 'elevenlabs',
-          voiceId: process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM',
-        },
-        firstMessage: scenario.objection_statement,
-        recordingEnabled: true,
-        transcriptionEnabled: true,
-      }),
+      body: requestBody,
     });
 
     if (!assistantResponse.ok) {
-      const error = await assistantResponse.json();
-      throw new Error(error.message || 'Failed to create assistant');
+      const errorText = await assistantResponse.text();
+      let errorMessage = 'Failed to create assistant';
+      let errorDetails: any = {};
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.message || error.error || error.details || errorMessage;
+        errorDetails = error;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      console.error('Vapi assistant creation error:', {
+        status: assistantResponse.status,
+        statusText: assistantResponse.statusText,
+        error: errorMessage,
+        details: errorDetails,
+        requestBody: {
+          name: assistantRequest.name,
+          hasVoice: !!assistantRequest.voice.voiceId,
+          hasSystemPrompt: !!systemPrompt,
+          systemPromptLength: systemPrompt.length,
+        }
+      });
+      throw new Error(`Vapi assistant error (${assistantResponse.status}): ${errorMessage}`);
     }
 
     const assistant = await assistantResponse.json();
+    
+    if (!assistant || !assistant.id) {
+      console.error('Invalid assistant response:', assistant);
+      throw new Error('Invalid assistant response from Vapi API - missing assistant ID');
+    }
+    
+    console.log('Assistant created successfully:', {
+      id: assistant.id,
+      name: assistant.name,
+    });
 
-    // Initiate call
+    // Use the already formatted phone number (phoneForVapi)
+    console.log('Initiating Vapi call:', {
+      phoneNumber: phoneForVapi,
+      assistantId: assistant.id,
+      hasAssistant: !!assistant.id
+    });
+
+    // Initiate call - Vapi API format
+    // Vapi requires phoneNumber at top level, not nested in customer
+    const callRequestBody: any = {
+      assistantId: assistant.id,
+      phoneNumber: phoneForVapi, // Top-level phoneNumber field
+    };
+    
+    // Add metadata if supported
+    if (userId || scenarioId) {
+      callRequestBody.metadata = {
+        userId,
+        scenarioId,
+        trainingMode,
+        type: 'sales-training',
+      };
+    }
+
+    console.log('Call request body:', {
+      assistantId: callRequestBody.assistantId,
+      phoneNumber: callRequestBody.phoneNumber,
+      phoneNumberLength: callRequestBody.phoneNumber?.length,
+      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.phoneNumber) ? 'E.164' : 'INVALID',
+      hasMetadata: !!callRequestBody.metadata,
+    });
+
     const callResponse = await fetch('https://api.vapi.ai/call', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${VAPI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        phoneNumberId: sanitizedPhone.replace(/\D/g, ''),
-        customer: {
-          number: sanitizedPhone.replace(/\D/g, ''),
-        },
-        assistantId: assistant.id,
-        metadata: {
-          userId,
-          scenarioId,
-          trainingMode,
-          type: 'sales-training',
-        },
-      }),
+      body: JSON.stringify(callRequestBody),
     });
 
     if (!callResponse.ok) {
-      const error = await callResponse.json();
-      throw new Error(error.message || 'Failed to initiate call');
+      const errorText = await callResponse.text();
+      let errorMessage = 'Failed to initiate call';
+      let errorDetails: any = {};
+      try {
+        const error = JSON.parse(errorText);
+        errorMessage = error.message || error.error || error.details || errorMessage;
+        errorDetails = error;
+      } catch {
+        errorMessage = errorText || errorMessage;
+      }
+      
+      // Log the FULL request body that was sent
+      console.error('❌ Vapi call initiation error:', {
+        status: callResponse.status,
+        statusText: callResponse.statusText,
+        error: errorMessage,
+        errorText: errorText,
+        errorDetails: errorDetails,
+        requestBodySent: callRequestBody,
+        requestBodyStringified: JSON.stringify(callRequestBody),
+        phoneNumberValue: phoneForVapi,
+        phoneNumberType: typeof phoneForVapi,
+        phoneNumberLength: phoneForVapi?.length,
+        assistantId: assistant.id,
+        assistantIdType: typeof assistant.id,
+      });
+      
+      throw new Error(`Vapi call error (${callResponse.status}): ${errorMessage}`);
     }
 
     const callData = await callResponse.json();
@@ -129,9 +357,44 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Sales call initiation error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      cause: error.cause,
+      status: error.status,
+      response: error.response
+    });
+    
+    const errorMessage = error.message || 'Failed to initiate call';
+    const statusCode = error.status || 500;
+    
+    // Return more detailed error information
     return NextResponse.json(
-      { error: 'Failed to initiate call', message: error.message },
-      { status: 500 }
+      { 
+        error: errorMessage,
+        message: errorMessage,
+        // Include helpful hints based on error type
+        hint: errorMessage.includes('API key') || errorMessage.includes('VAPI_API_KEY')
+          ? 'Check your VAPI_API_KEY in .env.local and restart dev server'
+          : errorMessage.includes('phone') || errorMessage.includes('number')
+          ? 'Ensure phone number is in E.164 format (e.g., +1234567890)'
+          : errorMessage.includes('assistant')
+          ? 'Failed to create Vapi assistant - check API key permissions and Vapi dashboard'
+          : errorMessage.includes('Vapi')
+          ? 'Check Vapi API key and account status at https://vapi.ai/dashboard'
+          : 'Check server logs for detailed error information',
+        // Include debug info in development
+        ...(process.env.NODE_ENV === 'development' && {
+          debug: {
+            hasApiKey: !!VAPI_API_KEY,
+            apiKeyLength: VAPI_API_KEY?.length || 0,
+            errorType: error.name,
+            errorStack: error.stack?.split('\n').slice(0, 3).join('\n')
+          }
+        })
+      },
+      { status: statusCode }
     );
   }
 }
@@ -200,19 +463,22 @@ export async function GET(request: NextRequest) {
  * Build system prompt for Vapi assistant
  */
 function buildSystemPrompt(scenario: any): string {
-  return `You are ${scenario.persona.name}, a real prospect evaluating Cursor Enterprise.
+  const persona = scenario.persona || {};
+  const objectionStatement = scenario.objection_statement || 'I need to think about it';
+  
+  return `You are ${persona.name || 'a prospect'}, a real prospect evaluating Cursor Enterprise.
 
 PERSONA DETAILS:
-- Current Solution: ${scenario.persona.currentSolution}
-- Primary Goal: ${scenario.persona.primaryGoal}
-- Skepticism: ${scenario.persona.skepticism}
-- Tone: ${scenario.persona.tone}
+- Current Solution: ${persona.currentSolution || 'Unknown'}
+- Primary Goal: ${persona.primaryGoal || 'Evaluate solutions'}
+- Skepticism: ${persona.skepticism || 'Moderate'}
+- Tone: ${persona.tone || 'Professional'}
 
 YOUR ROLE:
 You are on a phone call with a sales rep selling Cursor Enterprise. This is a training call.
 
 CONVERSATION FLOW:
-1. Start with the objection: "${scenario.objection_statement}"
+1. Start with the objection: "${objectionStatement}"
 2. Raise concerns naturally as the conversation progresses
 3. Ask follow-up questions about Enterprise features, pricing, security
 4. Show increasing interest if the rep addresses your concerns well
@@ -221,7 +487,7 @@ CONVERSATION FLOW:
    - ENTERPRISE_SALE: Commit to purchasing Cursor Enterprise
 
 KEY POINTS TO DISCUSS:
-${scenario.keyPoints.map((p: string) => `- ${p}`).join('\n')}
+${(scenario.keyPoints || []).map((p: string) => `- ${p}`).join('\n') || '- General discussion points'}
 
 PHONE CALL BEHAVIOR:
 - Speak naturally and conversationally

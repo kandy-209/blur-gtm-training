@@ -6,9 +6,12 @@
 'use client';
 
 import { PhoneCallTraining } from '@/components/SalesTraining/PhoneCallTraining';
+import CallTrainingAnalytics from '@/components/CallTrainingAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Phone, Target, TrendingUp, Award } from 'lucide-react';
+import { Phone, Target, TrendingUp, Award, Radio } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function SalesTrainingPage() {
   const { user } = useAuth();
@@ -18,13 +21,23 @@ export default function SalesTrainingPage() {
     <div className="container mx-auto p-6 max-w-6xl">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Phone className="h-6 w-6" />
-            Sales Phone Call Training
-          </CardTitle>
-          <CardDescription>
-            Practice real sales calls with AI prospects. Get instant feedback and improve your skills.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Phone className="h-6 w-6" />
+                Sales Phone Call Training
+              </CardTitle>
+              <CardDescription>
+                Practice real sales calls with AI prospects. Get instant feedback and improve your skills.
+              </CardDescription>
+            </div>
+            <Link href="/live-call-dashboard">
+              <Button variant="outline" className="gap-2">
+                <Radio className="h-4 w-4" />
+                Live Dashboard
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -54,6 +67,11 @@ export default function SalesTrainingPage() {
       </Card>
 
       <PhoneCallTraining userId={userId} />
+      
+      {/* Call Training Analytics */}
+      <div className="mt-8">
+        <CallTrainingAnalytics />
+      </div>
     </div>
   );
 }
