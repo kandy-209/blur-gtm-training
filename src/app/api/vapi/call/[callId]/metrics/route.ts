@@ -5,6 +5,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+type KeyMoment = {
+  timestamp: number;
+  type: string;
+  description: string;
+};
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ callId: string }> }
@@ -100,7 +106,7 @@ export async function GET(
     ));
 
     // Extract key moments from transcript segments
-    const keyMoments = [];
+    const keyMoments: KeyMoment[] = [];
     if (callData.transcriptSegments && callData.transcriptSegments.length > 0) {
       callData.transcriptSegments.forEach((segment: any, index: number) => {
         const segmentText = segment.content || segment.text || '';

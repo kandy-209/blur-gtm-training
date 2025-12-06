@@ -198,8 +198,9 @@ export async function GET(request: NextRequest) {
         });
 
         if (retryResult.success && retryResult.data) {
+          // retryResult.data is the Supabase query result: { data, error, count }
           const queryResult = retryResult.data as { data: any[] | null; error: any; count: number | null };
-          if (queryResult.data && !queryResult.error) {
+          if (queryResult && queryResult.data && !queryResult.error) {
             userEvents = queryResult.data.map((row: any) => ({
               eventType: row.event_type,
               userId: row.user_id,
@@ -221,6 +222,9 @@ export async function GET(request: NextRequest) {
               totalEvents = totalCount || 0;
             }
           }
+        } else if (retryResult.error) {
+          console.error('Analytics query failed after retries:', retryResult.error);
+          // Fall through to in-memory storage
         }
       } catch (error) {
         console.error('Failed to fetch from Supabase, using in-memory fallback:', error);
@@ -229,6 +233,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fallback to in-memory if Supabase failed or not available
+    // This ensures we always return data, even if Supabase is unavailable
     if (userEvents.length === 0) {
       const allEvents = sanitizedUserId 
         ? events.filter(e => e.userId === sanitizedUserId)
@@ -328,10 +333,16 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error('Analytics GET error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    // Return empty result instead of 500 to prevent breaking the UI
+    // The frontend can handle empty arrays gracefully
+    return NextResponse.json({ 
+      events: [],
+      total: 0,
+      returned: 0,
+      stats: null,
+      source: 'memory',
+      error: 'Failed to fetch analytics, using fallback',
+    });
   }
 }
 

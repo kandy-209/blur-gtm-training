@@ -1095,9 +1095,15 @@ export class ComprehensiveDataCollector {
         projected[metric] = Math.round(projectedValue * 10) / 10;
       });
 
+      // Calculate average confidence from all trend regressions
+      const metricNames = ['pace', 'pitch', 'volume', 'pauses', 'clarity', 'confidence'] as const;
+      const avgRSquared = metricNames.reduce((sum, metric) => {
+        return sum + (trends[metric]?.regression?.rSquared || 0);
+      }, 0) / metricNames.length;
+      
       return {
         ...projected,
-        confidenceLevel: Math.min(100, Math.max(0, trend.regression.rSquared * 100)),
+        confidenceLevel: Math.min(100, Math.max(0, avgRSquared * 100)),
         basedOnTrend: true,
       } as ProjectedMetrics;
     };
@@ -1137,7 +1143,7 @@ export class ComprehensiveDataCollector {
           sessionId: s.sessionId,
           metric: fb.metric,
           message: fb.message,
-          severity: fb.severity || 'medium',
+          severity: (fb as any).severity || 'medium',
           type: fb.type || 'feedback',
         });
       });
@@ -1151,8 +1157,8 @@ export class ComprehensiveDataCollector {
           sessionId: s.sessionId,
           metric: sug.metric || 'general',
           suggestion: sug.improvement || '',
-          priority: sug.priority || 'medium',
-          category: sug.category || 'general',
+          priority: typeof sug.priority === 'string' ? sug.priority : String(sug.priority || 'medium'),
+          category: (sug as any).category || 'general',
         });
       });
     });

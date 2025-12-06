@@ -90,3 +90,6 @@ Edit `ParticleField` in `src/components/WebGLCanvas.tsx`:
 4. 🔄 Test and optimize
 5. 🔄 Add more interactive effects (optional)
 
+
+
+

@@ -105,3 +105,6 @@ Write-Host "  Deprecated packages: $($deprecatedList.Count)" -ForegroundColor Wh
 Write-Host ""
 Write-Host "✅ Dependency check complete!" -ForegroundColor Green
 
+
+
+

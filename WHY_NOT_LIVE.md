@@ -132,3 +132,6 @@ This is **by design** to prevent errors, but it means features won't show until 
 
 **Fix:** Add env vars → Redeploy → Features appear! 🚀
 
+
+
+

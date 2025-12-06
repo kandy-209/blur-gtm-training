@@ -474,7 +474,7 @@ function AnalyticsDashboard() {
               </CardContent>
             </Card>
 
-            {stats.totalCalls > 0 && (
+            {(stats.totalCalls ?? 0) > 0 && (
               <Card className="border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all bg-gradient-to-br from-blue-50/50 to-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">Phone Calls</CardTitle>
@@ -483,12 +483,12 @@ function AnalyticsDashboard() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold tracking-tight" aria-label={`${stats.totalCalls} phone calls completed`}>
-                    {stats.totalCalls}
+                  <div className="text-3xl font-bold tracking-tight" aria-label={`${(stats.totalCalls ?? 0)} phone calls completed`}>
+                    {(stats.totalCalls ?? 0)}
                   </div>
-                  {stats.averageCallScore > 0 && (
+                  {((stats.averageCallScore ?? 0) > 0) && (
                     <p className="text-xs text-muted-foreground mt-2">
-                      Avg: {stats.averageCallScore}/100
+                      Avg: {stats.averageCallScore ?? 0}/100
                     </p>
                   )}
                 </CardContent>
@@ -559,7 +559,7 @@ function AnalyticsDashboard() {
                     <Legend />
                     <Area type="monotone" dataKey="scenarios" stroke="#3b82f6" fillOpacity={1} fill="url(#colorScenarios)" name="Scenarios" />
                     <Area type="monotone" dataKey="turns" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorTurns)" name="Turns" />
-                    {stats.totalCalls > 0 && (
+                    {(stats.totalCalls ?? 0) > 0 && (
                       <Area type="monotone" dataKey="calls" stroke="#10b981" fillOpacity={1} fill="url(#colorCalls)" name="Calls" />
                     )}
                   </AreaChart>

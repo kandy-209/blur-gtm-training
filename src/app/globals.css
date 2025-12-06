@@ -1353,7 +1353,7 @@
     will-change: transform;
     transform: translateZ(0);
     transition: transform 0.15s ease, opacity 0.15s ease;
-    contain: layout style;
+    contain: strict; /* Maximum containment for GPU acceleration of radial gradient animation */
     isolation: isolate;
     z-index: 1;
     display: inline-flex;

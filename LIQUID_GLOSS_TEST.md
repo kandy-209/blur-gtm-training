@@ -69,3 +69,6 @@ When you visit `http://localhost:3000`, you should see:
 3. Fine-tune mouse interaction
 4. Optimize performance if needed
 
+
+
+

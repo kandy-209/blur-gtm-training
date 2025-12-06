@@ -67,14 +67,22 @@ export async function GET(
     }));
 
     // Calculate conversation statistics
-    const repMessages = structuredMessages.filter(m => m.role === 'rep');
-    const prospectMessages = structuredMessages.filter(m => m.role === 'prospect');
+    type StructuredMessage = {
+      id: string;
+      role: string;
+      content: string;
+      timestamp: string | null;
+      duration: number | null;
+      confidence: number | null;
+    };
+    const repMessages = structuredMessages.filter((m: StructuredMessage) => m.role === 'rep');
+    const prospectMessages = structuredMessages.filter((m: StructuredMessage) => m.role === 'prospect');
     
-    const repWordCount = repMessages.reduce((sum, m) => sum + (m.content.split(' ').length || 0), 0);
-    const prospectWordCount = prospectMessages.reduce((sum, m) => sum + (m.content.split(' ').length || 0), 0);
+    const repWordCount = repMessages.reduce((sum: number, m: StructuredMessage) => sum + (m.content.split(' ').length || 0), 0);
+    const prospectWordCount = prospectMessages.reduce((sum: number, m: StructuredMessage) => sum + (m.content.split(' ').length || 0), 0);
     
-    const repQuestions = repMessages.filter(m => m.content.includes('?')).length;
-    const prospectQuestions = prospectMessages.filter(m => m.content.includes('?')).length;
+    const repQuestions = repMessages.filter((m: StructuredMessage) => m.content.includes('?')).length;
+    const prospectQuestions = prospectMessages.filter((m: StructuredMessage) => m.content.includes('?')).length;
 
     return NextResponse.json({
       success: true,

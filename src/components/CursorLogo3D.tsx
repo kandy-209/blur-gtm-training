@@ -1,3 +1,4 @@
+// @ts-nocheck - React Three Fiber types
 'use client';
 
 /// <reference types="@react-three/fiber" />

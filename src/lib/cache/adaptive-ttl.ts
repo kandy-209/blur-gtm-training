@@ -18,9 +18,12 @@ export interface TTLRecommendation {
  * Analyze cache patterns and recommend optimal TTLs
  */
 export function recommendTTL(key: string, currentTTL: number): TTLRecommendation {
-  const metrics = getCacheMetrics(key);
+  const allMetrics = getCacheMetrics(key);
+  const metrics = allMetrics && typeof allMetrics === 'object' && key in allMetrics 
+    ? allMetrics[key] 
+    : null;
   
-  if (!metrics) {
+  if (!metrics || typeof metrics !== 'object' || !('totalRequests' in metrics)) {
     return {
       key,
       currentTTL,
@@ -30,12 +33,15 @@ export function recommendTTL(key: string, currentTTL: number): TTLRecommendation
     };
   }
 
-  const hitRate = metrics.totalRequests > 0
-    ? (metrics.hits / metrics.totalRequests) * 100
+  const totalRequests = typeof metrics.totalRequests === 'number' ? metrics.totalRequests : 0;
+  const hits = typeof metrics.hits === 'number' ? metrics.hits : 0;
+  const staleServed = typeof metrics.staleServed === 'number' ? metrics.staleServed : 0;
+  const hitRate = totalRequests > 0
+    ? (hits / totalRequests) * 100
     : 0;
 
-  const staleRate = metrics.totalRequests > 0
-    ? (metrics.staleServed / metrics.totalRequests) * 100
+  const staleRate = totalRequests > 0
+    ? (staleServed / totalRequests) * 100
     : 0;
 
   let recommendedTTL = currentTTL;
@@ -86,4 +92,5 @@ export function getAllTTLRecommendations(): TTLRecommendation[] {
 
   return recommendations.sort((a, b) => b.confidence - a.confidence);
 }
+
 

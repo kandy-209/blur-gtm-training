@@ -12,12 +12,14 @@ import { Phone, Target, TrendingUp, Award, Radio } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function SalesTrainingPage() {
   const { user } = useAuth();
   const userId = user?.id || `guest_${Date.now()}`;
 
   return (
+    <ProtectedRoute>
     <div className="container mx-auto p-6 max-w-6xl">
       <Card className="mb-6">
         <CardHeader>
@@ -73,6 +75,7 @@ export default function SalesTrainingPage() {
         <CallTrainingAnalytics />
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
 

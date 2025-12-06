@@ -6,7 +6,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { VoiceMetrics, FeedbackMessage } from '@/lib/voice-coaching/types';
 import type { UserVoiceProfile, ImpactAnalysis } from '@/lib/voice-coaching/user-model';
-import type { CompleteUserData } from '@/lib/voice-coaching/data-collector';
+import type { CompleteUserData, CompleteSessionData } from '@/lib/voice-coaching/data-collector';
 import { buildCursorContextPrompt } from './cursor-context';
 
 const anthropic = new Anthropic({
@@ -82,7 +82,7 @@ export class AnthropicFeedbackGenerator {
   async generateSessionFeedback(
     currentMetrics: VoiceMetrics,
     previousMetrics?: VoiceMetrics,
-    sessionHistory?: CompleteSessionData[]
+    sessionHistory?: Partial<CompleteSessionData>[]
   ): Promise<AnthropicSessionFeedback> {
     const prompt = this.buildSessionPrompt(currentMetrics, previousMetrics, sessionHistory);
 
@@ -224,7 +224,7 @@ Format your response as JSON with these exact keys:
   private buildSessionPrompt(
     currentMetrics: VoiceMetrics,
     previousMetrics?: VoiceMetrics,
-    sessionHistory?: CompleteSessionData[]
+    sessionHistory?: Partial<CompleteSessionData>[]
   ): string {
     const cursorContext = buildCursorContextPrompt();
     let prompt = `${cursorContext}

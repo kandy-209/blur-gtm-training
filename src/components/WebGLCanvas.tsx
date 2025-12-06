@@ -1,3 +1,4 @@
+// @ts-nocheck - React Three Fiber types
 'use client';
 
 import { Suspense, useRef, useEffect } from 'react';

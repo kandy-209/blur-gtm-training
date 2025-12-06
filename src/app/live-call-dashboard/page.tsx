@@ -63,29 +63,37 @@ export default function LiveCallDashboardPage() {
 
   // Initialize audio analyzer when call is active
   useEffect(() => {
-    if (callStatus === 'in-progress' && !audioAnalyzerRef.current) {
-      const analyzer = new AudioAnalyzer();
-      analyzer.start().then(() => {
-        audioAnalyzerRef.current = analyzer;
-        analyzer.onMetricsUpdate((metrics) => {
+    if (callStatus === 'in-progress' && callId && !audioAnalyzerRef.current) {
+      const analyzer = new AudioAnalyzer(
+        callId,
+        user?.id,
+        {
+          enabled: true,
+          updateInterval: 200,
+          feedbackEnabled: true,
+        },
+        (metrics) => {
           setLiveVoiceMetrics(metrics);
-        });
+        }
+      );
+      analyzer.startAnalysis().then(() => {
+        audioAnalyzerRef.current = analyzer;
       }).catch((err) => {
         console.error('Failed to start audio analyzer:', err);
       });
     } else if (callStatus !== 'in-progress' && audioAnalyzerRef.current) {
-      audioAnalyzerRef.current.stop();
+      audioAnalyzerRef.current.stopAnalysis();
       audioAnalyzerRef.current = null;
       setLiveVoiceMetrics(null);
     }
 
     return () => {
       if (audioAnalyzerRef.current) {
-        audioAnalyzerRef.current.stop();
+        audioAnalyzerRef.current.stopAnalysis();
         audioAnalyzerRef.current = null;
       }
     };
-  }, [callStatus]);
+  }, [callStatus, callId, user?.id]);
 
   // Poll for call updates when call is active
   useEffect(() => {

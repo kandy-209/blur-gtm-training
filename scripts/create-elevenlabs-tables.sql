@@ -52,3 +52,6 @@ CREATE POLICY "Users can delete own conversations" ON elevenlabs_conversations
 GRANT SELECT, INSERT, UPDATE, DELETE ON elevenlabs_conversations TO authenticated;
 GRANT SELECT ON elevenlabs_conversations TO anon;
 
+
+
+

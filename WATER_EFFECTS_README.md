@@ -117,3 +117,6 @@ npm install @react-three/fiber @react-three/drei three
 4. 🔄 Test and optimize
 5. 🔄 Add more interactive effects (optional)
 
+
+
+
