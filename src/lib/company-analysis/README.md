@@ -35,10 +35,13 @@ ANTHROPIC_API_KEY=sk-ant-...  # Best option - Claude
 OPENAI_API_KEY=sk-...          # Fallback option
 
 # S3 Storage (for caching and persistence)
-S3_ENDPOINT=https://files.massive.com
-S3_ACCESS_KEY_ID=9608b1ba-919e-43df-aaa5-31c69921572c
-S3_SECRET_ACCESS_KEY=axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b
-S3_BUCKET=flatfiles
+# ⚠️ SECURITY WARNING: Never commit real credentials to version control!
+# ⚠️ ENVIRONMENT SEPARATION: Each environment (dev/staging/prod) must have its own S3 configuration
+# Get your S3 credentials from your S3 provider dashboard
+S3_ENDPOINT=https://your-s3-endpoint.com
+S3_ACCESS_KEY_ID=your-s3-access-key-id-here
+S3_SECRET_ACCESS_KEY=your-s3-secret-access-key-here
+S3_BUCKET=your-bucket-name-here
 S3_REGION=us-east-1
 
 # Financial APIs (optional but recommended)

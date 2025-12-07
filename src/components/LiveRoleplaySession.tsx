@@ -226,7 +226,10 @@ export default function LiveRoleplaySession({
               link.download = `live-session-${sessionId}.json`;
               document.body.appendChild(link);
               link.click();
-              document.body.removeChild(link);
+              // Check if element still exists before removing (prevents NotFoundError)
+              if (document.body.contains(link)) {
+                document.body.removeChild(link);
+              }
             }
             
             console.log('Session saved:', saveData.message);

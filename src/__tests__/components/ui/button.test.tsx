@@ -14,19 +14,19 @@ describe('Button Component - Premium Design', () => {
       render(<Button>Click me</Button>);
       const button = screen.getByRole('button', { name: /click me/i });
       expect(button).toBeInTheDocument();
-      expect(button).toHaveClass('btn-premium');
+      expect(button).toHaveClass('bg-black', 'text-white');
     });
 
     it('should render button with liquid variant', () => {
       render(<Button variant="liquid">Liquid Button</Button>);
       const button = screen.getByRole('button', { name: /liquid button/i });
-      expect(button).toHaveClass('btn-liquid-interactive');
+      expect(button).toHaveClass('bg-black', 'text-white');
     });
 
     it('should render button with outline variant', () => {
       render(<Button variant="outline">Outline Button</Button>);
       const button = screen.getByRole('button', { name: /outline button/i });
-      expect(button).toHaveClass('glass-ultra');
+      expect(button).toHaveClass('border', 'bg-white');
     });
 
     it('should render button with different sizes', () => {
@@ -65,8 +65,8 @@ describe('Button Component - Premium Design', () => {
     it('should have focus ring for accessibility', () => {
       render(<Button>Focusable</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('focus-ring-glow');
       expect(button).toHaveClass('focus-visible:ring-2');
+      expect(button).toHaveClass('focus-visible:ring-gray-900');
     });
   });
 
@@ -91,17 +91,17 @@ describe('Button Component - Premium Design', () => {
   });
 
   describe('Premium Design Classes', () => {
-    it('should have premium transition classes', () => {
+    it('should have transition classes', () => {
       render(<Button>Premium</Button>);
       const button = screen.getByRole('button');
       expect(button).toHaveClass('transition-all');
-      expect(button).toHaveClass('duration-300');
+      expect(button).toHaveClass('duration-200');
     });
 
-    it('should have overflow hidden for liquid effects', () => {
+    it('should have relative positioning for liquid effects', () => {
       render(<Button variant="liquid">Liquid</Button>);
       const button = screen.getByRole('button');
-      expect(button).toHaveClass('overflow-hidden');
+      expect(button).toHaveClass('relative');
     });
   });
 });

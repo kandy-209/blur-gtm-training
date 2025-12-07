@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,16 +11,27 @@ export default function NavUser() {
   const { user, isGuest, signOut } = useAuth();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering user-dependent content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/auth');
+    try {
+      await signOut();
+      router.push('/auth');
+    } catch (error) {
+      // Handle error gracefully - still redirect to auth
+      router.push('/auth');
+    }
   };
 
   const navLinks = [
     { href: '/scenarios', label: 'Scenarios' },
+    { href: '/sales-training', label: 'Phone Training' },
     { href: '/features', label: 'Features' },
-    { href: '/chat', label: 'Chat' },
     { href: '/analytics', label: 'Analytics' },
     { href: '/live', label: 'Live Role-Play' },
     { href: '/leaderboard', label: 'Leaderboard' },
@@ -35,7 +46,14 @@ export default function NavUser() {
             <Button variant="ghost" className="text-sm font-medium">{link.label}</Button>
           </Link>
         ))}
-        {user ? (
+        {!mounted ? (
+          // Placeholder during SSR/hydration - must match Link + Button structure
+          <Link href="/auth" prefetch={false}>
+            <Button variant="ghost" className="text-sm font-medium opacity-0 pointer-events-none" aria-hidden="true">
+              Sign In
+            </Button>
+          </Link>
+        ) : user ? (
           <>
             <div className="px-3 py-1 text-sm text-muted-foreground hidden lg:block">
               {isGuest ? (
@@ -89,7 +107,7 @@ export default function NavUser() {
               </Link>
             ))}
             <div className="border-t border-gray-200 pt-2 mt-2">
-              {user ? (
+              {mounted && user ? (
                 <>
                   <div className="px-4 py-2 text-xs text-muted-foreground">
                     {isGuest ? (
@@ -108,7 +126,7 @@ export default function NavUser() {
                     Sign Out
                   </button>
                 </>
-              ) : (
+              ) : mounted && !user ? (
                 <Link
                   href="/auth"
                   onClick={() => setMobileMenuOpen(false)}
@@ -116,7 +134,7 @@ export default function NavUser() {
                 >
                   Sign In
                 </Link>
-              )}
+              ) : null}
               <Link
                 href="/scenario-builder"
                 onClick={() => setMobileMenuOpen(false)}

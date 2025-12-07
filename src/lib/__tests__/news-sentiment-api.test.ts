@@ -2,24 +2,42 @@
  * Tests for News and Sentiment API
  */
 
-import { getCompanyNewsFromNewsAPI, analyzeSentiment } from '../news-sentiment-api';
+// Set env var before importing
+process.env.NEWS_API_KEY = 'test-key';
+
+// Import after setting env var
+const { getCompanyNewsFromNewsAPI, analyzeSentiment } = require('../news-sentiment-api');
 
 jest.mock('../next-cache-wrapper', () => ({
-  cachedRouteHandler: jest.fn((key, fetcher, options) => {
-    return Promise.resolve({
-      data: fetcher(),
+  cachedRouteHandler: jest.fn(async (key, fetcher, options) => {
+    const result = await fetcher();
+    return {
+      data: result,
       timestamp: new Date().toISOString(),
       cached: false,
-    });
+    };
   }),
 }));
 
 jest.mock('../error-recovery', () => ({
-  retryWithBackoff: jest.fn((fn) => {
-    return Promise.resolve({
-      success: true,
-      data: fn(),
-    });
+  retryWithBackoff: jest.fn(async (fn, options) => {
+    try {
+      // Execute the async function passed to retryWithBackoff
+      const result = await fn();
+      // Return the result wrapped in the expected structure
+      return {
+        success: true,
+        data: result,
+        attempts: 1,
+      };
+    } catch (error) {
+      // If the function throws, return error structure
+      return {
+        success: false,
+        error: error instanceof Error ? error : new Error(String(error)),
+        attempts: 1,
+      };
+    }
   }),
 }));
 
@@ -35,6 +53,7 @@ describe('news-sentiment-api', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Ensure env var is set (already set before import)
     process.env.NEWS_API_KEY = 'test-key';
   });
 
@@ -65,8 +84,13 @@ describe('news-sentiment-api', () => {
 
       const result = await getCompanyNewsFromNewsAPI('Apple', 'AAPL');
 
+      // The function should return the CompanyNews object from cachedResult.data
       expect(result).toBeDefined();
-      expect(result?.articles.length).toBe(1);
+      expect(result).not.toBeNull();
+      expect(result).toHaveProperty('articles');
+      expect(result).toHaveProperty('sentimentSummary');
+      expect(Array.isArray(result?.articles)).toBe(true);
+      expect(result?.articles?.length).toBe(1);
       expect(result?.articles[0].title).toBe('Apple reports strong growth');
       expect(result?.sentimentSummary).toBeDefined();
     });

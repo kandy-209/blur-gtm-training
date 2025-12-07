@@ -110,7 +110,7 @@ export class CompanyIntelligence extends ValueObject<CompanyIntelligenceData> {
   static empty(): CompanyIntelligence {
     return new CompanyIntelligence({
       company: {
-        name: '',
+        name: 'Unknown Company',
         domain: '',
         industry: '',
         sector: '',

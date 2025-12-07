@@ -1,0 +1,4 @@
+git filter-branch --force --index-filter "git rm --cached --ignore-unmatch .github/workflows/daily-dependency-check.yml" --prune-empty HEAD
+
+git push origin main --force-with-lease
+

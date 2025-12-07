@@ -1,0 +1,44 @@
+========================================
+  DEPLOYMENT FIX - NO HANGING
+========================================
+
+PROBLEM: Terminal commands hang
+SOLUTION: Use Vercel Dashboard (web UI)
+
+========================================
+  STEPS (No Terminal Commands)
+========================================
+
+1. Push to GitHub (if not done):
+   git add .
+   git commit -m "Deploy"
+   git push origin main
+
+2. Go to: https://vercel.com
+   - Login with GitHub
+   - Click "Add New Project"
+   - Import: kandy-209/cursor-gtm-training
+   - Click "Deploy"
+
+3. Add Environment Variables:
+   - Settings → Environment Variables
+   - Add: OPENAI_API_KEY, NEXT_PUBLIC_SUPABASE_URL, etc.
+   - Redeploy
+
+4. Verify:
+   - Visit: https://your-project.vercel.app
+   - Test: /api/cache/health
+
+========================================
+  WHY THIS WORKS
+========================================
+
+✅ No CLI needed
+✅ No hanging commands
+✅ Web UI only
+✅ Automatic builds
+✅ Easy verification
+
+========================================
+
+

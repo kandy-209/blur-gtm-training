@@ -20,10 +20,12 @@ jest.mock('@/lib/security', () => ({
 
 describe('POST /api/live/messages', () => {
   let mockAddMessage: jest.Mock;
+  let mockGetSession: jest.Mock;
 
   beforeAll(() => {
     const sessionManagerModule = require('@/lib/live-session-manager');
     mockAddMessage = (sessionManagerModule as any).__mockAddMessage;
+    mockGetSession = (sessionManagerModule as any).__mockGetSession;
   });
 
   beforeEach(() => {
@@ -36,6 +38,14 @@ describe('POST /api/live/messages', () => {
       message: 'Hello!',
       type: 'text',
       timestamp: new Date(),
+    });
+    
+    // Mock session for validation
+    mockGetSession.mockReturnValue({
+      id: 'session_123',
+      repUserId: 'user_1',
+      prospectUserId: 'user_2',
+      conversationHistory: [],
     });
   });
 
@@ -78,9 +88,7 @@ describe('POST /api/live/messages', () => {
   });
 
   it('should handle session not found', async () => {
-    mockAddMessage.mockImplementation(() => {
-      throw new Error('Session not found');
-    });
+    mockGetSession.mockReturnValue(undefined); // Session doesn't exist
 
     const request = new NextRequest('http://localhost/api/live/messages', {
       method: 'POST',
@@ -96,7 +104,7 @@ describe('POST /api/live/messages', () => {
 
     const response = await POST(request);
     
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(404);
   });
 });
 

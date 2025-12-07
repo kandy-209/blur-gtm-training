@@ -10,9 +10,11 @@ export function initSentry() {
     return;
   }
 
-  const dsn = process.env.SENTRY_DSN;
+  const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
   if (!dsn) {
-    console.warn('Sentry DSN not configured. Error tracking disabled.');
+    if (process.env.NODE_ENV === 'production') {
+      console.warn('⚠️ Sentry DSN not configured. Error tracking disabled in production.');
+    }
     return;
   }
 
@@ -23,7 +25,9 @@ export function initSentry() {
         dsn,
         environment: process.env.NODE_ENV || 'development',
         tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+        profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
         debug: process.env.NODE_ENV === 'development',
+        // Enhanced error filtering
         beforeSend(event, hint) {
           // Filter out non-critical errors in production
           if (process.env.NODE_ENV === 'production') {
@@ -34,9 +38,34 @@ export function initSentry() {
                 return null; // Don't send client errors
               }
             }
+            // Filter out known non-critical errors
+            if (event.exception) {
+              const errorMessage = event.exception.values?.[0]?.value || '';
+              if (
+                errorMessage.includes('ResizeObserver') ||
+                errorMessage.includes('Non-Error promise rejection') ||
+                errorMessage.includes('NetworkError')
+              ) {
+                return null;
+              }
+            }
           }
           return event;
         },
+        // Add user context when available
+        initialScope: (scope) => {
+          scope.setTag('app', 'cursor-gtm-training');
+          return scope;
+        },
+        // Performance monitoring
+        integrations: [
+          // Add browser tracing for performance
+          ...(typeof window !== 'undefined' ? [
+            new (Sentry as any).BrowserTracing({
+              tracePropagationTargets: ['localhost', /^https:\/\/.*\.vercel\.app/],
+            }),
+          ] : []),
+        ],
       });
       
       sentryInitialized = true;

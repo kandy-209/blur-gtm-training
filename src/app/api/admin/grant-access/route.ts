@@ -1,13 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput } from '@/lib/security';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 // Master admin grant code - use this to grant admin access
 const ADMIN_GRANT_CODE = process.env.ADMIN_GRANT_CODE || 'GRANT_ADMIN_ACCESS_2024';

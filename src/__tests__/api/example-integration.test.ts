@@ -7,6 +7,32 @@ import { testApiEndpoint } from '@/lib/testing/api-test-utils';
 import { setupIntegrationTest, testUserFlow, testApiWithDatabase } from '@/lib/testing/integration-helpers';
 import { generateMockEmailData } from '@/lib/testing/mock-data';
 
+// Mock Supabase client for integration tests
+jest.mock('@/lib/supabase-client', () => {
+  const mockSupabase = {
+    from: jest.fn(() => ({
+      insert: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({ 
+            data: { id: 'test_user_123', email: 'test@example.com' }, 
+            error: null 
+          }),
+        }),
+      }),
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+      }),
+      delete: jest.fn().mockReturnValue({
+        eq: jest.fn().mockResolvedValue({ error: null }),
+        like: jest.fn().mockResolvedValue({ error: null }),
+      }),
+    })),
+  };
+  return {
+    getSupabaseClient: jest.fn(() => mockSupabase),
+  };
+});
+
 // Example: Test database health endpoint
 describe('Database Health API', () => {
   it('should return healthy status', async () => {

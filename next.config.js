@@ -15,10 +15,8 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Performance optimizations
-  swcMinify: true,
-  
   // Experimental features for better performance
+  // Note: swcMinify is enabled by default in Next.js 16+ and no longer needs to be specified
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     optimizeCss: true,

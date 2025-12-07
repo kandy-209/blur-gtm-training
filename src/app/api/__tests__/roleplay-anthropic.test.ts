@@ -1,6 +1,56 @@
 import { POST } from '../roleplay/route';
 import { NextRequest } from 'next/server';
 
+// Mock dependencies
+jest.mock('@/lib/db', () => ({
+  db: {
+    roleplayTurn: {
+      create: jest.fn().mockResolvedValue({ id: 'turn_123' }),
+    },
+  },
+}));
+
+jest.mock('@/lib/error-handler', () => ({
+  handleError: jest.fn((error) => {
+    return {
+      json: () => Promise.resolve({ error: error.message }),
+      status: 500,
+    };
+  }),
+  withErrorHandler: jest.fn((fn) => {
+    return async (...args: any[]) => {
+      try {
+        return await fn(...args);
+      } catch (error: any) {
+        return {
+          json: () => Promise.resolve({ error: error.message }),
+          status: 500,
+        };
+      }
+    };
+  }),
+  generateRequestId: jest.fn(() => 'req_123'),
+}));
+
+jest.mock('@/lib/logger', () => ({
+  log: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/metrics', () => ({
+  recordApiCall: jest.fn(),
+  roleplayTurnsTotal: {
+    inc: jest.fn(),
+  },
+}));
+
+jest.mock('@/lib/sentry', () => ({
+  captureException: jest.fn(),
+}));
+
 // Mock AI providers
 const mockAnthropicProvider = {
   name: 'anthropic',
@@ -22,12 +72,11 @@ jest.mock('@/lib/ai-providers', () => ({
 
 describe('Roleplay API - Anthropic Integration', () => {
   const mockRequest = (body: any) => {
-    return {
-      headers: {
-        get: jest.fn().mockReturnValue('application/json'),
-      },
-      json: jest.fn().mockResolvedValue(body),
-    } as unknown as NextRequest;
+    return new NextRequest('http://localhost/api/roleplay', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+    });
   };
 
   beforeEach(() => {

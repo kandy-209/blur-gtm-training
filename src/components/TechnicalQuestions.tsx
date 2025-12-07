@@ -41,7 +41,10 @@ function TechnicalQuestions({ scenarioId, category, limit = 10 }: TechnicalQuest
 
         const response = await fetch(`/api/questions?${params}`);
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Silently handle errors - API will return empty array
+          const data = await response.json().catch(() => ({ questions: [] }));
+          setQuestions(data.questions || []);
+          return;
         }
         const data = await response.json();
         setQuestions(data.questions || []);

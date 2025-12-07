@@ -1,0 +1,43 @@
+========================================
+  QUICK DEPLOYMENT GUIDE
+========================================
+
+OPTION 1: Use Batch File (Easiest)
+-----------------------------------
+1. Double-click: deploy.bat
+2. Follow prompts
+3. Add env vars in Vercel dashboard
+4. Redeploy
+
+OPTION 2: Manual Commands
+-----------------------------------
+1. npm install -g vercel
+2. vercel login
+3. vercel --prod
+
+OPTION 3: GitHub + Vercel Dashboard
+-----------------------------------
+1. Push to GitHub (already done)
+2. Go to vercel.com
+3. Import repository: kandy-209/cursor-gtm-training
+4. Add environment variables
+5. Deploy
+
+========================================
+  REQUIRED ENV VARS
+========================================
+OPENAI_API_KEY
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+
+Optional:
+ALPHA_VANTAGE_API_KEY
+CLEARBIT_API_KEY
+NEWS_API_KEY
+REDIS_URL
+
+========================================
+
+
+
+

@@ -25,8 +25,49 @@ export async function POST(request: NextRequest) {
 
     const { text, voiceId, modelId, stability, similarityBoost, stream, outputFormat } = await request.json();
 
-    // Validate text input
-    const textValidation = validateText(text || '', {
+    // Validate text input and reject XSS patterns (including encoded variants)
+    const textStr = String(text || '');
+    
+    // Decode common encodings to check for XSS
+    const decoded = textStr
+      .replace(/%3C/gi, '<')
+      .replace(/%3E/gi, '>')
+      .replace(/&#60;/gi, '<')
+      .replace(/&#62;/gi, '>')
+      .replace(/\\x3C/gi, '<')
+      .replace(/\\x3E/gi, '>')
+      .replace(/\\u003C/gi, '<')
+      .replace(/\\u003E/gi, '>');
+    
+    const xssPatterns = [
+      /<script/i,
+      /javascript:/i,
+      /onerror=/i,
+      /onload=/i,
+      /onclick=/i,
+      /onfocus=/i,
+      /<iframe/i,
+      /<svg/i,
+      /<img/i,
+      /<body/i,
+      /<input/i,
+      /<link/i,
+      /<meta/i,
+      /<style/i,
+      /<object/i,
+      /<embed/i,
+      /<form/i,
+    ];
+    
+    const hasXSS = xssPatterns.some(pattern => pattern.test(textStr) || pattern.test(decoded));
+    if (hasXSS) {
+      return NextResponse.json(
+        { error: 'Invalid text input: potentially dangerous content detected' },
+        { status: 400 }
+      );
+    }
+    
+    const textValidation = validateText(textStr, {
       minLength: 1,
       maxLength: 5000, // Limit text length for TTS
     });

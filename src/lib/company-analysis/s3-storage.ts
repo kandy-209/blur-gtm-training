@@ -1,27 +1,81 @@
 /**
  * S3 Storage for company analysis results
  * Stores analysis data for caching and historical tracking
+ * 
+ * This module uses lazy initialization to prevent startup crashes
+ * if S3 credentials are not configured. S3 features will gracefully
+ * degrade when credentials are missing or invalid.
  */
 
 import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
-const S3_ENDPOINT = process.env.S3_ENDPOINT || 'https://files.massive.com';
-const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID || '9608b1ba-919e-43df-aaa5-31c69921572c';
-const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY || 'axEzCy2XHAk2UKVRtPdMS1EQyapWjI0b';
-const S3_BUCKET = process.env.S3_BUCKET || 'flatfiles';
+// ⚠️ SECURITY: Never hardcode credentials! Always use environment variables.
+const S3_ENDPOINT = process.env.S3_ENDPOINT;
+const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
+const S3_BUCKET = process.env.S3_BUCKET;
 const S3_REGION = process.env.S3_REGION || 'us-east-1';
 
-// Initialize S3 client
-const s3Client = new S3Client({
-  endpoint: S3_ENDPOINT,
-  region: S3_REGION,
-  credentials: {
-    accessKeyId: S3_ACCESS_KEY_ID,
-    secretAccessKey: S3_SECRET_ACCESS_KEY,
-  },
-  forcePathStyle: true, // Required for custom endpoints
-});
+// Check if S3 credentials are configured (without throwing)
+const isS3Configured = Boolean(
+  S3_ENDPOINT && 
+  S3_ACCESS_KEY_ID && 
+  S3_SECRET_ACCESS_KEY && 
+  S3_BUCKET &&
+  S3_ENDPOINT.trim() !== '' &&
+  S3_ACCESS_KEY_ID.trim() !== '' &&
+  S3_SECRET_ACCESS_KEY.trim() !== '' &&
+  S3_BUCKET.trim() !== ''
+);
+
+// Lazy initialization - only create client when actually needed
+let s3Client: S3Client | null = null;
+let s3ClientInitialized = false;
+let s3ClientError: Error | null = null;
+
+/**
+ * Get or initialize the S3 client lazily
+ * Returns null if S3 is not configured or initialization fails
+ */
+function getS3Client(): S3Client | null {
+  // Return cached client if already initialized successfully
+  if (s3ClientInitialized) {
+    return s3Client;
+  }
+
+  // Mark as initialized to prevent retry loops
+  s3ClientInitialized = true;
+
+  // Check if credentials are configured
+  if (!isS3Configured) {
+    // Only log warning once, not on every function call
+    if (!s3ClientError) {
+      console.warn('S3 credentials not configured. S3 storage features will be disabled.');
+    }
+    return null;
+  }
+
+  // Try to initialize the client
+  try {
+    s3Client = new S3Client({
+      endpoint: S3_ENDPOINT!,
+      region: S3_REGION,
+      credentials: {
+        accessKeyId: S3_ACCESS_KEY_ID!,
+        secretAccessKey: S3_SECRET_ACCESS_KEY!,
+      },
+      forcePathStyle: true, // Required for custom endpoints
+    });
+    return s3Client;
+  } catch (error) {
+    // Store error to prevent repeated initialization attempts
+    s3ClientError = error instanceof Error ? error : new Error(String(error));
+    console.error('Failed to initialize S3 client:', s3ClientError.message);
+    console.warn('S3 storage features will be disabled.');
+    return null;
+  }
+}
 
 /**
  * Store company analysis result in S3
@@ -31,6 +85,11 @@ export async function storeAnalysis(
   analysis: any,
   metadata?: { companyName?: string; analysisDate?: string }
 ): Promise<string | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/${Date.now()}.json`;
     const data = JSON.stringify({
@@ -43,9 +102,9 @@ export async function storeAnalysis(
     }, null, 2);
 
     const upload = new Upload({
-      client: s3Client,
+      client,
       params: {
-        Bucket: S3_BUCKET,
+        Bucket: S3_BUCKET!,
         Key: key,
         Body: data,
         ContentType: 'application/json',
@@ -65,6 +124,11 @@ export async function storeAnalysis(
  * Retrieve latest company analysis from S3
  */
 export async function getLatestAnalysis(ticker: string): Promise<any | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     // Try to get the most recent analysis
     // In production, you'd list objects and get the latest
@@ -72,11 +136,11 @@ export async function getLatestAnalysis(ticker: string): Promise<any | null> {
     const key = `company-analysis/${ticker.toUpperCase()}/latest.json`;
 
     const command = new GetObjectCommand({
-      Bucket: S3_BUCKET,
+      Bucket: S3_BUCKET!,
       Key: key,
     });
 
-    const response = await s3Client.send(command);
+    const response = await client.send(command);
     const body = await response.Body?.transformToString();
     
     if (!body) {
@@ -94,15 +158,20 @@ export async function getLatestAnalysis(ticker: string): Promise<any | null> {
  * Check if analysis exists and is fresh (within cache TTL)
  */
 export async function isAnalysisCached(ticker: string, ttlHours: number = 24): Promise<boolean> {
+  const client = getS3Client();
+  if (!client) {
+    return false; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `company-analysis/${ticker.toUpperCase()}/latest.json`;
     
     const command = new HeadObjectCommand({
-      Bucket: S3_BUCKET,
+      Bucket: S3_BUCKET!,
       Key: key,
     });
 
-    const response = await s3Client.send(command);
+    const response = await client.send(command);
     
     if (!response.LastModified) {
       return false;
@@ -123,13 +192,18 @@ export async function storeFiling(
   filingText: string,
   filingType: string = '10-K'
 ): Promise<string | null> {
+  const client = getS3Client();
+  if (!client) {
+    return null; // Gracefully skip if S3 not configured
+  }
+  
   try {
     const key = `filings/${ticker.toUpperCase()}/${filingType}/${Date.now()}.txt`;
     
     const upload = new Upload({
-      client: s3Client,
+      client,
       params: {
-        Bucket: S3_BUCKET,
+        Bucket: S3_BUCKET!,
         Key: key,
         Body: filingText,
         ContentType: 'text/plain',
@@ -143,6 +217,7 @@ export async function storeFiling(
     return null;
   }
 }
+
 
 
 

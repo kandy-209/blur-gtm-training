@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput } from '@/lib/security';
 import { retryWithBackoff } from '@/lib/error-recovery';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +36,7 @@ export async function GET(request: NextRequest) {
           .single();
 
         if (error) throw error;
-        return { data, error: null };
+        return data!;
       },
       {
         maxRetries: 2,
@@ -49,13 +44,11 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to fetch profile');
     }
 
-    // Extract the actual profile data from result.data
-    const profileData = result.data as { data: any; error: null };
-    let profile: any = profileData.data;
+    let profile: any = result.data;
 
     // Include stats if requested
     if (includeStats) {
@@ -66,16 +59,20 @@ export async function GET(request: NextRequest) {
           .eq('user_id', sanitizedUserId)
           .single();
 
-        profile = {
-          ...profile,
-          stats: stats || null,
-        };
+        if (stats) {
+          profile = {
+            ...profile,
+            stats,
+          };
+        }
       } catch (error) {
         console.error('Error fetching stats:', error);
       }
     }
 
-    return NextResponse.json({ profile });
+    return NextResponse.json({ 
+      profile,
+    });
   } catch (error: any) {
     console.error('Get profile error:', error);
     return NextResponse.json(
@@ -136,7 +133,7 @@ export async function PUT(request: NextRequest) {
           .single();
 
         if (error) throw error;
-        return { data, error: null };
+        return data!; // Return data directly, not wrapped in object
       },
       {
         maxRetries: 2,
@@ -144,7 +141,7 @@ export async function PUT(request: NextRequest) {
       }
     );
 
-    if (!result.success || result.error) {
+    if (!result.success || result.error || !result.data) {
       throw result.error || new Error('Failed to update profile');
     }
 

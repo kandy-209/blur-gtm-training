@@ -149,7 +149,9 @@ describe('GlobalVoiceAssistant', () => {
       const openButton = screen.getByRole('button', { name: /open ai training assistant/i });
       fireEvent.click(openButton);
       
-      expect(screen.getByText(/AI Training Assistant/i)).toBeInTheDocument();
+      // Use getAllByText since there are multiple elements with "AI Training Assistant" text
+      const assistantElements = screen.getAllByText(/AI Training Assistant/i);
+      expect(assistantElements.length).toBeGreaterThan(0);
       expect(screen.getByText(/role-play practice & Q&A/i)).toBeInTheDocument();
     });
 

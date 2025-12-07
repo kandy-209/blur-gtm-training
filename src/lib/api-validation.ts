@@ -37,7 +37,7 @@ export function validateRequestBody<T extends Record<string, any>>(
   // Run field validators
   if (fieldValidators) {
     for (const [field, validator] of Object.entries(fieldValidators)) {
-      if (body[field] !== undefined && body[field] !== null) {
+      if (body[field] !== undefined && body[field] !== null && validator) {
         if (!validator(body[field])) {
           errors.push({
             field,

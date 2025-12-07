@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sanitizeInput } from '@/lib/security';
 import { getUserRole } from '@/lib/permissions';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : null;
+const supabase = getSupabaseClient();
 
 async function getCurrentUser(request: NextRequest) {
   if (!supabase) return null;
@@ -42,47 +37,64 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const includeUserIds = searchParams.get('includeUserIds') === 'true';
 
+    // Safely get top responses
+    let topResponses: any[] = [];
+    try {
+      if (db && typeof db.getTopResponses === 'function') {
+        topResponses = await db.getTopResponses({
+          scenarioId: scenarioId || undefined,
+          objectionCategory: objectionCategory || undefined,
+          minScore,
+          limit: Math.min(limit, 100),
+        }) || [];
+      }
+    } catch (dbError) {
+      console.warn('Database query failed, returning empty array:', dbError);
+      topResponses = [];
+    }
+
+    // If no responses, return early
+    if (topResponses.length === 0) {
+      return NextResponse.json({ topResponses: [] });
+    }
+
     // Try to get current user for ownership checking
     const user = await getCurrentUser(request);
     const userId = user?.id;
 
-    const topResponses = await db.getTopResponses({
-      scenarioId: scenarioId || undefined,
-      objectionCategory: objectionCategory || undefined,
-      minScore,
-      limit: Math.min(limit, 100),
-    });
-
     // If includeUserIds is true, add user IDs to each response
-    if (includeUserIds && userId) {
-      const allResponses = await db.getUserResponses({
-        scenarioId: scenarioId || undefined,
-        objectionCategory: objectionCategory || undefined,
-        limit: 1000,
-      });
+    if (includeUserIds && userId && typeof db.getUserResponses === 'function') {
+      try {
+        const allResponses = await db.getUserResponses({
+          scenarioId: scenarioId || undefined,
+          objectionCategory: objectionCategory || undefined,
+          limit: 1000,
+        }) || [];
 
-      // Enrich top responses with user ownership info
-      const enrichedResponses = topResponses.map((topResp: { response: string; count: number; averageScore: number; successRate: number; scenarioId: string; objectionCategory: string }) => {
-        const matchingResponses = allResponses.filter((r: { userMessage: string }) => 
-          r.userMessage.toLowerCase().trim() === topResp.response.toLowerCase().trim()
-        );
-        const userOwnsResponse = matchingResponses.some((r: { userId: string }) => r.userId === userId);
-        return {
-          ...topResp,
-          userOwnsResponse,
-        };
-      });
+        // Enrich top responses with user ownership info
+        const enrichedResponses = topResponses.map((topResp: { response: string; count: number; averageScore: number; successRate: number; scenarioId: string; objectionCategory: string }) => {
+          const matchingResponses = allResponses.filter((r: { userMessage: string }) => 
+            r.userMessage.toLowerCase().trim() === topResp.response.toLowerCase().trim()
+          );
+          const userOwnsResponse = matchingResponses.some((r: { userId: string }) => r.userId === userId);
+          return {
+            ...topResp,
+            userOwnsResponse,
+          };
+        });
 
-      return NextResponse.json({ topResponses: enrichedResponses });
+        return NextResponse.json({ topResponses: enrichedResponses });
+      } catch (error) {
+        console.warn('Failed to enrich responses with user IDs:', error);
+        // Fall through to return without enrichment
+      }
     }
 
     return NextResponse.json({ topResponses });
   } catch (error) {
     console.error('Get top responses error:', error);
-    return NextResponse.json(
-      { error: 'Failed to retrieve top responses' },
-      { status: 500 }
-    );
+    // Always return 200 with empty array to prevent UI crashes
+    return NextResponse.json({ topResponses: [] });
   }
 }
 

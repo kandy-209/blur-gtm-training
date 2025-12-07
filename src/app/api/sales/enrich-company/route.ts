@@ -66,15 +66,22 @@ export async function POST(request: NextRequest) {
     let contacts: Array<{ firstName?: string; lastName?: string; email?: string; title?: string; seniority?: string; department?: string; linkedin?: string; verified?: boolean }> = [];
     if (domain) {
       const contactsResult = await findContactsClearbit(domain);
-      if (contactsResult.contacts) {
+      if (contactsResult.contacts && contactsResult.contacts.length > 0) {
         contacts = contactsResult.contacts;
       }
     }
 
-    return NextResponse.json({
-      ...enrichment,
+    // Ensure we return proper structure even if enrichment failed
+    const response = {
+      company: enrichment.company || {
+        name: companyName,
+        domain: domain,
+      },
       contacts,
-    }, {
+      ...(enrichment.error && !enrichment.company ? { error: enrichment.error } : {}),
+    };
+
+    return NextResponse.json(response, {
       headers: {
         'X-RateLimit-Limit': '20',
         'X-RateLimit-Remaining': rateLimitResult!.remaining.toString(),

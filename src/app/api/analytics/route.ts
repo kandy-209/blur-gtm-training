@@ -5,13 +5,8 @@ import { persistAnalyticsEvent } from '@/lib/database/persistence';
 import { addJob, JobType } from '@/lib/jobs/queue';
 import { log } from '@/lib/logger';
 import { handleError } from '@/lib/error-handler';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-client';
 import { retryWithBackoff } from '@/lib/error-recovery';
-
-// Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 // In-memory fallback (will be migrated to database)
 const events: TrainingEvent[] = [];
@@ -27,13 +22,85 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const event: TrainingEvent = await request.json();
+    // Check content-length for large payloads
+    const contentLength = request.headers?.get('content-length');
+    const MAX_PAYLOAD_SIZE = 500000; // 500KB limit
+    if (contentLength && parseInt(contentLength) > MAX_PAYLOAD_SIZE) {
+      return NextResponse.json(
+        { error: `Payload too large: ${contentLength} bytes (max ${MAX_PAYLOAD_SIZE})` },
+        { status: 413 } // Payload Too Large
+      );
+    }
+
+    let event: TrainingEvent;
+    try {
+      event = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    // Check payload size after parsing (in case content-length wasn't set)
+    const payloadSize = JSON.stringify(event).length;
+    if (payloadSize > MAX_PAYLOAD_SIZE) {
+      return NextResponse.json(
+        { error: `Payload too large: ${payloadSize} bytes (max ${MAX_PAYLOAD_SIZE})` },
+        { status: 413 } // Payload Too Large
+      );
+    }
 
     // Validate event structure
-    const validEventTypes = ['scenario_start', 'scenario_complete', 'turn_submit', 'feedback_view', 'module_complete'];
-    if (!event.eventType || !validEventTypes.includes(event.eventType)) {
+    if (!event || typeof event !== 'object' || Array.isArray(event)) {
+      return NextResponse.json(
+        { error: 'Invalid event data: must be an object' },
+        { status: 400 }
+      );
+    }
+
+    // Validate required fields - eventType is required
+    // Check for null, undefined, or missing property
+    if (!('eventType' in event) || event.eventType === null || event.eventType === undefined || !event.eventType) {
+      return NextResponse.json(
+        { error: 'Missing required field: eventType' },
+        { status: 400 }
+      );
+    }
+
+    const validEventTypes = ['scenario_start', 'scenario_complete', 'turn_submit', 'feedback_view', 'module_complete', 'call_started', 'call_completed', 'call_analysis_ready'];
+    if (typeof event.eventType !== 'string' || !validEventTypes.includes(event.eventType)) {
       return NextResponse.json(
         { error: 'Invalid event type' },
+        { status: 400 }
+      );
+    }
+
+    // Validate data types
+    if (event.userId !== undefined && typeof event.userId !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid userId: must be a string' },
+        { status: 400 }
+      );
+    }
+
+    if (event.scenarioId !== undefined && typeof event.scenarioId !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid scenarioId: must be a string' },
+        { status: 400 }
+      );
+    }
+
+    if (event.score !== undefined && (typeof event.score !== 'number' || event.score < 0 || event.score > 100)) {
+      return NextResponse.json(
+        { error: 'Invalid score: must be a number between 0 and 100' },
+        { status: 400 }
+      );
+    }
+
+    if (event.turnNumber !== undefined && (typeof event.turnNumber !== 'number' || event.turnNumber < 0)) {
+      return NextResponse.json(
+        { error: 'Invalid turnNumber: must be a non-negative number' },
         { status: 400 }
       );
     }
@@ -46,6 +113,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Try to save to Supabase if available
+    const supabase = getSupabaseClient();
     if (supabase) {
       try {
         await retryWithBackoff(async () => {
@@ -107,6 +175,7 @@ export async function GET(request: NextRequest) {
     let totalEvents = 0;
     
     // Try to fetch from Supabase if available
+    const supabase = getSupabaseClient();
     if (supabase) {
       try {
         let query = supabase
@@ -129,8 +198,9 @@ export async function GET(request: NextRequest) {
         });
 
         if (retryResult.success && retryResult.data) {
+          // retryResult.data is the Supabase query result: { data, error, count }
           const queryResult = retryResult.data as { data: any[] | null; error: any; count: number | null };
-          if (queryResult.data && !queryResult.error) {
+          if (queryResult && queryResult.data && !queryResult.error) {
             userEvents = queryResult.data.map((row: any) => ({
               eventType: row.event_type,
               userId: row.user_id,
@@ -152,6 +222,9 @@ export async function GET(request: NextRequest) {
               totalEvents = totalCount || 0;
             }
           }
+        } else if (retryResult.error) {
+          console.error('Analytics query failed after retries:', retryResult.error);
+          // Fall through to in-memory storage
         }
       } catch (error) {
         console.error('Failed to fetch from Supabase, using in-memory fallback:', error);
@@ -160,6 +233,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fallback to in-memory if Supabase failed or not available
+    // This ensures we always return data, even if Supabase is unavailable
     if (userEvents.length === 0) {
       const allEvents = sanitizedUserId 
         ? events.filter(e => e.userId === sanitizedUserId)
@@ -179,6 +253,17 @@ export async function GET(request: NextRequest) {
       const averageScore = scores.length > 0 
         ? scores.reduce((sum, s) => sum + s, 0) / scores.length 
         : 0;
+      
+      // Calculate call training stats
+      const callCompletions = userEvents.filter(e => e.eventType === 'call_completed');
+      const totalCalls = callCompletions.length;
+      const callScores = callCompletions
+        .map(e => e.metadata?.overallScore || e.score || 0)
+        .filter(s => s > 0);
+      const averageCallScore = callScores.length > 0
+        ? callScores.reduce((sum, s) => sum + s, 0) / callScores.length
+        : 0;
+      const totalCallDuration = callCompletions.reduce((sum, e) => sum + (e.metadata?.duration || 0), 0);
       
       // Group by scenario
       const scenarioStats = new Map<string, {
@@ -216,6 +301,9 @@ export async function GET(request: NextRequest) {
         totalTurns,
         averageScore: Math.round(averageScore * 10) / 10,
         completionRate: startedScenarios > 0 ? (completedScenarios / startedScenarios) * 100 : 0,
+        totalCalls,
+        averageCallScore: Math.round(averageCallScore * 10) / 10,
+        totalCallDuration,
         scenarioBreakdown: Array.from(scenarioStats.values()),
         eventTypeBreakdown: {
           scenario_start: userEvents.filter(e => e.eventType === 'scenario_start').length,
@@ -223,23 +311,38 @@ export async function GET(request: NextRequest) {
           turn_submit: userEvents.filter(e => e.eventType === 'turn_submit').length,
           feedback_view: userEvents.filter(e => e.eventType === 'feedback_view').length,
           module_complete: userEvents.filter(e => e.eventType === 'module_complete').length,
+          call_started: userEvents.filter(e => e.eventType === 'call_started').length,
+          call_completed: userEvents.filter(e => e.eventType === 'call_completed').length,
+          call_analysis_ready: userEvents.filter(e => e.eventType === 'call_analysis_ready').length,
         },
       };
     }
     
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       events: userEvents,
       total: totalEvents,
       returned: userEvents.length,
       stats,
       source: supabase ? 'supabase' : 'memory',
     });
+
+    // Add cache headers for better performance
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60');
+    response.headers.set('ETag', `"${Date.now()}-${userEvents.length}"`);
+    
+    return response;
   } catch (error) {
     console.error('Analytics GET error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    // Return empty result instead of 500 to prevent breaking the UI
+    // The frontend can handle empty arrays gracefully
+    return NextResponse.json({ 
+      events: [],
+      total: 0,
+      returned: 0,
+      stats: null,
+      source: 'memory',
+      error: 'Failed to fetch analytics, using fallback',
+    });
   }
 }
 

@@ -1,8 +1,26 @@
 import { POST, GET } from '@/app/api/ratings/route';
 import { NextRequest } from 'next/server';
 
-jest.mock('@/lib/auth', () => {
-  const mockSupabase = {
+// Create mock Supabase instance - defined before jest.mock
+const mockSupabaseInstance = {
+  from: jest.fn(() => ({
+    insert: jest.fn(() => ({
+      select: jest.fn(() => ({
+        single: jest.fn(),
+      })),
+    })),
+    select: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        order: jest.fn(),
+      })),
+      order: jest.fn(),
+    })),
+  })),
+};
+
+jest.mock('@/lib/supabase-client', () => {
+  // Create a new instance for the mock
+  const mockInstance = {
     from: jest.fn(() => ({
       insert: jest.fn(() => ({
         select: jest.fn(() => ({
@@ -18,8 +36,8 @@ jest.mock('@/lib/auth', () => {
     })),
   };
   return {
-    supabase: mockSupabase,
-    __mockSupabase: mockSupabase,
+    getSupabaseClient: jest.fn(() => mockInstance),
+    __mockInstance: mockInstance,
   };
 });
 
@@ -31,8 +49,8 @@ describe('POST /api/ratings', () => {
   let mockSupabase: any;
 
   beforeAll(() => {
-    const authModule = require('@/lib/auth');
-    mockSupabase = (authModule as any).__mockSupabase;
+    const supabaseModule = require('@/lib/supabase-client');
+    mockSupabase = (supabaseModule as any).__mockInstance;
   });
 
   beforeEach(() => {
@@ -143,8 +161,8 @@ describe('GET /api/ratings', () => {
   let mockSupabase: any;
 
   beforeAll(() => {
-    const authModule = require('@/lib/auth');
-    mockSupabase = (authModule as any).__mockSupabase;
+    const supabaseModule = require('@/lib/supabase-client');
+    mockSupabase = (supabaseModule as any).__mockInstance;
   });
 
   beforeEach(() => {
@@ -164,11 +182,13 @@ describe('GET /api/ratings', () => {
       error: null,
     });
 
+    const mockEq = jest.fn(() => ({
+      order: mockOrder,
+    }));
+
     mockSupabase.from.mockReturnValue({
       select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          order: mockOrder,
-        })),
+        eq: mockEq,
       })),
     });
 
@@ -187,11 +207,13 @@ describe('GET /api/ratings', () => {
       error: null,
     });
 
+    const mockEq = jest.fn(() => ({
+      order: mockOrder,
+    }));
+
     mockSupabase.from.mockReturnValue({
       select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          order: mockOrder,
-        })),
+        eq: mockEq,
       })),
     });
 

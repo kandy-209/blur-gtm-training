@@ -32,13 +32,31 @@ function Leaderboard() {
     setIsLoading(true);
     try {
       const response = await fetch(`/api/leaderboard?category=${category}&limit=100`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch leaderboard: ${response.statusText}`);
+      
+      // Handle rate limiting gracefully
+      if (response.status === 429) {
+        console.warn('Leaderboard rate limited, returning empty array');
+        setLeaderboard([]);
+        setIsLoading(false);
+        return;
       }
+      
+      if (!response.ok) {
+        // Don't throw for non-critical errors, just log and return empty
+        const errorText = await response.text();
+        console.warn('Failed to fetch leaderboard:', response.status, errorText);
+        setLeaderboard([]);
+        setIsLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       setLeaderboard(data.leaderboard || []);
     } catch (error) {
-      console.error('Failed to fetch leaderboard:', error instanceof Error ? error.message : String(error));
+      // Silently handle errors - don't spam console
+      if (error instanceof Error && !error.message.includes('Too Many Requests')) {
+        console.warn('Failed to fetch leaderboard:', error.message);
+      }
       setLeaderboard([]);
     } finally {
       setIsLoading(false);

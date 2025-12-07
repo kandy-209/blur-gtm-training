@@ -70,8 +70,15 @@ export class ConversationAgent {
     const triggers: string[] = [];
     const lowerMessage = message.toLowerCase();
 
-    // Price objections
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('expensive')) {
+    // Price objections - check for pricing mentions, dollar amounts, cost-related terms
+    if (lowerMessage.includes('price') || 
+        lowerMessage.includes('pricing') || 
+        lowerMessage.includes('cost') || 
+        lowerMessage.includes('expensive') ||
+        lowerMessage.includes('$') ||
+        lowerMessage.includes('dollar') ||
+        lowerMessage.includes('per seat') ||
+        lowerMessage.includes('subscription')) {
       triggers.push('price');
     }
 
@@ -98,18 +105,23 @@ export class ConversationAgent {
     triggers: string[]
   ): ObjectionState {
     const history = context.conversationHistory;
-    const lastObjection = this.objectionHandling.get('last') || 0;
 
-    // Count how many times objections have been raised
+    // Count how many times objections have been raised in conversation history (prospect messages only)
     let timesRaised = 0;
+    const objectionTypes = new Set<string>();
     for (const msg of history) {
       if (msg.role === 'prospect') {
         const msgTriggers = this.detectObjectionTriggers(msg.message);
         if (msgTriggers.length > 0) {
           timesRaised++;
+          msgTriggers.forEach(t => objectionTypes.add(t));
         }
       }
     }
+
+    // If current rep message triggers an objection, this will be the prospect's response
+    // timesRaised should reflect past objections, so we don't increment here
+    // But we do track the objection type for the current response
 
     // Determine pushback level based on difficulty
     let pushbackLevel = 0.3; // Base level
@@ -118,12 +130,12 @@ export class ConversationAgent {
     if (context.personality === 'abrasive') pushbackLevel += 0.2;
     if (context.personality === 'hostile') pushbackLevel += 0.3;
 
-    // Increase pushback if objection raised multiple times
+    // Increase pushback if objection raised multiple times in history
     pushbackLevel += Math.min(timesRaised * 0.1, 0.3);
 
     return {
       objectionRaised: triggers.length > 0,
-      timesRaised,
+      timesRaised, // Count of past objections raised by prospect
       objectionType: triggers[0] || null,
       pushbackLevel: Math.min(pushbackLevel, 1.0),
     };

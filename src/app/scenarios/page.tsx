@@ -187,7 +187,7 @@ function ScenariosPage() {
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight truncate">Training Scenarios</h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-0.5 sm:mt-1">
-                Master Enterprise sales with {scenarios.length} realistic scenarios
+                Master being a GTM Operator with {scenarios.length} realistic scenarios
               </p>
             </div>
           </div>
@@ -376,7 +376,7 @@ function ScenariosPage() {
               return (
                 <Card
                   key={scenario.id}
-                  className="hover-lift border-gray-200 transition-all duration-200 group relative overflow-hidden hover:border-gray-300 hover:shadow-md"
+                  className="border-gray-200 transition-all duration-200 group hover:border-gray-300 hover:shadow-md flex flex-col"
                 >
                   {/* Category Badge */}
                   <Badge 
@@ -397,7 +397,7 @@ function ScenariosPage() {
                     </CardDescription>
                   </CardHeader>
 
-                  <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
+                  <CardContent className="flex flex-col flex-1 space-y-3 sm:space-y-4 px-4 sm:px-6 pb-4 sm:pb-6">
                     {/* Objection Preview */}
                     <div className="bg-gray-50 rounded-lg p-2.5 sm:p-3 border border-gray-200">
                       <p className="text-[10px] sm:text-xs font-semibold text-muted-foreground mb-1">Objection:</p>
@@ -445,8 +445,8 @@ function ScenariosPage() {
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-1">
+                    {/* Action Buttons - Pushed to bottom */}
+                    <div className="flex gap-2 pt-1 mt-auto">
                       <Button
                         variant="outline"
                         size="sm"

@@ -147,3 +147,4 @@ export function recordError(type: string, severity: 'low' | 'medium' | 'high' | 
   errorsTotal.inc({ type, severity });
 }
 
+

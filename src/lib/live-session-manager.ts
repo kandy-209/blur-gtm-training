@@ -38,15 +38,9 @@ class LiveSessionManager {
     this.userToSession.set(repUserId, sessionId);
     this.userToSession.set(prospectUserId, sessionId);
 
-    // Remove users from lobby and mark as in-session
-    const repUser = this.lobby.get(repUserId);
-    const prospectUser = this.lobby.get(prospectUserId);
-    if (repUser) {
-      repUser.status = 'in-session';
-    }
-    if (prospectUser) {
-      prospectUser.status = 'in-session';
-    }
+    // Remove users from lobby when creating session
+    this.lobby.delete(repUserId);
+    this.lobby.delete(prospectUserId);
 
     return session;
   }

@@ -104,12 +104,60 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    // Validate request body is an object
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { error: 'Request body must be a JSON object' },
+        { status: 400 }
+      );
+    }
+
+    // Check payload size (rough estimate)
+    const payloadSize = JSON.stringify(body).length;
+    const MAX_PAYLOAD_SIZE = 500000; // 500KB limit
+    if (payloadSize > MAX_PAYLOAD_SIZE) {
+      return NextResponse.json(
+        { error: `Payload too large: ${payloadSize} bytes (max ${MAX_PAYLOAD_SIZE})` },
+        { status: 413 } // Payload Too Large
+      );
+    }
     
     // Validate request body structure
     if (!body.scenarioInput || !body.persona || !body.conversationHistory) {
       return NextResponse.json(
         { error: 'Missing required fields: scenarioInput, persona, conversationHistory' },
+        { status: 400 }
+      );
+    }
+
+    // Validate data types
+    if (typeof body.scenarioInput !== 'object' || body.scenarioInput === null) {
+      return NextResponse.json(
+        { error: 'scenarioInput must be an object' },
+        { status: 400 }
+      );
+    }
+
+    if (typeof body.persona !== 'object' || body.persona === null) {
+      return NextResponse.json(
+        { error: 'persona must be an object' },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(body.conversationHistory)) {
+      return NextResponse.json(
+        { error: 'conversationHistory must be an array' },
         { status: 400 }
       );
     }
@@ -205,9 +253,11 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
       console.log('[Roleplay API] Got response from', aiProvider.name, '- length:', content.length);
       
     } catch (providerError: any) {
+      const providerName = aiProvider?.name || 'unknown';
       console.error('[Roleplay API] Provider Error:', {
         message: providerError.message,
         stack: providerError.stack,
+        provider: providerName,
         env: {
           AI_PROVIDER: process.env.AI_PROVIDER,
           hasHF: !!process.env.HUGGINGFACE_API_KEY,
@@ -218,18 +268,22 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
       
       // Handle provider-specific errors
       if (providerError?.message?.includes('quota exceeded') || providerError?.message?.includes('429')) {
-        throw new Error('AI API quota exceeded. Try setting ANTHROPIC_API_KEY (free tier, recommended) or HUGGINGFACE_API_KEY (free but requires special permissions).');
+        throw new Error(`${providerName} API quota exceeded. Try setting ANTHROPIC_API_KEY (free tier, recommended) or HUGGINGFACE_API_KEY (free but requires special permissions).`);
       }
       if (providerError?.message?.includes('permissions') || providerError?.message?.includes('403')) {
-        throw new Error('Hugging Face API key lacks Inference Provider permissions. Get a FREE Anthropic Claude key instead: https://console.anthropic.com/ (recommended - more reliable)');
+        if (providerName === 'huggingface') {
+          throw new Error('Hugging Face API key lacks Inference Provider permissions. Get a FREE Anthropic Claude key instead: https://console.anthropic.com/ (recommended - more reliable)');
+        }
+        throw new Error(`${providerName} API permissions error: ${providerError.message}`);
       }
       if (providerError?.message?.includes('not configured') || providerError?.message?.includes('NOT SET')) {
-        throw new Error(`AI provider not configured: ${providerError.message}`);
+        throw new Error(`${providerName} provider not configured: ${providerError.message}`);
       }
       if (providerError?.message?.includes('not found') || providerError?.message?.includes('404')) {
-        throw new Error(`${providerError.message}. Try using ANTHROPIC_API_KEY instead (free, recommended).`);
+        throw new Error(`${providerName} API error: ${providerError.message}. Try using ANTHROPIC_API_KEY instead (free, recommended).`);
       }
-      throw providerError;
+      // Include provider name in generic errors
+      throw new Error(`${providerName} API error: ${providerError.message || 'Unknown error'}`);
     }
 
     if (!content || !content.trim()) {
@@ -282,17 +336,19 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
 
     // Enhance AI response with insights from database (if available)
     try {
-      const insights = await db.getAIInsights(scenarioInput.scenario_id, scenarioInput.objection_category);
-      
-      // If we have top responses, we can optionally include them in the system prompt
-      // For now, we'll just log them for future enhancement
-      if (insights.topResponses.length > 0 && insights.averageScore > 0) {
-        // Future: Use insights to improve AI responses
-        console.log('AI Insights available:', {
-          topResponsesCount: insights.topResponses.length,
-          averageScore: insights.averageScore,
-          successRate: insights.successRate,
-        });
+      if (db && typeof db.getAIInsights === 'function') {
+        const insights = await db.getAIInsights(scenarioInput.scenario_id, scenarioInput.objection_category);
+        
+        // If we have top responses, we can optionally include them in the system prompt
+        // For now, we'll just log them for future enhancement
+        if (insights && insights.topResponses && insights.topResponses.length > 0 && insights.averageScore > 0) {
+          // Future: Use insights to improve AI responses
+          console.log('AI Insights available:', {
+            topResponsesCount: insights.topResponses.length,
+            averageScore: insights.averageScore,
+            successRate: insights.successRate,
+          });
+        }
       }
     } catch (error) {
       // Don't fail the request if insights fail
@@ -301,17 +357,19 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
 
     // Save response for ML learning (async, don't wait)
     try {
-      await db.saveUserResponse({
-        userId: 'system',
-        scenarioId: scenarioInput.scenario_id,
-        turnNumber: scenarioInput.turn_number,
-        objectionCategory: scenarioInput.objection_category,
-        userMessage: sanitizedHistory[sanitizedHistory.length - 1]?.message || '',
-        aiResponse: agentResponse.agent_response_text,
-        evaluation: agentResponse.response_evaluation as 'PASS' | 'FAIL' | 'REJECT',
-        confidenceScore: agentResponse.confidence_score,
-        keyPointsMentioned: [],
-      });
+      if (db && typeof db.saveUserResponse === 'function') {
+        await db.saveUserResponse({
+          userId: 'system',
+          scenarioId: scenarioInput.scenario_id,
+          turnNumber: scenarioInput.turn_number,
+          objectionCategory: scenarioInput.objection_category,
+          userMessage: sanitizedHistory[sanitizedHistory.length - 1]?.message || '',
+          aiResponse: agentResponse.agent_response_text,
+          evaluation: agentResponse.response_evaluation as 'PASS' | 'FAIL' | 'REJECT',
+          confidenceScore: agentResponse.confidence_score,
+          keyPointsMentioned: [],
+        });
+      }
     } catch (error) {
       // Don't fail the request if saving fails
       log.warn('Failed to save response for ML learning', { error: error instanceof Error ? error.message : String(error), requestId });
