@@ -82,3 +82,5 @@ Once Cursor restarts, you should be able to:
 
 
 >>>>>>> 8ae46d8 (fix: resolve merge conflicts, fix UI visibility issues, add badge color coding, and update navigation)
+
+

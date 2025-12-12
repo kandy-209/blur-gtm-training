@@ -45,14 +45,37 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate phone number format - remove all formatting first
-    const cleanedPhone = phoneNumber.replace(/\D/g, ''); // Remove all non-digits
+    // Handle both formatted strings and already-cleaned numbers
+    let cleanedPhone: string;
+    if (phoneNumber.startsWith('+')) {
+      // Already in E.164 format, just remove + and validate
+      cleanedPhone = phoneNumber.replace(/\D/g, '');
+    } else {
+      // Remove all non-digits
+      cleanedPhone = phoneNumber.replace(/\D/g, '');
+    }
     
     if (!cleanedPhone || cleanedPhone.length < 10) {
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          error: 'Invalid phone number format',
+          message: 'Phone number must contain at least 10 digits',
           received: phoneNumber,
-          cleaned: cleanedPhone
+          cleaned: cleanedPhone,
+          hint: 'Please use format: (555) 123-4567 or +1 (555) 123-4567'
+        },
+        { status: 400 }
+      );
+    }
+    
+    if (cleanedPhone.length > 15) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid phone number format',
+          message: 'Phone number is too long (max 15 digits)',
+          received: phoneNumber,
+          cleaned: cleanedPhone,
+          length: cleanedPhone.length
         },
         { status: 400 }
       );
@@ -72,7 +95,8 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Phone number must be 10-15 digits.',
+          error: 'Invalid phone number format',
+          message: 'Phone number must be 10-15 digits',
           received: phoneNumber,
           cleaned: cleanedPhone,
           length: cleanedPhone.length
@@ -81,19 +105,37 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Final validation: E.164 format (+ followed by 1-15 digits, first digit must be 1-9)
-    if (!/^\+[1-9]\d{9,14}$/.test(phoneForVapi)) {
-      console.error('Invalid phone number format:', { original: phoneNumber, cleaned: cleanedPhone, formatted: phoneForVapi });
+    // Final validation: E.164 format
+    // E.164 allows: + followed by 1-15 digits, where the first digit after + can be 0-9
+    // But for practical purposes, we allow +1 for US numbers
+    const e164Pattern = /^\+[1-9]\d{9,14}$/;
+    if (!e164Pattern.test(phoneForVapi)) {
+      console.error('Invalid phone number format:', { 
+        original: phoneNumber, 
+        cleaned: cleanedPhone, 
+        formatted: phoneForVapi,
+        length: phoneForVapi.length,
+        pattern: e164Pattern.toString()
+      });
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          error: 'Invalid phone number format',
+          message: 'Phone number must be in E.164 format (e.g., +12094702824)',
           received: phoneNumber,
           cleaned: cleanedPhone,
-          formatted: phoneForVapi
+          formatted: phoneForVapi,
+          hint: 'Ensure phone number is in E.164 format (e.g., +1234567890). For US numbers, use +1 followed by 10 digits.'
         },
         { status: 400 }
       );
     }
+    
+    console.log('Phone number validated:', {
+      original: phoneNumber,
+      cleaned: cleanedPhone,
+      formatted: phoneForVapi,
+      length: phoneForVapi.length
+    });
 
     // Validate scenario exists
     const scenario = scenarios.find(s => s.id === scenarioId);
