@@ -67,11 +67,7 @@ export function VoiceCoachingDebug() {
       try {
         await import('@/components/ui/alert');
         results.uiComponents = {
-<<<<<<< HEAD
-          status: typeof AlertComponent !== 'undefined' ? 'pass' : 'fail',
-=======
           status: 'pass',
->>>>>>> 8ae46d8 (fix: resolve merge conflicts, fix UI visibility issues, add badge color coding, and update navigation)
           message: 'UI components available'
         };
       } catch (error: any) {
