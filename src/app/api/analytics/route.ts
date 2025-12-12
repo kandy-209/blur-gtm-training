@@ -328,7 +328,7 @@ export async function GET(request: NextRequest) {
       total: totalEvents,
       returned: userEvents.length,
       stats,
-      source: supabase ? 'supabase' : 'memory',
+      source: supabaseAvailable ? 'supabase' : 'memory',
     });
 
     // Add cache headers for better performance
