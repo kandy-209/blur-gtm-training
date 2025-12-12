@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, password, username, fullName, roleAtCursor, jobTitle, department } = body;
+    const { email, emailForAnalytics, password, username, fullName, roleAtCursor, jobTitle, department } = body;
 
     // Validate required fields (email is optional, will be generated if not provided)
     if (!password || !username || !roleAtCursor || !jobTitle) {
@@ -103,6 +103,9 @@ export async function POST(request: NextRequest) {
       roleAtCursor: isCursorEmail ? 'Admin' : sanitizeInput(roleAtCursor, 100),
       jobTitle: isCursorEmail ? 'Administrator' : sanitizeInput(jobTitle, 100),
       department: department ? sanitizeInput(department, 100) : undefined,
+      analyticsEmail: emailForAnalytics && emailForAnalytics.trim() 
+        ? sanitizeInput(emailForAnalytics.toLowerCase().trim(), 255) 
+        : null,
     };
 
     // Retry signup with backoff for robustness
@@ -131,7 +134,9 @@ export async function POST(request: NextRequest) {
       success: true,
       user: authData.user,
       session: authData.session,
-      message: 'Account created successfully. Please check your email to verify your account.',
+      message: emailForAnalytics && emailForAnalytics.trim()
+        ? 'Account created successfully! You can sign in with your username or email.'
+        : 'Account created successfully! You can sign in with your username and password.',
     }, {
       headers: {
         'X-RateLimit-Limit': '5',

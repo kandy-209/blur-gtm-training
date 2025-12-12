@@ -60,14 +60,17 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
           throw new Error('Please fill in all required fields');
         }
 
-        // Generate email from username if not provided
-        const userEmail = email.trim() || `${username.toLowerCase().replace(/\s+/g, '')}@cursor.local`;
+        // Email is optional - generate one for Supabase Auth if not provided
+        // The actual email (if provided) will be stored separately for analytics
+        const providedEmail = email.trim() || '';
+        const userEmail = providedEmail || `${username.toLowerCase().replace(/\s+/g, '')}@cursor.local`;
 
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            email: userEmail,
+            email: userEmail, // Required for Supabase Auth, but can be generated
+            emailForAnalytics: providedEmail || null, // Optional real email for analytics
             password,
             username,
             fullName: fullName || undefined,
@@ -117,28 +120,40 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
 
           {mode === 'signin' && (
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Username or Email</Label>
               <Input
                 id="email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your username or email"
                 required
                 disabled={isLoading}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can sign in with either your username or email address
+              </p>
             </div>
           )}
           {mode === 'signup' && (
             <div>
-              <Label htmlFor="email">Email (Optional)</Label>
+              <Label htmlFor="email">
+                Email (Optional)
+                <span className="text-xs text-muted-foreground ml-2">
+                  - For analytics & insights emails
+                </span>
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Optional - will use username@cursor.local if not provided"
+                placeholder="Leave empty if you don't want email updates"
                 disabled={isLoading}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                You can sign in with your username and password. Email is only used for sending training insights and analytics.
+              </p>
             </div>
           )}
 

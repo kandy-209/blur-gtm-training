@@ -9,13 +9,14 @@ export const supabase = supabaseUrl && supabaseAnonKey
   : null;
 
 export interface SignUpData {
-  email: string;
+  email: string; // Required for Supabase Auth (may be generated)
   password: string;
   username: string;
   fullName?: string;
   roleAtCursor: string;
   jobTitle: string;
   department?: string;
+  analyticsEmail?: string | null; // Optional real email for analytics/insights
 }
 
 export interface SignInData {
@@ -28,7 +29,7 @@ export async function signUp(data: SignUpData) {
     throw new Error('Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
   }
 
-  const { email, password, username, fullName, roleAtCursor, jobTitle, department } = data;
+  const { email, password, username, fullName, roleAtCursor, jobTitle, department, analyticsEmail } = data;
 
   // Check if email is from @cursor.com domain (auto-admin)
   const isCursorEmail = email.toLowerCase().endsWith('@cursor.com');
@@ -70,7 +71,8 @@ export async function signUp(data: SignUpData) {
       .from('user_profiles')
       .insert({
         id: authData.user.id,
-        email,
+        email: email || null, // Can be null if using generated email
+        analytics_email: analyticsEmail || null, // Optional real email for analytics
         username,
         full_name: fullName || null,
         role_at_cursor: roleAtCursor,
