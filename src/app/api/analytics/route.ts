@@ -173,74 +173,79 @@ export async function GET(request: NextRequest) {
     
     let userEvents: TrainingEvent[] = [];
     let totalEvents = 0;
+    let supabaseAvailable = false;
     
     // Try to fetch from Supabase if available
-    const supabase = getSupabaseClient();
-    if (supabase) {
-      try {
-        let query = supabase
-          .from('analytics_events')
-          .select('*')
-          .order('timestamp', { ascending: false })
-          .limit(Math.min(limit, 1000));
+    try {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        try {
+          let query = supabase
+            .from('analytics_events')
+            .select('*', { count: 'exact' })
+            .order('timestamp', { ascending: false })
+            .limit(Math.min(limit, 1000));
 
-        if (sanitizedUserId) {
-          query = query.eq('user_id', sanitizedUserId);
-        }
+          if (sanitizedUserId) {
+            query = query.eq('user_id', sanitizedUserId);
+          }
 
-        const retryResult = await retryWithBackoff(async () => {
-          const result = await query;
-          if (result.error) throw result.error;
-          return result;
-        }, {
-          maxRetries: 2,
-          retryDelay: 500,
-        });
+          const retryResult = await retryWithBackoff(async () => {
+            const result = await query;
+            if (result.error) {
+              throw new Error(result.error.message || 'Supabase query error');
+            }
+            return result;
+          }, {
+            maxRetries: 2,
+            retryDelay: 500,
+          });
 
-        if (retryResult.success && retryResult.data) {
-          // retryResult.data is the Supabase query result: { data, error, count }
-          const queryResult = retryResult.data as { data: any[] | null; error: any; count: number | null };
-          if (queryResult && queryResult.data && !queryResult.error) {
-            userEvents = queryResult.data.map((row: any) => ({
-              eventType: row.event_type,
-              userId: row.user_id,
-              scenarioId: row.scenario_id,
-              score: row.score,
-              turnNumber: row.turn_number,
-              timestamp: row.timestamp,
-              metadata: row.metadata || {},
-            })) as TrainingEvent[];
-            
-            // Use count from query result if available, otherwise fetch separately
-            if (queryResult.count !== null && queryResult.count !== undefined) {
-              totalEvents = queryResult.count;
-            } else {
-              // Get total count
-              const { count: totalCount } = await supabase
-                .from('analytics_events')
-                .select('*', { count: 'exact', head: true });
-              totalEvents = totalCount || 0;
+          if (retryResult.success && retryResult.data) {
+            // retryResult.data is the Supabase query result: { data, error, count }
+            const queryResult = retryResult.data as { data: any[] | null; error: any; count: number | null };
+            if (queryResult && queryResult.data && !queryResult.error) {
+              userEvents = queryResult.data.map((row: any) => ({
+                eventType: row.event_type,
+                userId: row.user_id,
+                scenarioId: row.scenario_id,
+                score: row.score,
+                turnNumber: row.turn_number,
+                timestamp: row.timestamp,
+                metadata: row.metadata || {},
+              })) as TrainingEvent[];
+              
+              // Use count from query result if available
+              totalEvents = queryResult.count || userEvents.length;
+              supabaseAvailable = true;
             }
           }
-        } else if (retryResult.error) {
-          console.error('Analytics query failed after retries:', retryResult.error);
+        } catch (error: any) {
+          console.error('Failed to fetch from Supabase, using in-memory fallback:', error?.message || error);
           // Fall through to in-memory storage
         }
-      } catch (error) {
-        console.error('Failed to fetch from Supabase, using in-memory fallback:', error);
-        // Fall through to in-memory storage
       }
+    } catch (error: any) {
+      console.error('Supabase client error, using in-memory fallback:', error?.message || error);
+      // Fall through to in-memory storage
     }
 
     // Fallback to in-memory if Supabase failed or not available
     // This ensures we always return data, even if Supabase is unavailable
-    if (userEvents.length === 0) {
-      const allEvents = sanitizedUserId 
-        ? events.filter(e => e.userId === sanitizedUserId)
-        : events;
-      
-      userEvents = allEvents.slice(-limit);
-      totalEvents = allEvents.length;
+    if (!supabaseAvailable || userEvents.length === 0) {
+      try {
+        const allEvents = sanitizedUserId 
+          ? events.filter(e => e.userId === sanitizedUserId)
+          : events;
+        
+        userEvents = allEvents.slice(-limit);
+        totalEvents = allEvents.length;
+      } catch (error: any) {
+        console.error('In-memory fallback error:', error?.message || error);
+        // Return empty arrays if even in-memory fails
+        userEvents = [];
+        totalEvents = 0;
+      }
     }
 
     // Calculate comprehensive stats if requested

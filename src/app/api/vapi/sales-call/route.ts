@@ -19,7 +19,19 @@ export async function POST(request: NextRequest) {
   const VAPI_API_KEY = process.env.VAPI_API_KEY || '';
   
   try {
-    const body = await request.json();
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (jsonError: any) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid JSON in request body',
+          message: jsonError.message || 'Failed to parse request body',
+        },
+        { status: 400 }
+      );
+    }
+    
     const { phoneNumber, userId, scenarioId, trainingMode = 'practice' } = body;
 
     console.log('Vapi call request:', { phoneNumber, userId, scenarioId, trainingMode, hasApiKey: !!VAPI_API_KEY });
