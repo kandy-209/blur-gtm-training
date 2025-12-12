@@ -153,11 +153,29 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
       setCallMetrics(null);
       setCallAnalysis(null);
 
+      // Clean phone number: remove all non-digits
+      const cleanedPhone = phoneNumber.replace(/\D/g, '');
+      
+      // Validate phone number before sending
+      if (!cleanedPhone || cleanedPhone.length < 10) {
+        setError('Please enter a valid phone number with at least 10 digits');
+        setIsCalling(false);
+        setCallStatus('failed');
+        return;
+      }
+      
+      if (cleanedPhone.length > 15) {
+        setError('Phone number is too long (maximum 15 digits)');
+        setIsCalling(false);
+        setCallStatus('failed');
+        return;
+      }
+
       const response = await fetch('/api/vapi/sales-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phoneNumber: phoneNumber.replace(/\D/g, ''),
+          phoneNumber: cleanedPhone, // Send cleaned digits only
           userId,
           scenarioId: selectedScenario.id,
           trainingMode,
