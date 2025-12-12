@@ -143,7 +143,23 @@ export async function POST(request: NextRequest) {
     try {
       systemPrompt = buildSystemPrompt(scenario);
       if (!systemPrompt || systemPrompt.trim().length === 0) {
-        throw new Error('System prompt is empty');
+        // Fallback prompt - ensure we have valid data
+        const personaName = scenario.persona?.name || 'a prospect';
+        const objectionStatement = scenario.objection_statement || 'I need to think about it';
+        
+        systemPrompt = `You are ${personaName} evaluating Cursor Enterprise. 
+Respond naturally to the sales rep's questions and objections. 
+Objection: ${objectionStatement}`;
+        
+        if (!systemPrompt || systemPrompt.trim().length === 0) {
+          return NextResponse.json(
+            { 
+              error: 'Failed to create system prompt',
+              message: 'Unable to generate prompt from scenario data',
+            },
+            { status: 500 }
+          );
+        }
       }
       console.log('System prompt built successfully, length:', systemPrompt.length);
     } catch (promptError: any) {
@@ -172,6 +188,7 @@ Objection: ${objectionStatement}`;
           { status: 500 }
         );
       }
+      console.log('Using fallback system prompt, length:', systemPrompt.length);
     }
 
     // Create Vapi assistant with scenario context
@@ -190,7 +207,15 @@ Objection: ${objectionStatement}`;
     
     if (!assistantName || assistantName.length === 0 || assistantName.length > 40) {
       console.error('Invalid assistant name generated:', { assistantName, length: assistantName?.length });
-      throw new Error(`Failed to generate valid assistant name (length: ${assistantName?.length || 0})`);
+      return NextResponse.json(
+        { 
+          error: 'Failed to generate valid assistant name',
+          message: `Assistant name is invalid (length: ${assistantName?.length || 0})`,
+          scenarioId: scenario.id,
+          personaName: personaName,
+        },
+        { status: 500 }
+      );
     }
     
     console.log('Generated assistant name:', { assistantName, length: assistantName.length });
@@ -603,8 +628,20 @@ export async function GET(request: NextRequest) {
     });
 
     if (!modalResponse.ok) {
-      const error = await modalResponse.json();
-      throw new Error(error.error || 'Failed to analyze call');
+      let errorMessage = 'Failed to analyze call';
+      try {
+        const error = await modalResponse.json();
+        errorMessage = error.error || errorMessage;
+      } catch {
+        errorMessage = `Modal API returned ${modalResponse.status}`;
+      }
+      return NextResponse.json(
+        { 
+          error: 'Failed to analyze call',
+          message: errorMessage,
+        },
+        { status: modalResponse.status >= 400 && modalResponse.status < 500 ? modalResponse.status : 502 }
+      );
     }
 
     const analysis = await modalResponse.json();
