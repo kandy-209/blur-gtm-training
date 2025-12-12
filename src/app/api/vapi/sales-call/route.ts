@@ -279,10 +279,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Initiate call - Vapi API format
-    // Vapi requires phoneNumber at top level, not nested in customer
+    // Vapi requires phone number in customer object with number property
     const callRequestBody: any = {
       assistantId: assistant.id,
-      phoneNumber: phoneForVapi, // Top-level phoneNumber field
+      customer: {
+        number: phoneForVapi, // E.164 format: +1234567890
+      },
     };
     
     // Add metadata if supported
@@ -297,9 +299,9 @@ export async function POST(request: NextRequest) {
 
     console.log('Call request body:', {
       assistantId: callRequestBody.assistantId,
-      phoneNumber: callRequestBody.phoneNumber,
-      phoneNumberLength: callRequestBody.phoneNumber?.length,
-      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.phoneNumber) ? 'E.164' : 'INVALID',
+      customerNumber: callRequestBody.customer?.number,
+      phoneNumberLength: callRequestBody.customer?.number?.length,
+      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.customer?.number) ? 'E.164' : 'INVALID',
       hasMetadata: !!callRequestBody.metadata,
     });
 
