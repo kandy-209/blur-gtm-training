@@ -461,13 +461,47 @@ Objection: ${objectionStatement}`;
     });
 
     // Initiate call - Vapi API format
-    // Vapi requires phone number in customer object with number property
+    // Vapi requires either:
+    // 1. phoneNumberId (configured phone number in Vapi dashboard) - PREFERRED
+    // 2. phoneNumber object with Twilio credentials
     const callRequestBody: any = {
       assistantId: assistant.id,
-      customer: {
-        number: phoneForVapi, // E.164 format: +1234567890
-      },
     };
+    
+    // Option 1: Use phoneNumberId if configured (preferred - no Twilio needed)
+    const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
+    if (phoneNumberId) {
+      callRequestBody.phoneNumberId = phoneNumberId;
+      console.log('Using configured phoneNumberId:', phoneNumberId);
+    } else {
+      // Option 2: Use phoneNumber with Twilio credentials
+      const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+      const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+      
+      if (twilioAccountSid && twilioAuthToken) {
+        callRequestBody.phoneNumber = {
+          twilioPhoneNumber: phoneForVapi, // E.164 format
+          twilioAccountSid: twilioAccountSid,
+          twilioAuthToken: twilioAuthToken,
+        };
+        console.log('Using Twilio credentials for phone number');
+      } else {
+        // Neither phoneNumberId nor Twilio credentials are configured
+        return NextResponse.json(
+          { 
+            error: 'Phone number configuration missing',
+            message: 'Vapi requires either a phoneNumberId or Twilio credentials for outbound calls',
+            hint: 'Configure VAPI_PHONE_NUMBER_ID in Vapi dashboard, or add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN',
+            helpUrl: 'https://docs.vapi.ai/getting_started',
+            options: {
+              option1: 'Add VAPI_PHONE_NUMBER_ID to environment variables (get it from Vapi dashboard)',
+              option2: 'Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN for Twilio integration',
+            }
+          },
+          { status: 400 }
+        );
+      }
+    }
     
     // Add metadata if supported
     if (userId || scenarioId) {
@@ -481,9 +515,13 @@ Objection: ${objectionStatement}`;
 
     console.log('Call request body:', {
       assistantId: callRequestBody.assistantId,
-      customerNumber: callRequestBody.customer?.number,
-      phoneNumberLength: callRequestBody.customer?.number?.length,
-      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.customer?.number) ? 'E.164' : 'INVALID',
+      hasPhoneNumberId: !!callRequestBody.phoneNumberId,
+      phoneNumberId: callRequestBody.phoneNumberId,
+      hasPhoneNumber: !!callRequestBody.phoneNumber,
+      phoneNumberType: typeof callRequestBody.phoneNumber,
+      phoneNumberValue: typeof callRequestBody.phoneNumber === 'string' 
+        ? callRequestBody.phoneNumber 
+        : callRequestBody.phoneNumber?.twilioPhoneNumber || 'object',
       hasMetadata: !!callRequestBody.metadata,
     });
 
