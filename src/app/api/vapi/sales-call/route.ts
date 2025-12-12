@@ -461,47 +461,25 @@ Objection: ${objectionStatement}`;
     });
 
     // Initiate call - Vapi API format
-    // Vapi requires either:
-    // 1. phoneNumberId (configured phone number in Vapi dashboard) - PREFERRED
-    // 2. phoneNumber object with Twilio credentials
+    // Vapi requires:
+    // 1. phoneNumberId (the Vapi phone number to call FROM)
+    // 2. customer object with number (the phone number to call TO)
     const callRequestBody: any = {
       assistantId: assistant.id,
     };
     
-    // Option 1: Use phoneNumberId if configured (preferred - no Twilio needed)
+    // Add phoneNumberId if configured (the Vapi phone number to use)
     const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
     if (phoneNumberId) {
       callRequestBody.phoneNumberId = phoneNumberId;
-      console.log('Using configured phoneNumberId:', phoneNumberId);
-    } else {
-      // Option 2: Use phoneNumber with Twilio credentials
-      const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
-      const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-      
-      if (twilioAccountSid && twilioAuthToken) {
-        callRequestBody.phoneNumber = {
-          twilioPhoneNumber: phoneForVapi, // E.164 format
-          twilioAccountSid: twilioAccountSid,
-          twilioAuthToken: twilioAuthToken,
-        };
-        console.log('Using Twilio credentials for phone number');
-      } else {
-        // Neither phoneNumberId nor Twilio credentials are configured
-        return NextResponse.json(
-          { 
-            error: 'Phone number configuration missing',
-            message: 'Vapi requires either a phoneNumberId or Twilio credentials for outbound calls',
-            hint: 'Configure VAPI_PHONE_NUMBER_ID in Vapi dashboard, or add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN',
-            helpUrl: 'https://docs.vapi.ai/getting_started',
-            options: {
-              option1: 'Add VAPI_PHONE_NUMBER_ID to environment variables (get it from Vapi dashboard)',
-              option2: 'Add TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN for Twilio integration',
-            }
-          },
-          { status: 400 }
-        );
-      }
+      console.log('Using configured phoneNumberId (caller):', phoneNumberId);
     }
+    
+    // Add customer object with the destination phone number
+    // This is the phone number we're calling TO (the user's phone)
+    callRequestBody.customer = {
+      number: phoneForVapi, // E.164 format: the destination number
+    };
     
     // Add metadata if supported
     if (userId || scenarioId) {
@@ -515,13 +493,9 @@ Objection: ${objectionStatement}`;
 
     console.log('Call request body:', {
       assistantId: callRequestBody.assistantId,
-      hasPhoneNumberId: !!callRequestBody.phoneNumberId,
       phoneNumberId: callRequestBody.phoneNumberId,
-      hasPhoneNumber: !!callRequestBody.phoneNumber,
-      phoneNumberType: typeof callRequestBody.phoneNumber,
-      phoneNumberValue: typeof callRequestBody.phoneNumber === 'string' 
-        ? callRequestBody.phoneNumber 
-        : callRequestBody.phoneNumber?.twilioPhoneNumber || 'object',
+      customerNumber: callRequestBody.customer?.number,
+      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.customer?.number) ? 'E.164' : 'INVALID',
       hasMetadata: !!callRequestBody.metadata,
     });
 
