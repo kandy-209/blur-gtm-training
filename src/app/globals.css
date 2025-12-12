@@ -1303,12 +1303,44 @@
   /* Card Liquid Effect - Ultra Optimized */
   .card-liquid {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     will-change: transform;
     transform: translateZ(0);
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease;
-    contain: strict; /* Maximum containment */
-    isolation: isolate; /* Create new stacking context */
+    contain: layout style paint;
+  }
+
+  .card-liquid > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-liquid h3,
+  .card-liquid p,
+  .card-liquid span,
+  .card-liquid div,
+  .card-liquid svg,
+  .card-liquid a {
+    position: relative;
+    z-index: 2;
+    color: inherit;
+  }
+
+  /* Ensure card content is always visible */
+  .card-liquid [class*="CardHeader"],
+  .card-liquid [class*="CardContent"],
+  .card-liquid [class*="CardTitle"],
+  .card-liquid [class*="CardDescription"] {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Force text visibility in cards */
+  .card-liquid .text-gray-900,
+  .card-liquid .text-gray-500,
+  .card-liquid .text-gray-700 {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .card-liquid::after {
@@ -1324,7 +1356,7 @@
     );
     opacity: 0;
     transition: opacity 0.15s ease;
-    z-index: -1;
+    z-index: 1;
     will-change: opacity;
     transform: translateZ(0);
     pointer-events: none;
@@ -1349,16 +1381,47 @@
   /* Button Liquid Effect - Ultra Optimized */
   .btn-liquid {
     /* position: relative is now in base Button component */
-    overflow: hidden;
+    overflow: visible;
     will-change: transform;
     transform: translateZ(0);
     transition: transform 0.15s ease, opacity 0.15s ease;
-    contain: strict; /* Maximum containment for GPU acceleration of radial gradient animation */
-    isolation: isolate;
-    z-index: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    contain: layout style paint;
+  }
+
+  .btn-liquid > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Ensure text and icons are visible */
+  .btn-liquid span,
+  .btn-liquid svg,
+  .btn-liquid text {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Force text color to be visible - ensure text is always readable */
+  .btn-liquid.text-white,
+  .btn-liquid.text-white > *,
+  .btn-liquid.text-white span,
+  .btn-liquid.text-white svg {
+    color: white !important;
+    fill: white !important;
+  }
+
+  .btn-liquid.text-gray-900,
+  .btn-liquid.text-gray-900 > *,
+  .btn-liquid.text-gray-900 span,
+  .btn-liquid.text-gray-900 svg {
+    color: rgb(17, 24, 39) !important;
+    fill: rgb(17, 24, 39) !important;
+  }
+
+  /* Ensure button content is always visible */
+  .btn-liquid [class*="text-"] {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 
   .btn-liquid::before {
@@ -1376,6 +1439,7 @@
     will-change: opacity;
     transform: translateZ(0);
     border-radius: inherit;
+    z-index: 1;
   }
 
   .btn-liquid:hover::before {
@@ -1487,4 +1551,19 @@ elevenlabs-convai {
 
 .animate-slide-right {
   animation: slide-right 0.3s ease-out;
+}
+
+/* Fix Next.js portal positioning */
+nextjs-portal {
+  position: fixed !important;
+  top: unset !important;
+  left: unset !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+  z-index: 9999 !important;
+}
+
+nextjs-portal > * {
+  pointer-events: auto;
 }

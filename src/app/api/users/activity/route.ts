@@ -133,9 +133,9 @@ export async function GET(request: NextRequest) {
 
     const result = await retryWithBackoff(
       async () => {
-        const { data, error } = await query;
-        if (error) throw error;
-        return data || [];
+        const queryResult = await query;
+        if (queryResult.error) throw queryResult.error;
+        return queryResult.data || [];
       },
       {
         maxRetries: 2,

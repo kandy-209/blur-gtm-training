@@ -18,10 +18,10 @@ export interface TTLRecommendation {
  * Analyze cache patterns and recommend optimal TTLs
  */
 export function recommendTTL(key: string, currentTTL: number): TTLRecommendation {
-  const allMetrics = getCacheMetrics(key);
-  const metrics = allMetrics && typeof allMetrics === 'object' && key in allMetrics 
-    ? allMetrics[key] 
-    : null;
+  const metricsRecord = getCacheMetrics(key);
+  
+  // getCacheMetrics returns Record<string, CacheMetrics>, get the first entry
+  const metrics = metricsRecord ? Object.values(metricsRecord)[0] : null;
   
   if (!metrics || typeof metrics !== 'object' || !('totalRequests' in metrics)) {
     return {

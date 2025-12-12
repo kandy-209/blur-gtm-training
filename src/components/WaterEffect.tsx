@@ -1,5 +1,6 @@
 // @ts-nocheck - React Three Fiber types
 'use client';
+// @ts-nocheck
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';

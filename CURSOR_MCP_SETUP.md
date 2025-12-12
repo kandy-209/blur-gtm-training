@@ -68,5 +68,17 @@ Once Cursor restarts, you should be able to:
 **Get your Alpha Vantage API Key:**
 1. Sign up at: https://www.alphavantage.co/support/#api-key
 2. Free tier: 5 requests/minute, 500 requests/day
+<<<<<<< HEAD
 3. Used for both MCP and direct API calls in the application
 4. Replace `YOUR_ALPHA_VANTAGE_API_KEY` in the configuration above with your actual key
+=======
+3. Replace `YOUR_ALPHA_VANTAGE_API_KEY` in the configuration above with your actual key
+>>>>>>> feature/sentry-and-docs
+
+
+
+
+
+
+
+>>>>>>> 8ae46d8 (fix: resolve merge conflicts, fix UI visibility issues, add badge color coding, and update navigation)

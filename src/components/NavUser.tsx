@@ -31,10 +31,14 @@ export default function NavUser() {
   const navLinks = [
     { href: '/scenarios', label: 'Scenarios' },
     { href: '/sales-training', label: 'Phone Training' },
+    { href: '/sales-skills', label: 'Sales Skills' },
     { href: '/features', label: 'Features' },
+    { href: '/roi-calculator', label: 'ROI Calculator' },
+    { href: '/chat', label: 'Chat' },
     { href: '/analytics', label: 'Analytics' },
     { href: '/live', label: 'Live Role-Play' },
     { href: '/leaderboard', label: 'Leaderboard' },
+    { href: '/help', label: 'Help' },
   ];
 
   return (
