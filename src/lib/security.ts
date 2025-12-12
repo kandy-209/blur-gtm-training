@@ -149,7 +149,7 @@ export function getSecurityHeaders(): Record<string, string> {
       "font-src 'self' data:",
       "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io https://va.vercel-scripts.com https://api.vapi.ai https://vercel.live",
       "media-src 'self' data: blob: https:",
-      "frame-src 'self' https://*.elevenlabs.io",
+      "frame-src 'self' https://*.elevenlabs.io https://vercel.live",
     ].join('; '),
   };
 }
