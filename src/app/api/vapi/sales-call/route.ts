@@ -99,8 +99,23 @@ export async function POST(request: NextRequest) {
     const scenario = scenarios.find(s => s.id === scenarioId);
     if (!scenario) {
       return NextResponse.json(
-        { error: 'Scenario not found' },
+        { 
+          error: 'Scenario not found',
+          scenarioId,
+          availableScenarios: scenarios.map(s => s.id),
+        },
         { status: 404 }
+      );
+    }
+
+    // Validate scenario has required fields
+    if (!scenario.persona) {
+      return NextResponse.json(
+        { 
+          error: 'Scenario missing persona data',
+          scenarioId: scenario.id,
+        },
+        { status: 400 }
       );
     }
 
@@ -140,13 +155,22 @@ export async function POST(request: NextRequest) {
         hasObjection: !!scenario.objection_statement,
         hasKeyPoints: !!scenario.keyPoints
       });
-      // Fallback prompt
-      systemPrompt = `You are ${scenario.persona?.name || 'a prospect'} evaluating Cursor Enterprise. 
-      Respond naturally to the sales rep's questions and objections. 
-      Objection: ${scenario.objection_statement || 'I need to think about it'}`;
+      // Fallback prompt - ensure we have valid data
+      const personaName = scenario.persona?.name || 'a prospect';
+      const objectionStatement = scenario.objection_statement || 'I need to think about it';
+      
+      systemPrompt = `You are ${personaName} evaluating Cursor Enterprise. 
+Respond naturally to the sales rep's questions and objections. 
+Objection: ${objectionStatement}`;
       
       if (!systemPrompt || systemPrompt.trim().length === 0) {
-        throw new Error('Failed to create fallback system prompt');
+        return NextResponse.json(
+          { 
+            error: 'Failed to create system prompt',
+            message: 'Unable to generate prompt from scenario data',
+          },
+          { status: 500 }
+        );
       }
     }
 
@@ -176,11 +200,24 @@ export async function POST(request: NextRequest) {
     const firstMessage = scenario.objection_statement || 'Hello, I received your call.';
     
     if (!voiceId || voiceId.trim().length === 0) {
-      throw new Error('ElevenLabs voice ID is required');
+      return NextResponse.json(
+        { 
+          error: 'ElevenLabs voice ID is required',
+          message: 'NEXT_PUBLIC_ELEVENLABS_VOICE_ID environment variable is not set',
+        },
+        { status: 500 }
+      );
     }
     
     if (!firstMessage || firstMessage.trim().length === 0) {
-      throw new Error('First message is required');
+      return NextResponse.json(
+        { 
+          error: 'First message is required',
+          message: 'Scenario missing objection_statement',
+          scenarioId: scenario.id,
+        },
+        { status: 400 }
+      );
     }
     
     const assistantRequest = {
@@ -206,11 +243,23 @@ export async function POST(request: NextRequest) {
     
     // Validate request structure
     if (!assistantRequest.name || assistantRequest.name.length > 40) {
-      throw new Error(`Invalid assistant name: ${assistantRequest.name} (length: ${assistantRequest.name.length})`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant name',
+          message: `Assistant name is invalid: ${assistantRequest.name} (length: ${assistantRequest.name?.length || 0})`,
+        },
+        { status: 400 }
+      );
     }
     
     if (!assistantRequest.voice.provider || assistantRequest.voice.provider !== '11labs') {
-      throw new Error(`Invalid voice provider: ${assistantRequest.voice.provider}`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid voice provider',
+          message: `Voice provider must be '11labs', got: ${assistantRequest.voice.provider}`,
+        },
+        { status: 400 }
+      );
     }
 
     // Validate JSON serialization before sending
@@ -221,7 +270,13 @@ export async function POST(request: NextRequest) {
       JSON.parse(requestBody);
     } catch (jsonError: any) {
       console.error('Failed to serialize assistant request:', jsonError);
-      throw new Error(`Invalid assistant request data: ${jsonError.message}`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant request data',
+          message: `Failed to serialize request: ${jsonError.message}`,
+        },
+        { status: 500 }
+      );
     }
     
     console.log('Creating Vapi assistant with request:', {
@@ -460,8 +515,8 @@ export async function POST(request: NextRequest) {
       status: callData.status,
       scenario: {
         id: scenario.id,
-        persona: scenario.persona.name,
-        objectionCategory: scenario.objection_category,
+        persona: scenario.persona?.name || 'Unknown',
+        objectionCategory: scenario.objection_category || 'general',
       },
     });
   } catch (error: any) {
