@@ -236,17 +236,40 @@ export async function POST(request: NextRequest) {
       requestBodyLength: requestBody.length,
     });
 
-    const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: requestBody,
-    });
+    let assistantResponse: Response;
+    try {
+      assistantResponse = await fetch('https://api.vapi.ai/assistant', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      });
+    } catch (fetchError: any) {
+      console.error('❌ Network error creating Vapi assistant:', {
+        error: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name,
+      });
+      return NextResponse.json(
+        { 
+          error: 'Network error connecting to Vapi API',
+          message: fetchError.message || 'Failed to connect to Vapi service',
+          hint: 'Check your internet connection and Vapi API status',
+        },
+        { status: 503 }
+      );
+    }
 
     if (!assistantResponse.ok) {
-      const errorText = await assistantResponse.text();
+      let errorText = '';
+      try {
+        errorText = await assistantResponse.text();
+      } catch (textError) {
+        errorText = `Failed to read error response: ${textError}`;
+      }
+      
       let errorMessage = 'Failed to create assistant';
       let errorDetails: any = {};
       try {
@@ -268,14 +291,39 @@ export async function POST(request: NextRequest) {
           systemPromptLength: systemPrompt.length,
         }
       });
-      throw new Error(`Vapi assistant error (${assistantResponse.status}): ${errorMessage}`);
+      return NextResponse.json(
+        { 
+          error: `Vapi assistant error (${assistantResponse.status})`,
+          message: errorMessage,
+          details: errorDetails,
+        },
+        { status: assistantResponse.status >= 400 && assistantResponse.status < 500 ? assistantResponse.status : 502 }
+      );
     }
 
-    const assistant = await assistantResponse.json();
+    let assistant: any;
+    try {
+      assistant = await assistantResponse.json();
+    } catch (jsonError: any) {
+      console.error('Failed to parse assistant response:', jsonError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid response from Vapi API',
+          message: 'Failed to parse assistant creation response',
+        },
+        { status: 502 }
+      );
+    }
     
     if (!assistant || !assistant.id) {
       console.error('Invalid assistant response:', assistant);
-      throw new Error('Invalid assistant response from Vapi API - missing assistant ID');
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant response from Vapi API',
+          message: 'Missing assistant ID in response',
+        },
+        { status: 502 }
+      );
     }
     
     console.log('Assistant created successfully:', {
@@ -317,17 +365,42 @@ export async function POST(request: NextRequest) {
       hasMetadata: !!callRequestBody.metadata,
     });
 
-    const callResponse = await fetch('https://api.vapi.ai/call', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(callRequestBody),
-    });
+    let callResponse: Response;
+    try {
+      callResponse = await fetch('https://api.vapi.ai/call', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(callRequestBody),
+      });
+    } catch (fetchError: any) {
+      console.error('❌ Network error initiating Vapi call:', {
+        error: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name,
+        assistantId: assistant.id,
+        phoneNumber: phoneForVapi,
+      });
+      return NextResponse.json(
+        { 
+          error: 'Network error connecting to Vapi API',
+          message: fetchError.message || 'Failed to connect to Vapi service',
+          hint: 'Check your internet connection and Vapi API status',
+        },
+        { status: 503 }
+      );
+    }
 
     if (!callResponse.ok) {
-      const errorText = await callResponse.text();
+      let errorText = '';
+      try {
+        errorText = await callResponse.text();
+      } catch (textError) {
+        errorText = `Failed to read error response: ${textError}`;
+      }
+      
       let errorMessage = 'Failed to initiate call';
       let errorDetails: any = {};
       try {
@@ -354,10 +427,32 @@ export async function POST(request: NextRequest) {
         assistantIdType: typeof assistant.id,
       });
       
-      throw new Error(`Vapi call error (${callResponse.status}): ${errorMessage}`);
+      return NextResponse.json(
+        { 
+          error: `Vapi call error (${callResponse.status})`,
+          message: errorMessage,
+          details: errorDetails,
+          hint: errorMessage.includes('phoneNumber') || errorMessage.includes('phone')
+            ? 'Ensure phone number is in E.164 format (e.g., +1234567890)'
+            : 'Check Vapi API key and account status',
+        },
+        { status: callResponse.status >= 400 && callResponse.status < 500 ? callResponse.status : 502 }
+      );
     }
 
-    const callData = await callResponse.json();
+    let callData: any;
+    try {
+      callData = await callResponse.json();
+    } catch (jsonError: any) {
+      console.error('Failed to parse call response:', jsonError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid response from Vapi API',
+          message: 'Failed to parse call initiation response',
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -370,14 +465,15 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error('Sales call initiation error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
+    console.error('❌ Sales call initiation error:', {
       message: error.message,
       name: error.name,
+      stack: error.stack,
       cause: error.cause,
       status: error.status,
-      response: error.response
+      response: error.response,
+      hasApiKey: !!VAPI_API_KEY,
+      apiKeyLength: VAPI_API_KEY?.length || 0,
     });
     
     const errorMessage = error.message || 'Failed to initiate call';
@@ -390,12 +486,12 @@ export async function POST(request: NextRequest) {
         message: errorMessage,
         // Include helpful hints based on error type
         hint: errorMessage.includes('API key') || errorMessage.includes('VAPI_API_KEY')
-          ? 'Check your VAPI_API_KEY in .env.local and restart dev server'
+          ? 'Check your VAPI_API_KEY in environment variables'
           : errorMessage.includes('phone') || errorMessage.includes('number')
           ? 'Ensure phone number is in E.164 format (e.g., +1234567890)'
           : errorMessage.includes('assistant')
           ? 'Failed to create Vapi assistant - check API key permissions and Vapi dashboard'
-          : errorMessage.includes('Vapi')
+          : errorMessage.includes('Vapi') || errorMessage.includes('network')
           ? 'Check Vapi API key and account status at https://vapi.ai/dashboard'
           : 'Check server logs for detailed error information',
         // Include debug info in development
@@ -404,7 +500,7 @@ export async function POST(request: NextRequest) {
             hasApiKey: !!VAPI_API_KEY,
             apiKeyLength: VAPI_API_KEY?.length || 0,
             errorType: error.name,
-            errorStack: error.stack?.split('\n').slice(0, 3).join('\n')
+            errorStack: error.stack?.split('\n').slice(0, 5).join('\n')
           }
         })
       },
