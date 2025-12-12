@@ -15,8 +15,6 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-<<<<<<< HEAD
-=======
   // Performance optimizations
   swcMinify: true,
   
