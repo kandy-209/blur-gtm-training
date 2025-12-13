@@ -63,7 +63,7 @@ export default function AuthPage() {
             <CardHeader className="bg-gray-50">
               <CardTitle className="text-xl">Start Training Now</CardTitle>
               <CardDescription>
-                No email or password needed. Perfect for Cursor team members!
+                No email or password needed.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
