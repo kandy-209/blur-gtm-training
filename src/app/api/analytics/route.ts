@@ -191,14 +191,27 @@ export async function GET(request: NextRequest) {
           }
 
           const retryResult = await retryWithBackoff(async () => {
-            const result = await query;
-            if (result.error) {
-              throw new Error(result.error.message || 'Supabase query error');
+            try {
+              const result = await query;
+              if (result.error) {
+                throw new Error(result.error.message || 'Supabase query error');
+              }
+              return result;
+            } catch (error: any) {
+              // Re-throw to trigger retry
+              throw error;
             }
-            return result;
           }, {
             maxRetries: 2,
             retryDelay: 500,
+            shouldRetry: (error) => {
+              // Don't retry on authentication/authorization errors
+              const message = error.message?.toLowerCase() || '';
+              if (message.includes('permission') || message.includes('policy') || message.includes('unauthorized')) {
+                return false;
+              }
+              return true;
+            },
           });
 
           if (retryResult.success && retryResult.data) {
@@ -222,12 +235,12 @@ export async function GET(request: NextRequest) {
           }
         } catch (error: any) {
           console.error('Failed to fetch from Supabase, using in-memory fallback:', error?.message || error);
-          // Fall through to in-memory storage
+          // Fall through to in-memory storage - don't throw
         }
       }
     } catch (error: any) {
       console.error('Supabase client error, using in-memory fallback:', error?.message || error);
-      // Fall through to in-memory storage
+      // Fall through to in-memory storage - don't throw
     }
 
     // Fallback to in-memory if Supabase failed or not available
@@ -336,9 +349,9 @@ export async function GET(request: NextRequest) {
     response.headers.set('ETag', `"${Date.now()}-${userEvents.length}"`);
     
     return response;
-  } catch (error) {
-    console.error('Analytics GET error:', error);
-    // Return empty result instead of 500 to prevent breaking the UI
+  } catch (error: any) {
+    console.error('Analytics GET error:', error?.message || error);
+    // Always return 200 with empty data instead of 500 to prevent breaking the UI
     // The frontend can handle empty arrays gracefully
     return NextResponse.json({ 
       events: [],
@@ -347,7 +360,7 @@ export async function GET(request: NextRequest) {
       stats: null,
       source: 'memory',
       error: 'Failed to fetch analytics, using fallback',
-    });
+    }, { status: 200 }); // Explicitly set 200 status
   }
 }
 
