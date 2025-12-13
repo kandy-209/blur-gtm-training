@@ -147,7 +147,7 @@ export default function HomePage() {
                         Real Phone Call Training
                       </CardTitle>
                       <CardDescription className="text-base text-gray-600 mb-4">
-                        Practice with real phone calls using VAPI. Get instant AI analysis on your objection handling, closing techniques, and communication skills.
+                        Practice with real phone calls using AI. Get instant AI analysis on your objection handling, closing techniques, and communication skills.
                       </CardDescription>
                       <div className="flex items-center gap-2 text-blue-600 font-semibold">
                         <span>Start Phone Training</span>
