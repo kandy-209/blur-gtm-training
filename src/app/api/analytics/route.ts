@@ -147,12 +147,14 @@ export async function POST(request: NextRequest) {
 
     events.push(sanitizedEvent);
     
-    // Log without sensitive data
-    console.log('Analytics event:', {
-      eventType: sanitizedEvent.eventType,
-      scenarioId: sanitizedEvent.scenarioId,
-      timestamp: sanitizedEvent.timestamp,
-    });
+    // Log without sensitive data (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Analytics event:', {
+        eventType: sanitizedEvent.eventType,
+        scenarioId: sanitizedEvent.scenarioId,
+        timestamp: sanitizedEvent.timestamp,
+      });
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {
