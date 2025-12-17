@@ -21,7 +21,7 @@ if (typeof window === 'undefined') {
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
-const siteName = 'Blur Enterprise GTM Training Platform';
+const siteName = 'Blur Enterprise GTM Training Platform'; // Updated: Rebranded from Cursor
 const siteDescription = 'Master Blur Enterprise sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
 const siteKeywords = [
   'Blur Enterprise',
