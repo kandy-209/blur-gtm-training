@@ -27,8 +27,8 @@
 
 ## ✅ Resolution
 
-Updated API key to: `sk_93f42f577c57cc25758f9bfb3631bf1cfe17c667d4ebca72`
-- ✅ Updated .env.local
+Updated API key to: **[REDACTED – do not commit real keys]**
+- ✅ Updated `.env.local` (local only, gitignored)
 - ✅ Updated Vercel production environment
 - ✅ Updated Vercel preview environment
 - ✅ Updated Vercel development environment
