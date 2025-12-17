@@ -82,7 +82,7 @@ export default function AuthPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="guest-role" className="text-base font-medium">Your Role at Cursor</Label>
+                  <Label htmlFor="guest-role" className="text-base font-medium">Your Role at Blur</Label>
                   <Select value={guestRole} onValueChange={setGuestRole}>
                     <SelectTrigger id="guest-role" className="mt-2 h-12 text-base">
                       <SelectValue />
@@ -149,7 +149,7 @@ export default function AuthPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Cursor Enterprise GTM Training</h1>
+          <h1 className="text-3xl font-bold mb-2">Blur Enterprise GTM Training</h1>
           <p className="text-muted-foreground">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account to start practicing'}
           </p>
