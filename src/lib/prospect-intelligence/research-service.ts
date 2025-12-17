@@ -511,7 +511,18 @@ export class ResearchService {
       }
       
       // For Browserbase + Gemini: Use Gemini model name directly (Stagehand v3+ supports it)
-      const geminiModel = process.env.GEMINI_MODEL || "gemini-2.0-flash-exp";
+      // IMPORTANT: Must be one of the supported model IDs exposed by the aggregation layer.
+      // Supported Gemini models currently include:
+      // - gemini-1.5-flash
+      // - gemini-1.5-pro
+      // - gemini-1.5-flash-8b
+      // - gemini-2.0-flash-lite
+      // - gemini-2.0-flash
+      // - gemini-2.5-flash-preview-04-17
+      // - gemini-2.5-pro-preview-03-25
+      //
+      // Default to gemini-2.0-flash (stable, supported) if GEMINI_MODEL is not set.
+      const geminiModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
       model = geminiModel; // Use actual Gemini model name
       apiKey = process.env.GOOGLE_GEMINI_API_KEY.trim();
       providerName = "Gemini (Google) via Browserbase";
