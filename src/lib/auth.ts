@@ -130,7 +130,8 @@ export interface SignUpData {
   password: string;
   username: string;
   fullName?: string;
-  roleAtCursor: string;
+  roleAtBlur?: string; // New field for Blur branding
+  roleAtCursor?: string; // Deprecated: kept for backward compatibility
   jobTitle: string;
   department?: string;
   analyticsEmail?: string | null; // Optional real email for analytics/insights
@@ -149,6 +150,11 @@ export async function signUp(data: SignUpData) {
 
   const { email, password, username, fullName, roleAtBlur, roleAtCursor, jobTitle, department, analyticsEmail } = data;
   const roleAtCompany = roleAtBlur || roleAtCursor || 'Sales Rep'; // Support both, default to Sales Rep
+  
+  // Ensure at least one role field is provided
+  if (!roleAtBlur && !roleAtCursor) {
+    throw new Error('Either roleAtBlur or roleAtCursor must be provided');
+  }
 
   // Check if email is from @blur.com domain (auto-admin)
   const isBlurEmail = email.toLowerCase().endsWith('@blur.com');
@@ -364,11 +370,13 @@ export async function updateUserProfile(userId: string, updates: Partial<{
 
   if (updates.username !== undefined) updateData.username = updates.username;
   if (updates.fullName !== undefined) updateData.full_name = updates.fullName;
-  if (updates.roleAtBlur !== undefined) {
+  // Handle roleAtBlur (new field)
+  if ('roleAtBlur' in updates && updates.roleAtBlur !== undefined) {
     updateData.role_at_blur = updates.roleAtBlur;
     updateData.role_at_cursor = updates.roleAtBlur; // Keep both for compatibility
   }
-  if (updates.roleAtCursor !== undefined) {
+  // Handle roleAtCursor (deprecated but still supported)
+  if ('roleAtCursor' in updates && updates.roleAtCursor !== undefined) {
     updateData.role_at_cursor = updates.roleAtCursor;
     updateData.role_at_blur = updates.roleAtCursor; // Sync to new field
   }
