@@ -46,6 +46,7 @@ const nextConfig = {
     '@playwright/test',
     'playwright',
     '@browserbasehq/stagehand',
+    'thread-stream', // Externalize to avoid test file issues
   ],
   
   // Webpack configuration to handle server-only dependencies
@@ -58,6 +59,32 @@ const nextConfig = {
         'playwright': 'commonjs playwright',
       });
     }
+    
+    // Ignore test files and dev dependencies that cause build issues
+    const webpack = require('webpack');
+    const path = require('path');
+    config.plugins = config.plugins || [];
+    
+    // Ignore why-is-node-running module (only used in test files)
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^why-is-node-running$/,
+      })
+    );
+    
+    // Also ignore via resolve alias - redirect to mock
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    config.resolve.alias['why-is-node-running'] = path.resolve(__dirname, 'src/lib/mocks/why-is-node-running.js');
+    
+    // Ignore test files in node_modules
+    config.plugins.push(
+      new webpack.NormalModuleReplacementPlugin(
+        /node_modules\/thread-stream\/test\/helper\.js$/,
+        path.resolve(__dirname, 'src/lib/mocks/empty-module.js')
+      )
+    );
+    
     return config;
   },
   
