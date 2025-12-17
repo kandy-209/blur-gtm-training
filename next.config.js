@@ -15,9 +15,6 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // Performance optimizations
-  swcMinify: true,
-  
   // TypeScript configuration
   typescript: {
     // Temporarily ignore build errors for pre-existing type issues
@@ -26,7 +23,6 @@ const nextConfig = {
   },
   
   // Experimental features for better performance
-  // Note: swcMinify is enabled by default in Next.js 16+ and no longer needs to be specified
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
     optimizeCss: true,
@@ -36,18 +32,16 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    serverComponentsExternalPackages: [
+      '@playwright/test',
+      'playwright',
+      '@browserbasehq/stagehand',
+      'thread-stream', // Externalize to avoid test file issues
+    ],
   },
   
   // Turbopack configuration (for dev mode)
   turbopack: {},
-  
-  // Server components external packages (for both webpack and turbopack)
-  serverComponentsExternalPackages: [
-    '@playwright/test',
-    'playwright',
-    '@browserbasehq/stagehand',
-    'thread-stream', // Externalize to avoid test file issues
-  ],
   
   // Webpack configuration to handle server-only dependencies
   webpack: (config, { isServer }) => {
@@ -65,25 +59,26 @@ const nextConfig = {
     const path = require('path');
     config.plugins = config.plugins || [];
     
-    // Ignore why-is-node-running module (only used in test files)
+    // Ignore test-related modules
     config.plugins.push(
       new webpack.IgnorePlugin({
-        resourceRegExp: /^why-is-node-running$/,
+        resourceRegExp: /^(why-is-node-running|tap)$/,
       })
     );
     
-    // Also ignore via resolve alias - redirect to mock
-    config.resolve = config.resolve || {};
-    config.resolve.alias = config.resolve.alias || {};
-    config.resolve.alias['why-is-node-running'] = path.resolve(__dirname, 'src/lib/mocks/why-is-node-running.js');
-    
-    // Ignore test files in node_modules
+    // Ignore ALL test files in node_modules
     config.plugins.push(
       new webpack.NormalModuleReplacementPlugin(
-        /node_modules\/thread-stream\/test\/helper\.js$/,
+        /node_modules\/.*\/test\/.*\.(js|mjs|ts)$/,
         path.resolve(__dirname, 'src/lib/mocks/empty-module.js')
       )
     );
+    
+    // Also add resolve alias for problematic modules
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    config.resolve.alias['why-is-node-running'] = path.resolve(__dirname, 'src/lib/mocks/why-is-node-running.js');
+    config.resolve.alias['tap'] = path.resolve(__dirname, 'src/lib/mocks/empty-module.js');
     
     return config;
   },
