@@ -1,8 +1,10 @@
 {
-  "name": "cursor-gtm-training",
+  "name": "blur-gtm-training",
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "setup:prospect-db": "node scripts/setup-prospect-intelligence-db.js",
+    "db:migrate:prospect": "bash scripts/run-prospect-intelligence-migration.sh",
     "dev": "next dev",
     "dev:debug": "next dev --inspect",
     "dev:debug-brk": "NODE_OPTIONS=--inspect-brk next dev",
@@ -44,6 +46,8 @@
     "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'",
     "test:backend": "bash scripts/test-backend.sh",
     "test:integration": "node scripts/test-integration.js",
+    "test:prospect-intelligence": "node test-prospect-intelligence.js",
+    "test:prospect-intelligence:full": "node test-prospect-intelligence.js --full-test",
     "test:all": "npm run typecheck && npm test && npm run test:backend",
     "sync": "powershell -ExecutionPolicy Bypass -File scripts/sync-git.ps1",
     "sync:mac": "bash scripts/sync-git.sh",
@@ -71,6 +75,9 @@
     "@anthropic-ai/sdk": "^0.71.1",
     "@aws-sdk/client-s3": "^3.943.0",
     "@aws-sdk/lib-storage": "^3.943.0",
+    "@browserbasehq/stagehand": "^3.0.6",
+    "@google/generative-ai": "^0.24.1",
+    "@playwright/test": "^1.57.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-progress": "^1.0.3",
@@ -88,6 +95,7 @@
     "bullmq": "^5.65.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "geist": "^1.5.1",
     "ioredis": "^5.8.2",
@@ -107,7 +115,8 @@
     "tailwind-merge": "^3.4.0",
     "three": "^0.181.2",
     "web-vitals": "^4.2.4",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",

@@ -3,7 +3,7 @@ import { getSupabaseClient } from '@/lib/supabase-client';
 import { sanitizeInput, validateText } from '@/lib/security';
 
 // Admin code - in production, store this in environment variable or database
-const ADMIN_CODE = process.env.ADMIN_SIGNUP_CODE || 'CURSOR_ADMIN_2024';
+const ADMIN_CODE = process.env.ADMIN_SIGNUP_CODE || 'BLUR_ADMIN_2024';
 
 // Create Supabase client
 const supabase = getSupabaseClient();
@@ -20,11 +20,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, username, fullName, adminCode } = body;
 
-    // Check if email is from @cursor.com domain
-    const isCursorEmail = email && email.toLowerCase().endsWith('@cursor.com');
+    // Check if email is from @blur.com domain
+    const isBlurEmail = email && email.toLowerCase().endsWith('@blur.com');
 
-    // Validate admin code only if not a @cursor.com email
-    if (!isCursorEmail && (!adminCode || adminCode !== ADMIN_CODE)) {
+    // Validate admin code only if not a @blur.com email
+    if (!isBlurEmail && (!adminCode || adminCode !== ADMIN_CODE)) {
       return NextResponse.json(
         { error: 'Invalid admin code. Contact your system administrator.' },
         { status: 403 }
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         email: sanitizedEmail,
         username: sanitizedUsername,
         full_name: sanitizedFullName,
-        role_at_cursor: 'Admin',
+        role_at_blur: 'Admin',
         job_title: 'Administrator',
         department: 'IT/Admin',
       });

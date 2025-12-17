@@ -20,18 +20,18 @@ if (typeof window === 'undefined') {
   initSentry();
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
-const siteName = 'Cursor Enterprise GTM Training Platform';
-const siteDescription = 'Master Cursor Enterprise sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
+const siteName = 'Blur Enterprise GTM Training Platform';
+const siteDescription = 'Master Blur Enterprise sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
 const siteKeywords = [
-  'Cursor Enterprise',
+  'Blur Enterprise',
   'GTM training',
   'sales training',
   'AI role-play',
   'enterprise sales',
   'objection handling',
   'sales enablement',
-  'Cursor AI',
+  'Blur AI',
   'sales positioning',
   'sales practice',
   'enterprise software sales',
@@ -60,9 +60,9 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'mobile-web-app-capable': 'yes',
   },
-  authors: [{ name: 'Cursor GTM Team' }],
-  creator: 'Cursor',
-  publisher: 'Cursor',
+  authors: [{ name: 'Blur GTM Team' }],
+  creator: 'Blur',
+  publisher: 'Blur',
   formatDetection: {
     email: false,
     address: false,
@@ -90,8 +90,8 @@ export const metadata: Metadata = {
     title: siteName,
     description: siteDescription,
     images: [`${siteUrl}/og-image.png`],
-    creator: '@cursor',
-    site: '@cursor',
+    creator: '@blur',
+    site: '@blur',
   },
   robots: {
     index: true,
@@ -184,8 +184,8 @@ export default function RootLayout({
               url: siteUrl,
               logo: `${siteUrl}/logos/cursor-logo.svg`,
               sameAs: [
-                'https://cursor.com',
-                'https://twitter.com/cursor',
+                'https://blur.com',
+                'https://twitter.com/blur',
               ],
               contactPoint: {
                 '@type': 'ContactPoint',
@@ -243,14 +243,14 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Course',
-              name: 'Cursor Enterprise GTM Sales Training',
+              name: 'Blur Enterprise GTM Sales Training',
               description: siteDescription,
               provider: {
                 '@type': 'Organization',
-                name: 'Cursor',
-                url: 'https://cursor.com',
+                name: 'Blur',
+                url: 'https://blur.com',
               },
-              courseCode: 'CURSOR-GTM-101',
+              courseCode: 'BLUR-GTM-101',
               educationalLevel: 'Professional',
               teaches: [
                 'Enterprise Sales Positioning',
@@ -290,10 +290,10 @@ export default function RootLayout({
               mainEntity: [
                 {
                   '@type': 'Question',
-                  name: 'What is Cursor Enterprise GTM Training?',
+                  name: 'What is Blur Enterprise GTM Training?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Cursor Enterprise GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training.',
+                    text: 'Blur Enterprise GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training.',
                   },
                 },
                 {
@@ -309,7 +309,7 @@ export default function RootLayout({
                   name: 'Is the training free?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Yes, the Cursor Enterprise GTM Training platform is free to use. It provides comprehensive sales training tools including AI role-play, analytics, and skill development resources.',
+                    text: 'Yes, the Blur Enterprise GTM Training platform is free to use. It provides comprehensive sales training tools including AI role-play, analytics, and skill development resources.',
                   },
                 },
               ],
@@ -329,7 +329,7 @@ export default function RootLayout({
                 <div className="relative h-9 w-9 rounded-lg bg-black flex items-center justify-center group-hover:bg-gray-900 transition-colors p-2">
                   <img
                     src="/logos/cursor-logo.svg"
-                    alt="Cursor Enterprise GTM Training Platform Logo"
+                    alt="Blur Enterprise GTM Training Platform Logo"
                     className="h-5 w-5 object-contain"
                     width={20}
                     height={20}
@@ -338,7 +338,7 @@ export default function RootLayout({
                     fetchPriority="high"
                   />
                 </div>
-                <span className="text-lg font-semibold tracking-tight hidden sm:inline text-gray-900">Cursor Enterprise GTM</span>
+                <span className="text-lg font-semibold tracking-tight hidden sm:inline text-gray-900">Blur Enterprise GTM</span>
                 <span className="text-base font-semibold tracking-tight sm:hidden text-gray-900">GTM Training</span>
               </Link>
               <NavUser />

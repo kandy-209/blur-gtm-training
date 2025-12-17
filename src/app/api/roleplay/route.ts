@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ScenarioInput, AgentResponse, Persona } from '@/types/roleplay';
 import { sanitizeInput, validateText, validateJSONStructure } from '@/lib/security';
 import { db } from '@/lib/db';
-import { getAIProvider } from '@/lib/ai-providers';
+import { getAIProvider, type LLMProvider } from '@/lib/ai-providers';
 import { handleError, withErrorHandler, generateRequestId } from '@/lib/error-handler';
 import { log } from '@/lib/logger';
 import { recordApiCall, roleplayTurnsTotal } from '@/lib/metrics';
@@ -11,7 +11,7 @@ import { captureException } from '@/lib/sentry';
 function buildSystemPrompt(persona: Persona, scenarioInput: ScenarioInput): string {
   return `# 1. Agent Persona: The Enterprise Decision-Maker
 
-You are a sophisticated, skeptical, and realistic enterprise buyer or decision-maker evaluating Cursor Enterprise. Your persona is defined below.
+You are a sophisticated, skeptical, and realistic enterprise buyer or decision-maker evaluating Blur Enterprise. Your persona is defined below.
 
 ## Persona: ${persona.name}
 
@@ -23,11 +23,11 @@ You are a sophisticated, skeptical, and realistic enterprise buyer or decision-m
 
 * **Tone:** ${persona.tone}
 
-# 2. Scenario and Mandate - CURSOR ENTERPRISE GTM FOCUS
+# 2. Scenario and Mandate - BLUR ENTERPRISE GTM FOCUS
 
-The user (the Sales Rep) is selling Cursor Enterprise. Your goal is to continue the conversation until ONE of these outcomes:
+The user (the Sales Rep) is selling Blur Enterprise. Your goal is to continue the conversation until ONE of these outcomes:
 - **MEETING_BOOKED**: The rep successfully books a meeting/demo (you agree to a specific time/date)
-- **ENTERPRISE_SALE**: The rep successfully convinces you to move forward with Cursor Enterprise (you express strong commitment to purchase)
+- **ENTERPRISE_SALE**: The rep successfully convinces you to move forward with Blur Enterprise (you express strong commitment to purchase)
 
 ## Your Mandate:
 
@@ -37,10 +37,10 @@ The user (the Sales Rep) is selling Cursor Enterprise. Your goal is to continue 
    - Raise concerns and objections naturally
    - Ask follow-up questions about Enterprise features, pricing, security, implementation
    - Show increasing interest as the rep addresses your concerns well
-   - Gradually warm up to the idea of Cursor Enterprise
+   - Gradually warm up to the idea of Blur Enterprise
 
 3. **Evaluate Rep's Responses:**
-   - **PASS**: Rep adequately addresses concerns using Cursor Enterprise value props (codebase understanding, enterprise security, team collaboration, ROI, etc.)
+   - **PASS**: Rep adequately addresses concerns using Blur Enterprise value props (codebase understanding, enterprise security, team collaboration, ROI, etc.)
    - **FAIL**: Rep's response is vague or doesn't address the concern
    - **REJECT**: Rep's response is poor or off-topic
 
@@ -165,12 +165,22 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
     const { 
       scenarioInput, 
       persona, 
-      conversationHistory 
+      conversationHistory,
+      llmProvider
     }: { 
       scenarioInput: ScenarioInput;
       persona: Persona;
       conversationHistory: Array<{ role: string; message: string }>;
+      llmProvider?: LLMProvider;
     } = body;
+
+    // Validate llmProvider if provided
+    if (llmProvider && !['claude', 'gemini', 'openai'].includes(llmProvider)) {
+      return NextResponse.json(
+        { error: 'Invalid llmProvider. Must be one of: claude, gemini, openai' },
+        { status: 400 }
+      );
+    }
 
     // Validate and sanitize inputs
     if (!validateJSONStructure<ScenarioInput>(scenarioInput, {
@@ -226,26 +236,26 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
     let content: string;
     
     try {
-      // Use auto-selection (prioritizes Anthropic, then Hugging Face, then OpenAI)
+      // Use specified provider or auto-selection
       console.log('[Roleplay API] Selecting AI provider...');
+      if (llmProvider) {
+        console.log('[Roleplay API] Using specified provider:', llmProvider);
+      } else {
+        console.log('[Roleplay API] Auto-selecting provider based on available API keys...');
+      }
       console.log('[Roleplay API] Environment check:', {
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ? 'SET' : 'NOT SET',
-        HUGGINGFACE_API_KEY: process.env.HUGGINGFACE_API_KEY ? 'SET' : 'NOT SET',
-        AI_PROVIDER: process.env.AI_PROVIDER || 'not set',
+        GOOGLE_GEMINI_API_KEY: process.env.GOOGLE_GEMINI_API_KEY ? 'SET' : 'NOT SET',
+        OPENAI_API_KEY: process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET',
       });
       
-      aiProvider = getAIProvider();
+      aiProvider = getAIProvider(llmProvider);
       
       if (!aiProvider) {
-        throw new Error('Failed to initialize AI provider. Check your API keys. ANTHROPIC_API_KEY is recommended (free tier).');
+        throw new Error('Failed to initialize AI provider. Check your API keys.');
       }
       
       console.log('[Roleplay API] Selected provider:', aiProvider.name);
-      
-      // Double-check: if Anthropic key exists but we're not using Anthropic, warn
-      if (process.env.ANTHROPIC_API_KEY && aiProvider.name !== 'anthropic') {
-        console.warn('[Roleplay API] WARNING: ANTHROPIC_API_KEY is set but not being used. Current provider:', aiProvider.name);
-      }
       
       console.log('[Roleplay API] Using AI Provider:', aiProvider.name);
       

@@ -41,6 +41,26 @@ const nextConfig = {
   // Turbopack configuration (for dev mode)
   turbopack: {},
   
+  // Server components external packages (for both webpack and turbopack)
+  serverComponentsExternalPackages: [
+    '@playwright/test',
+    'playwright',
+    '@browserbasehq/stagehand',
+  ],
+  
+  // Webpack configuration to handle server-only dependencies
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Externalize server-only packages
+      config.externals = config.externals || [];
+      config.externals.push({
+        '@playwright/test': 'commonjs @playwright/test',
+        'playwright': 'commonjs playwright',
+      });
+    }
+    return config;
+  },
+  
   // Compiler optimizations
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {

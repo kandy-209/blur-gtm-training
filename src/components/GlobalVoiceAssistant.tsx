@@ -83,7 +83,7 @@ export default function GlobalVoiceAssistant() {
     if (pathname === '/chat') {
       return 'AI Training Assistant';
     }
-    return 'AI Cursor Training Assistant';
+    return 'AI Blur Training Assistant';
   };
 
   const getPageDescription = () => {
@@ -111,7 +111,7 @@ export default function GlobalVoiceAssistant() {
     if (pathname === '/chat') {
       return 'Powerful AI assistant: role-play practice & training questions';
     }
-    return 'Powerful AI assistant for Cursor training: role-play practice & ask questions';
+    return 'Powerful AI assistant for Blur training: role-play practice & ask questions';
   };
 
   return (
@@ -199,11 +199,12 @@ export default function GlobalVoiceAssistant() {
               className="rounded-2xl shadow-lg h-12 w-12 sm:h-14 sm:w-14 bg-gray-900 hover:bg-gray-800 text-white border-0 transition-all hover:scale-105 hover:shadow-xl active:scale-95 flex items-center justify-center p-0 group"
               title="AI Training Assistant - Role-play practice & ask questions"
               aria-label="Open AI Training Assistant"
+              suppressHydrationWarning
             >
-              {/* Cursor Logo */}
+              {/* Blur Logo */}
               <img
                 src="/logos/cursor-logo.svg"
-                alt="Cursor Logo"
+                alt="Blur Logo"
                 className="h-6 w-6 sm:h-7 sm:w-7 object-contain transition-transform group-hover:scale-110 max-w-full max-h-full"
                 width={28}
                 height={28}
@@ -211,10 +212,11 @@ export default function GlobalVoiceAssistant() {
                 decoding="async"
                 style={{ display: 'block' }}
                 onError={(e) => {
-                  console.error('Failed to load Cursor logo');
+                  console.error('Failed to load Blur logo');
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                 }}
+                suppressHydrationWarning
               />
             </Button>
           </div>

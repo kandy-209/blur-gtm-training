@@ -6,16 +6,16 @@ export const scenarios: Scenario[] = [
     persona: {
       name: 'Skeptical VP of Engineering at Acme Corp',
       currentSolution: 'Heavily invested in GitHub Copilot Enterprise and internal custom tooling',
-      primaryGoal: 'To maintain high developer productivity and data security while evaluating Cursor Enterprise for our 200-person engineering team',
+      primaryGoal: 'To maintain high developer productivity and data security while evaluating Blur Enterprise for our 200-person engineering team',
       skepticism:
-        'You believe Cursor is just a wrapper around GPT-4 and does not offer any *unique* architectural advantage over Copilot that justifies a migration or increased cost. You need concrete Enterprise value.',
+        'You believe Blur is just a wrapper around GPT-4 and does not offer any *unique* architectural advantage over Copilot that justifies a migration or increased cost. You need concrete Enterprise value.',
       tone: 'Highly professional, direct, and slightly dismissive of marketing language. You speak in technical terms (latency, fine-tuning, integration, team collaboration)',
     },
     objection_category: 'Competitive_Copilot',
     objection_statement:
-      "Thanks for the overview. Honestly, we're already heavily invested in GitHub Copilot Enterprise for our 200-person team. We have the data privacy, and it's integrated with our GitHub flow. Why should I even consider the operational complexity of adding Cursor Enterprise? What does Cursor Enterprise *actually* do that Copilot Enterprise doesn't?",
+      "Thanks for the overview. Honestly, we're already heavily invested in GitHub Copilot Enterprise for our 200-person team. We have the data privacy, and it's integrated with our GitHub flow. Why should I even consider the operational complexity of adding Blur Enterprise? What does Blur Enterprise *actually* do that Copilot Enterprise doesn't?",
     keyPoints: [
-      'Cursor Enterprise codebase-wide understanding vs Copilot local context',
+      'Blur Enterprise codebase-wide understanding vs Copilot local context',
       'Enterprise team collaboration features',
       'Advanced editing capabilities beyond autocomplete',
       'Self-healing code and refactoring at scale',
@@ -35,9 +35,9 @@ export const scenarios: Scenario[] = [
     },
     objection_category: 'Security_Privacy',
     objection_statement:
-      "I appreciate the productivity benefits, but I can't approve any tool that sends our proprietary financial code to external servers. We're a regulated FinTech with 500 developers. How does Cursor Enterprise handle our code? Where does it go? What Enterprise security guarantees do we have? Do you offer on-premise deployment?",
+      "I appreciate the productivity benefits, but I can't approve any tool that sends our proprietary financial code to external servers. We're a regulated FinTech with 500 developers. How does Blur Enterprise handle our code? Where does it go? What Enterprise security guarantees do we have? Do you offer on-premise deployment?",
     keyPoints: [
-      'Cursor Enterprise on-premise deployment options',
+      'Blur Enterprise on-premise deployment options',
       'Enterprise data encryption and retention policies',
       'SOC 2 Type II, ISO 27001 compliance and security certifications',
       'Enterprise SSO and access controls',
@@ -57,7 +57,7 @@ export const scenarios: Scenario[] = [
     },
     objection_category: 'Pricing_Value',
     objection_statement:
-      "Look, I get that Cursor Enterprise is powerful, but we're scaling fast. We can't justify Enterprise pricing for our 150-person team without clear ROI. How do you prove Enterprise ROI? What's the actual productivity gain? What's the Enterprise pricing model?",
+      "Look, I get that Blur Enterprise is powerful, but we're scaling fast. We can't justify Enterprise pricing for our 150-person team without clear ROI. How do you prove Enterprise ROI? What's the actual productivity gain? What's the Enterprise pricing model?",
     keyPoints: [
       'Enterprise pricing tiers and volume discounts',
       'Time saved per developer (hours/week) - Enterprise metrics',
@@ -79,7 +79,7 @@ export const scenarios: Scenario[] = [
     },
     objection_category: 'Integration_Complexity',
     objection_statement:
-      "Our engineering team already uses VS Code, GitHub Actions, Jira, Slack, and a dozen other tools. Adding Cursor means another tool to manage, another license to track, another integration to maintain. How does Cursor fit into our existing workflow without creating more overhead?",
+      "Our engineering team already uses VS Code, GitHub Actions, Jira, Slack, and a dozen other tools. Adding Blur means another tool to manage, another license to track, another integration to maintain. How does Blur fit into our existing workflow without creating more overhead?",
     keyPoints: [
       'VS Code compatibility',
       'GitHub/GitLab integration',
@@ -99,7 +99,7 @@ export const scenarios: Scenario[] = [
     },
     objection_category: 'Adoption_Concerns',
     objection_statement:
-      "My Enterprise team is already productive. They know their tools inside and out. Introducing Cursor Enterprise to 200 developers means training time, learning curve, and potential productivity dip during Enterprise adoption. How long until we see Enterprise ROI? What's the learning curve? What Enterprise training and support do you provide?",
+      "My Enterprise team is already productive. They know their tools inside and out. Introducing Blur Enterprise to 200 developers means training time, learning curve, and potential productivity dip during Enterprise adoption. How long until we see Enterprise ROI? What's the learning curve? What Enterprise training and support do you provide?",
     keyPoints: [
       'Low learning curve (familiar interface) - Enterprise teams',
       'Immediate Enterprise productivity gains',
@@ -121,7 +121,7 @@ export const scenarios: Scenario[] = [
     },
     objection_category: 'Code_Quality',
     objection_statement:
-      "I've seen AI tools generate code that looks right but has subtle bugs. At Enterprise scale with 250 developers, quality is critical. How do we ensure Cursor Enterprise doesn't introduce more problems than it solves? What about Enterprise code review processes? Testing? Quality metrics?",
+      "I've seen AI tools generate code that looks right but has subtle bugs. At Enterprise scale with 250 developers, quality is critical. How do we ensure Blur Enterprise doesn't introduce more problems than it solves? What about Enterprise code review processes? Testing? Quality metrics?",
     keyPoints: [
       'Enterprise AI-assisted code review',
       'Self-healing and error detection at scale',

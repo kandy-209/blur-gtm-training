@@ -63,7 +63,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
         // Email is optional - generate one for Supabase Auth if not provided
         // The actual email (if provided) will be stored separately for analytics
         const providedEmail = email.trim() || '';
-        const userEmail = providedEmail || `${username.toLowerCase().replace(/\s+/g, '')}@cursor.local`;
+        const userEmail = providedEmail || `${username.toLowerCase().replace(/\s+/g, '')}@blur.local`;
 
         const response = await fetch('/api/auth/signup', {
           method: 'POST',

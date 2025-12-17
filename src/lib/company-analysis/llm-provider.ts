@@ -1,7 +1,11 @@
 /**
  * LLM Provider abstraction - supports multiple providers
- * Prioritizes Claude (Anthropic), falls back to OpenAI
+ * Supports Claude (Anthropic), Gemini (Google), and OpenAI
  */
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+export type CompanyAnalysisProvider = 'claude' | 'gemini' | 'openai';
 
 interface LLMResponse {
   content: string;
@@ -148,17 +152,87 @@ class OpenAIProvider implements LLMProvider {
 }
 
 /**
- * Get the best available LLM provider
- * Priority: Claude > OpenAI > null (fallback to rule-based)
+ * Gemini Provider - Google's LLM
  */
-export function getLLMProvider(): LLMProvider | null {
-  // Check for Claude first (best for financial analysis)
+class GeminiProvider implements LLMProvider {
+  private apiKey: string;
+  private genAI: GoogleGenerativeAI | null = null;
+
+  constructor() {
+    this.apiKey = process.env.GOOGLE_GEMINI_API_KEY || '';
+    if (this.apiKey) {
+      this.genAI = new GoogleGenerativeAI(this.apiKey);
+    }
+  }
+
+  isAvailable(): boolean {
+    return !!this.apiKey && !!this.genAI;
+  }
+
+  async extractMetrics(prompt: string, systemPrompt: string): Promise<LLMResponse | null> {
+    if (!this.genAI) {
+      return null;
+    }
+
+    try {
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+      const fullPrompt = `${systemPrompt}\n\n${prompt}`;
+
+      const result = await model.generateContent(fullPrompt);
+      const response = await result.response;
+      const content = response.text();
+
+      return {
+        content,
+        model: 'gemini-1.5-pro',
+      };
+    } catch (error) {
+      console.error('Gemini API request failed:', error);
+      return null;
+    }
+  }
+
+  async analyzeCompany(prompt: string, systemPrompt: string): Promise<LLMResponse | null> {
+    return this.extractMetrics(prompt, systemPrompt);
+  }
+}
+
+/**
+ * Get LLM provider with optional provider selection
+ * Priority: Claude > Gemini > OpenAI > null (fallback to rule-based)
+ */
+export function getLLMProvider(provider?: CompanyAnalysisProvider): LLMProvider | null {
+  // If provider is specified, use it
+  if (provider) {
+    switch (provider) {
+      case 'claude': {
+        const claude = new ClaudeProvider();
+        return claude.isAvailable() ? claude : null;
+      }
+      case 'gemini': {
+        const gemini = new GeminiProvider();
+        return gemini.isAvailable() ? gemini : null;
+      }
+      case 'openai': {
+        const openai = new OpenAIProvider();
+        return openai.isAvailable() ? openai : null;
+      }
+      default:
+        return null;
+    }
+  }
+
+  // Auto-select based on availability (priority: Claude > Gemini > OpenAI)
   const claude = new ClaudeProvider();
   if (claude.isAvailable()) {
     return claude;
   }
 
-  // Fallback to OpenAI
+  const gemini = new GeminiProvider();
+  if (gemini.isAvailable()) {
+    return gemini;
+  }
+
   const openai = new OpenAIProvider();
   if (openai.isAvailable()) {
     return openai;
@@ -171,12 +245,15 @@ export function getLLMProvider(): LLMProvider | null {
 /**
  * Get provider name for logging
  */
-export function getProviderName(): string {
-  const provider = getLLMProvider();
-  if (provider instanceof ClaudeProvider) {
+export function getProviderName(provider?: CompanyAnalysisProvider): string {
+  const selectedProvider = getLLMProvider(provider);
+  if (selectedProvider instanceof ClaudeProvider) {
     return 'Claude 3.5 Sonnet';
   }
-  if (provider instanceof OpenAIProvider) {
+  if (selectedProvider instanceof GeminiProvider) {
+    return 'Gemini 1.5 Pro';
+  }
+  if (selectedProvider instanceof OpenAIProvider) {
     return 'OpenAI GPT-4 Turbo';
   }
   return 'Rule-based (no LLM)';

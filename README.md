@@ -1,6 +1,6 @@
-# Cursor GTM Training Platform
+# Blur GTM Training Platform
 
-A comprehensive training application for Cursor's GTM team to practice sales positioning and objection handling.
+A comprehensive training application for Blur's GTM team to practice sales positioning and objection handling.
 
 ## Features
 
@@ -9,6 +9,7 @@ A comprehensive training application for Cursor's GTM team to practice sales pos
 - 🎯 **Multiple Scenarios**: 6+ objection scenarios covering common sales challenges
 - 🛠️ **Scenario Builder**: Create and manage custom training scenarios
 - 📈 **Real-time Feedback**: Get instant evaluation and scoring
+- 🔍 **Prospect Intelligence**: Automatically research prospect companies (tech stack, hiring, culture, ICP scoring)
 
 ## Setup
 
@@ -22,10 +23,18 @@ npm install
 cp .env.local.example .env.local
 ```
 
-3. Add your OpenAI API key to `.env.local`:
+3. Add your API keys to `.env.local`:
 ```
 OPENAI_API_KEY=sk-...
+BROWSERBASE_API_KEY=your_browserbase_api_key
+BROWSERBASE_PROJECT_ID=your_browserbase_project_id
+ANTHROPIC_API_KEY=sk-ant-... (optional, for Claude)
+GOOGLE_GEMINI_API_KEY=AIza-... (optional, for Gemini)
 ```
+
+For detailed setup instructions, see:
+- [Prospect Intelligence Setup](./PROSPECT_INTELLIGENCE_SETUP.md) - For Browserbase configuration
+- [Environment Variables Setup](./ADD_ENV_VARS.md) - For Vercel deployment
 
 4. Run the development server:
 ```bash
@@ -56,5 +65,5 @@ npm run dev
 - TypeScript
 - Tailwind CSS
 - Radix UI
-- OpenAI GPT-4
+- Multi-LLM Support: Claude (Anthropic), Gemini (Google), OpenAI GPT-4
 

@@ -13,7 +13,7 @@ export interface SEOConfig {
   author?: string;
 }
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
 
 /**
  * Generate Open Graph meta tags
@@ -28,7 +28,7 @@ export function generateOpenGraphTags(config: SEOConfig) {
     'og:url': url,
     'og:type': config.type || 'website',
     'og:image': image,
-    'og:site_name': 'Cursor Enterprise GTM Training',
+    'og:site_name': 'Blur Enterprise GTM Training',
     ...(config.publishedTime && { 'article:published_time': config.publishedTime }),
     ...(config.modifiedTime && { 'article:modified_time': config.modifiedTime }),
     ...(config.author && { 'article:author': config.author }),
@@ -46,7 +46,7 @@ export function generateTwitterCardTags(config: SEOConfig) {
     'twitter:title': config.title,
     'twitter:description': config.description,
     'twitter:image': image,
-    'twitter:site': '@cursor',
+      'twitter:site': '@blur',
   };
 }
 
@@ -66,7 +66,7 @@ export function generateStructuredData(config: SEOConfig) {
     image: image,
     publisher: {
       '@type': 'Organization',
-      name: 'Cursor',
+      name: 'Blur',
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logos/cursor-logo.svg`,
@@ -82,7 +82,7 @@ export function generateStructuredData(config: SEOConfig) {
       dateModified: config.modifiedTime || config.publishedTime,
       author: {
         '@type': 'Person',
-        name: config.author || 'Cursor GTM Team',
+        name: config.author || 'Blur GTM Team',
       },
     };
   }
