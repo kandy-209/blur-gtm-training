@@ -115,7 +115,7 @@ export function useAuth() {
         const supabaseClient = await getSupabaseAsync();
         
         if (supabaseClient) {
-          const { data } = supabaseClient.auth.onAuthStateChange((event, session) => {
+          const { data } = supabaseClient.auth.onAuthStateChange((event: string, session: any) => {
             // If user signs in, clear guest user
             if (session?.user) {
               localStorage.removeItem('guest_user');
