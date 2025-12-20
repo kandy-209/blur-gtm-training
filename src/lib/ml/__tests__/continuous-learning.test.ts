@@ -54,7 +54,7 @@ describe('ContinuousLearningAgent', () => {
 
       expect(insights.length).toBeGreaterThan(0);
       expect(insights[0].type).toBeDefined();
-      expect(insights[0].category).toBe('Competitive_Copilot');
+      expect(insights[0].category).toBe('Competitive_SelfHosted');
     });
 
     it('should return empty array when insufficient data', async () => {
