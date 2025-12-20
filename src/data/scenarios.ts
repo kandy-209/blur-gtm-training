@@ -134,7 +134,7 @@ export const scenarios: Scenario[] = [
 ];
 
 export const objectionCategories = [
-  'Competitive_Copilot',
+  'Competitive_SelfHosted',
   'Security_Privacy',
   'Pricing_Value',
   'Integration_Complexity',
