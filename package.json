@@ -69,7 +69,8 @@
     "api-keys:supabase": "powershell -ExecutionPolicy Bypass -File scripts/quick-setup-supabase.ps1",
     "api-keys:create-env": "powershell -ExecutionPolicy Bypass -File scripts/create-env-local.ps1",
     "api-keys:sync-vercel": "powershell -ExecutionPolicy Bypass -File scripts/sync-vercel-env-to-local.ps1",
-    "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1"
+    "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1",
+    "postinstall": "echo \"Skipping Supabase CLI download for production builds\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.1",
