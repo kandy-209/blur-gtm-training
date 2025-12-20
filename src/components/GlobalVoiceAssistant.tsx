@@ -201,10 +201,10 @@ export default function GlobalVoiceAssistant() {
               aria-label="Open AI Training Assistant"
               suppressHydrationWarning
             >
-              {/* Blur Logo */}
+              {/* Browserbase Logo */}
               <img
-                src="/logos/cursor-logo.svg"
-                alt="Blur Logo"
+                src="/logos/browserbase-logo.svg"
+                alt="Browserbase Logo"
                 className="h-6 w-6 sm:h-7 sm:w-7 object-contain transition-transform group-hover:scale-110 max-w-full max-h-full"
                 width={28}
                 height={28}
@@ -212,7 +212,7 @@ export default function GlobalVoiceAssistant() {
                 decoding="async"
                 style={{ display: 'block' }}
                 onError={(e) => {
-                  console.error('Failed to load Blur logo');
+                  console.error('Failed to load Browserbase logo');
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                 }}

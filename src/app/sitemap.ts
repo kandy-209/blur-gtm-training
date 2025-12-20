@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 import { scenarios } from '@/data/scenarios';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

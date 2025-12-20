@@ -69,7 +69,7 @@ export function generateStructuredData(config: SEOConfig) {
       name: 'Browserbase',
       logo: {
         '@type': 'ImageObject',
-        url: `${siteUrl}/logos/cursor-logo.svg`,
+        url: `${siteUrl}/logos/browserbase-logo.svg`,
       },
     },
   };

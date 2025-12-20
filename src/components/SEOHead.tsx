@@ -46,7 +46,7 @@ export default function SEOHead() {
     metaDescription.setAttribute('content', description);
 
     // Update canonical URL
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');

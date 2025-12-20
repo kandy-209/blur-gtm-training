@@ -120,7 +120,7 @@
   }
 
   /* Prevent layout shift */
-  img[src="/logos/cursor-logo.svg"] {
+  img[src="/logos/browserbase-logo.svg"] {
     aspect-ratio: 1;
   }
 }

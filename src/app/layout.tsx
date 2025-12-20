@@ -139,7 +139,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
         
         {/* Preload critical resources - Above the fold */}
-        <link rel="preload" href="/logos/cursor-logo.svg" as="image" type="image/svg+xml" fetchPriority="high" />
+        <link rel="preload" href="/logos/browserbase-logo.svg" as="image" type="image/svg+xml" fetchPriority="high" />
         
         {/* Font display optimization - prevents layout shift */}
         <style dangerouslySetInnerHTML={{
@@ -184,7 +184,7 @@ export default function RootLayout({
               name: siteName,
               description: siteDescription,
               url: siteUrl,
-              logo: `${siteUrl}/logos/cursor-logo.svg`,
+              logo: `${siteUrl}/logos/browserbase-logo.svg`,
               sameAs: [
                 'https://blur.com',
                 'https://twitter.com/blur',
@@ -330,7 +330,7 @@ export default function RootLayout({
               <Link href="/" className="flex items-center space-x-3 group flex-shrink-0">
                 <div className="relative h-9 w-9 rounded-lg bg-black flex items-center justify-center group-hover:bg-gray-900 transition-colors p-2">
                   <img
-                    src="/logos/cursor-logo.svg"
+                    src="/logos/browserbase-logo.svg"
                     alt="Browserbase GTM Training Platform Logo"
                     className="h-5 w-5 object-contain"
                     width={20}
