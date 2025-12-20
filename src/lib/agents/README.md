@@ -34,7 +34,7 @@ import { orchestrator } from '@/lib/agents/base/AgentOrchestrator';
 
 // Execute a single agent
 const result = await orchestrator.execute('generate', {
-  objection: 'Why should we switch from GitHub Copilot?',
+  objection: 'Why should we switch from self-hosted Puppeteer/Playwright?',
   conversationHistory: [],
   persona: { /* ... */ },
   turnNumber: 1,

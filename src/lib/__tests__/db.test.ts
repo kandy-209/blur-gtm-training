@@ -12,7 +12,7 @@ describe('Database', () => {
         userId: 'test-user',
         scenarioId: 'test-scenario',
         turnNumber: 1,
-        objectionCategory: 'Competitive_Copilot',
+        objectionCategory: 'Competitive_SelfHosted',
         userMessage: 'Test response',
         aiResponse: 'AI response',
         evaluation: 'PASS',
@@ -34,7 +34,7 @@ describe('Database', () => {
         userId: 'user1',
         scenarioId: 'scenario1',
         turnNumber: 1,
-        objectionCategory: 'Competitive_Copilot',
+        objectionCategory: 'Competitive_SelfHosted',
         userMessage: 'Response 1',
         aiResponse: 'AI 1',
         evaluation: 'PASS',
@@ -46,7 +46,7 @@ describe('Database', () => {
         userId: 'user2',
         scenarioId: 'scenario2',
         turnNumber: 1,
-        objectionCategory: 'Competitive_Copilot',
+        objectionCategory: 'Competitive_SelfHosted',
         userMessage: 'Response 2',
         aiResponse: 'AI 2',
         evaluation: 'PASS',
@@ -67,7 +67,7 @@ describe('Database', () => {
           userId: `user${i}`,
           scenarioId: 'test-scenario',
           turnNumber: 1,
-          objectionCategory: 'Competitive_Copilot',
+          objectionCategory: 'Competitive_SelfHosted',
           userMessage: 'Same response',
           aiResponse: 'AI response',
           evaluation: 'PASS',
@@ -127,7 +127,7 @@ describe('Database', () => {
         userId: 'user1',
         scenarioId: 'test-scenario',
         turnNumber: 1,
-        objectionCategory: 'Competitive_Copilot',
+        objectionCategory: 'Competitive_SelfHosted',
         userMessage: 'Test response',
         aiResponse: 'AI response',
         evaluation: 'PASS',
@@ -135,7 +135,7 @@ describe('Database', () => {
         keyPointsMentioned: [],
       });
 
-      const insights = await db.getAIInsights('test-scenario', 'Competitive_Copilot');
+      const insights = await db.getAIInsights('test-scenario', 'Competitive_SelfHosted');
       
       expect(insights).toHaveProperty('topResponses');
       expect(insights).toHaveProperty('commonQuestions');
