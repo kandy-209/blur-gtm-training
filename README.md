@@ -1,6 +1,6 @@
-# Blur GTM Training Platform
+# Browserbase GTM Training Platform
 
-A comprehensive training application for Blur's GTM team to practice sales positioning and objection handling.
+A comprehensive training application for Browserbase's GTM team to practice sales positioning and objection handling.
 
 ## Features
 

@@ -67,7 +67,7 @@ export default function CursorLogo3D({
         outlineWidth={0.02}
         outlineColor="#ffffff"
       >
-        CURSOR
+        BROWSERBASE
       </Text>
     </group>
   );

@@ -52,10 +52,10 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
     documentation: {
       overview: 'Cursor provides enterprise-grade security and compliance for organizations deploying AI-assisted development. Our Trust Center provides all security practices, certifications, and compliance information needed for security reviews.',
       setupSteps: [
-        'Review Trust Center (https://trust.cursor.com/) for security practices',
-        'Access Security page (https://cursor.com/security) for detailed architecture',
-        'Review Privacy Overview (https://cursor.com/privacy-overview)',
-        'Sign Data Processing Agreement (https://cursor.com/terms/dpa) for GDPR compliance',
+        'Review Trust Center (https://www.browserbase.com/trust) for security practices',
+        'Access Security page (https://www.browserbase.com/security) for detailed architecture',
+        'Review Privacy Overview (https://www.browserbase.com/privacy) for privacy practices',
+        'Sign Data Processing Agreement for GDPR compliance',
         'Download latest certification documents from Trust Center'
       ],
       keyPoints: [
@@ -66,9 +66,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Regular security audits and updates'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Enterprise Security Overview', url: 'https://cursor.com/security' }
+          { title: 'Security Overview', url: 'https://www.browserbase.com/security' }
         ],
         youtubeLinks: []
       }
@@ -147,7 +147,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Centralized dashboard management'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/identity-and-access-management',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [],
         youtubeLinks: []
       }
@@ -226,9 +226,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Comprehensive privacy controls'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/privacy-and-data-governance',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Privacy Overview', url: 'https://cursor.com/privacy-overview' }
+          { title: 'Privacy Overview', url: 'https://www.browserbase.com/privacy' }
         ],
         youtubeLinks: []
       }
@@ -308,9 +308,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Connect external systems and trigger automations'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/agent/hooks',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Introducing Cursor for Enterprise', url: 'https://cursor.com/blog/enterprise' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }
@@ -389,9 +389,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Cloud dashboard configuration'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/context/rules#team-rules',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Introducing Cursor for Enterprise', url: 'https://cursor.com/blog/enterprise' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }
@@ -472,9 +472,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Real-time updates (every 2 minutes)'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/account/teams/analytics',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Introducing Cursor for Enterprise', url: 'https://cursor.com/blog/enterprise' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }
@@ -556,9 +556,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'SIEM integration support'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/compliance-and-monitoring#audit-logs',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Introducing Cursor for Enterprise', url: 'https://cursor.com/blog/enterprise' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }
@@ -639,9 +639,9 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Team-wide git and network access control'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/agent/terminal#sandbox',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [
-          { title: 'Introducing Cursor for Enterprise', url: 'https://cursor.com/blog/enterprise' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }
@@ -721,7 +721,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Secure access management'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/network-configuration',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [],
         youtubeLinks: []
       }
@@ -803,7 +803,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Repository blocklist for security'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/model-and-integration-management',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [],
         youtubeLinks: []
       }
@@ -885,7 +885,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
         'Flexible deployment models'
       ],
       resources: {
-        docsUrl: 'https://cursor.com/docs/enterprise/deployment-patterns',
+        docsUrl: 'https://docs.browserbase.com',
         blogLinks: [],
         youtubeLinks: []
       }

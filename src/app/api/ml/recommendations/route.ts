@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAccountRecommendations, getTopAccountsByIntent } from '@/lib/ml/recommendations';
-import { getUserId } from '@/lib/auth';
+import { getUserIdFromRequest } from '@/lib/prospect-intelligence/auth-helper';
 
 /**
  * GET /api/ml/recommendations
@@ -14,7 +14,7 @@ import { getUserId } from '@/lib/auth';
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

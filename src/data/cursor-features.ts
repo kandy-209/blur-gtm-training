@@ -55,7 +55,7 @@ export const cursorFeatures: CursorFeature[] = [
         ],
         blogLinks: [
           { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' },
-          { title: 'Introducing Cursor 2.0', url: 'https://cursor.com/blog/2-0' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       },
@@ -70,7 +70,7 @@ export const cursorFeatures: CursorFeature[] = [
         timeSaved: '2-3 hours per day on average',
         blogLinks: [
           { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' },
-          { title: 'Cloud Agents', url: 'https://cursor.com/blog/cloud-agents' }
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' }
         ],
         youtubeLinks: []
       }

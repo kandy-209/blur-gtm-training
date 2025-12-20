@@ -55,7 +55,7 @@ export default function FinancialDashboardPage() {
                 <CardHeader>
                   <CardTitle>Company ROI Analysis</CardTitle>
                   <CardDescription>
-                    Analyze how Cursor can impact a specific company's engineering productivity
+                    Analyze how Browserbase can impact a specific company's engineering productivity
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { scoreAccountFromDB, scoreAccountsBatch } from '@/lib/ml/icp-scorer';
-import { getSupabaseClient } from '@/lib/supabase';
-import { getUserId } from '@/lib/auth';
+import { getUserIdFromRequest } from '@/lib/prospect-intelligence/auth-helper';
 
 /**
  * GET /api/ml/icp-score?accountDomain=example.com
@@ -9,7 +8,7 @@ import { getUserId } from '@/lib/auth';
  */
 export async function GET(request: NextRequest) {
   try {
-    const userId = await getUserId();
+    const userId = await getUserIdFromRequest(request);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

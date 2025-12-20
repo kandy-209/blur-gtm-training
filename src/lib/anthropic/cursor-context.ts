@@ -1,6 +1,6 @@
 /**
- * Cursor Context & Knowledge Base
- * Information about Cursor, its ICP, and prospects for AI training
+ * Browserbase Context & Knowledge Base
+ * Information about Browserbase, its ICP, and prospects for AI training
  */
 
 export interface CursorContext {
@@ -66,15 +66,15 @@ export interface SuccessMetric {
 }
 
 /**
- * Get Cursor context for AI training
+ * Get Browserbase context for AI training
  */
 export function getCursorContext(): CursorContext {
   return {
     company: {
-      name: 'Cursor',
-      description: 'Cursor is an AI-powered code editor that helps developers write code faster and more efficiently using AI assistance.',
-      mission: 'To make coding more accessible and productive for developers of all skill levels through AI-powered tools.',
-      targetAudience: 'Software developers, engineers, and technical teams looking to accelerate their coding workflow',
+      name: 'Browserbase',
+      description: 'Browserbase is a browser automation and web scraping platform that helps engineering teams scale their browser workflows without managing infrastructure.',
+      mission: 'To make browser automation accessible and scalable for engineering teams of all sizes through managed infrastructure.',
+      targetAudience: 'Engineering teams, developers, and technical teams looking to scale browser automation and web scraping workflows',
       keyFeatures: [
         'AI-powered code completion',
         'Context-aware suggestions',
@@ -387,7 +387,7 @@ export function getCursorContext(): CursorContext {
 export function buildCursorContextPrompt(): string {
   const context = getCursorContext();
   
-  return `You are providing voice coaching feedback to users of Cursor, an AI-powered code editor. Use this context to make your feedback more relevant:
+  return `You are providing voice coaching feedback to users of Browserbase, a browser automation platform. Use this context to make your feedback more relevant:
 
 COMPANY CONTEXT:
 - ${context.company.name}: ${context.company.description}
@@ -441,6 +441,6 @@ When providing feedback:
 5. Reference common developer scenarios like standups, code reviews, and technical presentations
 6. Highlight how voice coaching supports remote work and distributed team communication
 
-Make feedback relevant to developers and technical professionals who use Cursor.`;
+Make feedback relevant to developers and technical professionals who use Browserbase.`;
 }
 
