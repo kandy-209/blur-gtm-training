@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
           loginEmail = profile.email;
         } else {
           // If username not found, try as email anyway (might be generated email)
-          loginEmail = `${emailOrUsername.toLowerCase().replace(/\s+/g, '')}@blur.local`;
+          loginEmail = `${emailOrUsername.toLowerCase().replace(/\s+/g, '')}@browserbase.local`;
         }
       }
     }

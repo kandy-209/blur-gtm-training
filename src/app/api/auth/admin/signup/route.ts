@@ -20,11 +20,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password, username, fullName, adminCode } = body;
 
-    // Check if email is from @blur.com domain
-    const isBlurEmail = email && email.toLowerCase().endsWith('@blur.com');
+    // Check if email is from @browserbase.com domain
+    const isBrowserbaseEmail = email && email.toLowerCase().endsWith('@browserbase.com');
 
-    // Validate admin code only if not a @blur.com email
-    if (!isBlurEmail && (!adminCode || adminCode !== ADMIN_CODE)) {
+    // Validate admin code only if not a @browserbase.com email
+    if (!isBrowserbaseEmail && (!adminCode || adminCode !== ADMIN_CODE)) {
       return NextResponse.json(
         { error: 'Invalid admin code. Contact your system administrator.' },
         { status: 403 }

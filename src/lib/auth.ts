@@ -156,10 +156,10 @@ export async function signUp(data: SignUpData) {
     throw new Error('Either roleAtBlur or roleAtCursor must be provided');
   }
 
-  // Check if email is from @blur.com domain (auto-admin)
-  const isBlurEmail = email.toLowerCase().endsWith('@blur.com');
+  // Check if email is from @browserbase.com domain (auto-admin)
+  const isBrowserbaseEmail = email.toLowerCase().endsWith('@browserbase.com');
 
-  // Sign up user with admin role in metadata if @blur.com email
+  // Sign up user with admin role in metadata if @browserbase.com email
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
@@ -167,7 +167,7 @@ export async function signUp(data: SignUpData) {
       data: {
         username,
         full_name: fullName,
-        role: isBlurEmail ? 'admin' : 'user', // Set admin role for @blur.com emails
+        role: isBrowserbaseEmail ? 'admin' : 'user', // Set admin role for @browserbase.com emails
         role_at_cursor: roleAtCompany,
         role_at_blur: roleAtCompany,
         job_title: jobTitle,

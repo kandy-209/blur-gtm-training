@@ -6,7 +6,7 @@
  */
 
 const SEC_API_BASE = 'https://data.sec.gov';
-const USER_AGENT = 'BlurGTMTraining/1.0 (contact@blur.com)'; // SEC requires user agent
+const USER_AGENT = 'BrowserbaseGTMTraining/1.0 (contact@browserbase.com)'; // SEC requires user agent
 
 interface SECCompanyTicker {
   cik: string;

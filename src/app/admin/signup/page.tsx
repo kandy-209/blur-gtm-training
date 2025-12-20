@@ -102,7 +102,7 @@ export default function AdminSignupPage() {
 
               <div>
                 <Label htmlFor="adminCode">
-                  Admin Code {email && !email.toLowerCase().endsWith('@blur.com') && '*'}
+                  Admin Code {email && !email.toLowerCase().endsWith('@browserbase.com') && '*'}
                 </Label>
                 <Input
                   id="adminCode"
@@ -110,7 +110,7 @@ export default function AdminSignupPage() {
                   value={adminCode}
                   onChange={(e) => setAdminCode(e.target.value)}
                   placeholder="Enter admin invitation code"
-                  required={!email || !email.toLowerCase().endsWith('@blur.com')}
+                  required={!email || !email.toLowerCase().endsWith('@browserbase.com')}
                   disabled={isLoading}
                   className="mt-2"
                 />
@@ -128,7 +128,7 @@ export default function AdminSignupPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@blur.com"
+                  placeholder="admin@browserbase.com"
                   required
                   disabled={isLoading}
                   className="mt-2"
