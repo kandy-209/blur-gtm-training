@@ -28,7 +28,7 @@ export function generateOpenGraphTags(config: SEOConfig) {
     'og:url': url,
     'og:type': config.type || 'website',
     'og:image': image,
-    'og:site_name': 'Blur Enterprise GTM Training',
+    'og:site_name': 'Browserbase GTM Training',
     ...(config.publishedTime && { 'article:published_time': config.publishedTime }),
     ...(config.modifiedTime && { 'article:modified_time': config.modifiedTime }),
     ...(config.author && { 'article:author': config.author }),
@@ -66,7 +66,7 @@ export function generateStructuredData(config: SEOConfig) {
     image: image,
     publisher: {
       '@type': 'Organization',
-      name: 'Blur',
+      name: 'Browserbase',
       logo: {
         '@type': 'ImageObject',
         url: `${siteUrl}/logos/cursor-logo.svg`,
@@ -82,7 +82,7 @@ export function generateStructuredData(config: SEOConfig) {
       dateModified: config.modifiedTime || config.publishedTime,
       author: {
         '@type': 'Person',
-        name: config.author || 'Blur GTM Team',
+        name: config.author || 'Browserbase GTM Team',
       },
     };
   }

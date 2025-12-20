@@ -131,7 +131,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
       'Multi-team organizations'
     ],
     documentation: {
-      overview: 'Cursor Enterprise provides comprehensive identity and access management through SSO, SCIM, RBAC, and MDM policies. Streamline authentication and enforce team-wide policies.',
+      overview: 'Browserbase provides comprehensive identity and access management through SSO, SCIM, RBAC, and MDM policies. Streamline authentication and enforce team-wide policies.',
       setupSteps: [
         'Set up SSO/SAML with your identity provider',
         'Configure SCIM for automated user provisioning',
@@ -210,7 +210,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
       'Privacy-conscious teams'
     ],
     documentation: {
-      overview: 'Cursor Enterprise provides comprehensive privacy and data governance controls, including Privacy Mode for zero data retention and data residency options.',
+      overview: 'Browserbase provides comprehensive privacy and data governance controls, including privacy mode for zero data retention and data residency options.',
       setupSteps: [
         'Review data flows documentation',
         'Configure Privacy Mode settings',
@@ -705,7 +705,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
       'Restricted network access'
     ],
     documentation: {
-      overview: 'Cursor Enterprise supports proxy setup, IP allowlisting, and encryption controls for secure network access.',
+      overview: 'Browserbase supports proxy setup, IP allowlisting, and encryption controls for secure network access.',
       setupSteps: [
         'Configure proxy settings',
         'Set up IP allowlisting',
@@ -785,7 +785,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
       'MCP server management'
     ],
     documentation: {
-      overview: 'Cursor Enterprise provides comprehensive model and integration management, including model access controls, MCP server trust, and third-party integrations.',
+      overview: 'Browserbase provides comprehensive integration management, including API access controls and third-party integrations.',
       setupSteps: [
         'Configure model access restrictions',
         'Set up MCP server trust',
@@ -868,7 +868,7 @@ export const enterpriseFeatures: EnterpriseFeature[] = [
       'Team-wide configuration'
     ],
     documentation: {
-      overview: 'Cursor Enterprise supports multiple deployment patterns, including MDM-managed IDE and self-hosted CLI options.',
+      overview: 'Browserbase supports multiple deployment patterns, including cloud-managed and on-premise options.',
       setupSteps: [
         'Choose deployment pattern',
         'Configure MDM policies (if applicable)',

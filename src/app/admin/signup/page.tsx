@@ -81,7 +81,7 @@ export default function AdminSignupPage() {
           </div>
           <h1 className="text-3xl font-bold mb-2">Admin Account Creation</h1>
           <p className="text-muted-foreground">
-            Create an administrator account for the Blur GTM Training Platform
+            Create an administrator account for the Browserbase GTM Training Platform
           </p>
         </div>
 

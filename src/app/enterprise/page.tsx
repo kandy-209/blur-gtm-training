@@ -91,7 +91,7 @@ export default function EnterprisePage() {
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3">
-              Cursor Enterprise
+              Browserbase Enterprise
             </h1>
             <p className="text-lg text-gray-600">
               Enterprise-grade security, compliance, and administrative controls

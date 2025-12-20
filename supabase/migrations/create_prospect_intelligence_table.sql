@@ -35,6 +35,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_prospect_intelligence_updated_at ON prospect_intelligence;
 CREATE TRIGGER update_prospect_intelligence_updated_at 
   BEFORE UPDATE ON prospect_intelligence
   FOR EACH ROW
@@ -44,6 +45,12 @@ CREATE TRIGGER update_prospect_intelligence_updated_at
 ALTER TABLE prospect_intelligence ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies
+-- Drop existing policies if they exist (idempotent)
+DROP POLICY IF EXISTS "Users can view their own prospects" ON prospect_intelligence;
+DROP POLICY IF EXISTS "Users can insert their own prospects" ON prospect_intelligence;
+DROP POLICY IF EXISTS "Users can update their own prospects" ON prospect_intelligence;
+DROP POLICY IF EXISTS "Users can delete their own prospects" ON prospect_intelligence;
+
 -- Users can only see their own prospects
 CREATE POLICY "Users can view their own prospects"
   ON prospect_intelligence

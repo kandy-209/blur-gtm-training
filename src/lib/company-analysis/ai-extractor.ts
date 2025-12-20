@@ -80,7 +80,7 @@ ${filingText.substring(0, 10000)}`;
 }
 
 /**
- * Analyze company and provide Cursor-specific insights
+ * Analyze company and provide Browserbase-specific insights
  */
 export async function analyzeCompanyForCursor(
   financialMetrics: FinancialMetrics[],
@@ -111,7 +111,7 @@ export async function analyzeCompanyForCursor(
 
     const systemPrompt = 'You are a business analyst expert at evaluating software tool ROI. Use data-driven analysis and industry benchmarks. Always return valid JSON.';
     
-    const prompt = `You are a business analyst evaluating how Cursor Enterprise AI coding assistant can impact a company.
+    const prompt = `You are a business analyst evaluating how Browserbase browser automation platform can impact a company.
 
 Company: ${companyInfo.companyName} (${companyInfo.ticker})
 Industry: ${companyInfo.industry}
@@ -127,7 +127,7 @@ Latest Metrics:
 - Estimated Engineering Headcount: ${latestMetrics.estimatedEngineeringHeadcount || 'N/A'}
 - Revenue Growth: ${latestMetrics.revenueGrowth.toFixed(2)}%
 
-Based on Cursor's typical productivity gains (20-40% for engineering teams), analyze:
+Based on Browserbase's typical productivity gains (reduced infrastructure management, improved reliability, faster scaling), analyze:
 
 1. Estimated productivity gain percentage (consider company size, industry, R&D intensity)
 2. Estimated annual cost savings from productivity gains

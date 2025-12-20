@@ -74,9 +74,19 @@ export default function BypassProtection() {
       }
       
       // Skip modification for localhost/debug endpoints to avoid CSP violations
-      if (urlObj.hostname === '127.0.0.1' || urlObj.hostname === 'localhost') {
-        // Silently fail for localhost URLs to prevent CSP violations
+      // BUT allow same-origin requests (relative URLs) even on localhost
+      const isSameOrigin = urlObj.origin === window.location.origin;
+      const isLocalhostDebug = (urlObj.hostname === '127.0.0.1' || urlObj.hostname === 'localhost') && 
+                                !isSameOrigin;
+      
+      if (isLocalhostDebug) {
+        // Silently fail for cross-origin localhost URLs to prevent CSP violations
         return Promise.reject(new Error('Localhost endpoint blocked by CSP'));
+      }
+      
+      // Allow same-origin requests to pass through without modification
+      if (isSameOrigin) {
+        return originalFetch(input, init);
       }
 
       // Add bypass token to query params if not present

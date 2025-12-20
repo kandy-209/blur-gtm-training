@@ -83,7 +83,7 @@ export default function GlobalVoiceAssistant() {
     if (pathname === '/chat') {
       return 'AI Training Assistant';
     }
-    return 'AI Blur Training Assistant';
+    return 'AI Browserbase Training Assistant';
   };
 
   const getPageDescription = () => {
@@ -111,7 +111,7 @@ export default function GlobalVoiceAssistant() {
     if (pathname === '/chat') {
       return 'Powerful AI assistant: role-play practice & training questions';
     }
-    return 'Powerful AI assistant for Blur training: role-play practice & ask questions';
+    return 'Powerful AI assistant for Browserbase training: role-play practice & ask questions';
   };
 
   return (

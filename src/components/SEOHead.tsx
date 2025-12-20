@@ -13,28 +13,28 @@ export default function SEOHead() {
   useEffect(() => {
     // Update page title based on route
     const routeTitles: Record<string, string> = {
-      '/scenarios': 'Sales Training Scenarios | Cursor Enterprise GTM Training',
-      '/roi-calculator': 'ROI Calculator | Cursor Enterprise GTM Training',
-      '/sales-skills': 'Sales Skills Training | Cursor Enterprise GTM Training',
-      '/analytics': 'Analytics Dashboard | Cursor Enterprise GTM Training',
-      '/company-lookup': 'Company Lookup | Cursor Enterprise GTM Training',
-      '/financial-dashboard': 'Financial Dashboard | Cursor Enterprise GTM Training',
+      '/scenarios': 'Sales Training Scenarios | Browserbase GTM Training',
+      '/roi-calculator': 'ROI Calculator | Browserbase GTM Training',
+      '/sales-skills': 'Sales Skills Training | Browserbase GTM Training',
+      '/analytics': 'Analytics Dashboard | Browserbase GTM Training',
+      '/company-lookup': 'Company Lookup | Browserbase GTM Training',
+      '/financial-dashboard': 'Financial Dashboard | Browserbase GTM Training',
     };
 
-    const title = routeTitles[pathname] || 'Cursor Enterprise GTM Training Platform';
+    const title = routeTitles[pathname] || 'Browserbase GTM Training Platform';
     document.title = title;
 
     // Update meta description
     const routeDescriptions: Record<string, string> = {
       '/scenarios': 'Practice enterprise sales scenarios with AI-powered role-play training.',
-      '/roi-calculator': 'Calculate ROI and business impact of Cursor Enterprise.',
+      '/roi-calculator': 'Calculate ROI and business impact of Browserbase.',
       '/sales-skills': 'Learn outbound and inbound sales fundamentals.',
       '/analytics': 'Track your sales training progress with detailed analytics.',
       '/company-lookup': 'Search and analyze company information and financial data.',
       '/financial-dashboard': 'View comprehensive financial data and company analysis.',
     };
 
-    const description = routeDescriptions[pathname] || 'Master Cursor Enterprise sales positioning with AI-powered training.';
+    const description = routeDescriptions[pathname] || 'Master Browserbase sales positioning with AI-powered training.';
     
     // Update meta description tag
     let metaDescription = document.querySelector('meta[name="description"]');

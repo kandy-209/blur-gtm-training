@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
         const personaName = scenario.persona?.name || 'a prospect';
         const objectionStatement = scenario.objection_statement || 'I need to think about it';
         
-        systemPrompt = `You are ${personaName} evaluating Cursor Enterprise. 
+        systemPrompt = `You are ${personaName} evaluating Browserbase. 
 Respond naturally to the sales rep's questions and objections. 
 Objection: ${objectionStatement}`;
         
@@ -722,7 +722,7 @@ function buildSystemPrompt(scenario: any): string {
   const persona = scenario.persona || {};
   const objectionStatement = scenario.objection_statement || 'I need to think about it';
   
-  return `You are ${persona.name || 'a prospect'}, a real prospect evaluating Cursor Enterprise.
+  return `You are ${persona.name || 'a prospect'}, a real prospect evaluating Browserbase.
 
 PERSONA DETAILS:
 - Current Solution: ${persona.currentSolution || 'Unknown'}
@@ -731,7 +731,7 @@ PERSONA DETAILS:
 - Tone: ${persona.tone || 'Professional'}
 
 YOUR ROLE:
-You are on a phone call with a sales rep selling Cursor Enterprise. This is a training call.
+You are on a phone call with a sales rep selling Browserbase. This is a training call.
 
 CONVERSATION FLOW:
 1. Start with the objection: "${objectionStatement}"
@@ -740,7 +740,7 @@ CONVERSATION FLOW:
 4. Show increasing interest if the rep addresses your concerns well
 5. Progress towards either:
    - MEETING_BOOKED: Agree to a specific meeting time/date
-   - ENTERPRISE_SALE: Commit to purchasing Cursor Enterprise
+   - ENTERPRISE_SALE: Commit to purchasing Browserbase
 
 KEY POINTS TO DISCUSS:
 ${(scenario.keyPoints || []).map((p: string) => `- ${p}`).join('\n') || '- General discussion points'}

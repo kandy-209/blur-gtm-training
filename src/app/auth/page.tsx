@@ -149,7 +149,7 @@ export default function AuthPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Blur Enterprise GTM Training</h1>
+          <h1 className="text-3xl font-bold mb-2">Browserbase GTM Training</h1>
           <p className="text-muted-foreground">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account to start practicing'}
           </p>

@@ -17,12 +17,16 @@ interface EmailGeneratorProps {
 
 type EmailTone = 'professional' | 'friendly' | 'direct' | 'consultative';
 type LLMProvider = 'claude' | 'gemini';
+type EmailStyle = 'bbq_plain' | 'exec_concise';
 
 export function EmailGenerator({ prospectData }: EmailGeneratorProps) {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
   const [tone, setTone] = useState<EmailTone>('professional');
   const [llmProvider, setLlmProvider] = useState<LLMProvider>('claude');
+  const [style, setStyle] = useState<EmailStyle>('bbq_plain');
+  const [bbqScore, setBbqScore] = useState<number | null>(null);
+  const [bbqIssues, setBbqIssues] = useState<string[]>([]);
   const [recipientName, setRecipientName] = useState('');
   const [recipientTitle, setRecipientTitle] = useState('');
   const [copied, setCopied] = useState(false);
@@ -42,6 +46,7 @@ export function EmailGenerator({ prospectData }: EmailGeneratorProps) {
           llmProvider,
           recipientName: recipientName || undefined,
           recipientTitle: recipientTitle || undefined,
+          style,
         }),
       });
 
@@ -52,6 +57,11 @@ export function EmailGenerator({ prospectData }: EmailGeneratorProps) {
       const result = await response.json();
       setEmailSubject(result.subject);
       setEmailBody(result.body);
+      setBbqScore(result.bbqScore?.total ?? null);
+      setBbqIssues(Array.isArray(result.issues) ? result.issues.map((i: any) => i.message) : []);
+      if (result.style) {
+        setStyle(result.style as EmailStyle);
+      }
     } catch (error) {
       console.error('Email generation error:', error);
       // Fallback to template-based generation
@@ -95,28 +105,15 @@ export function EmailGenerator({ prospectData }: EmailGeneratorProps) {
 
     const selectedTone = toneMap[tone];
 
-    const subject = `Quick question about ${companyName}'s ${framework} stack`;
+    const subject = `${companyName}'s ${framework} stack`;
     
     const body = `${selectedTone.greeting}
 
 ${selectedTone.opening} ${hiringSignal || blogSignal || `I noticed you're using ${framework} for your frontend.`}
 
-I'm reaching out because I think Browserbase could be a game-changer for your engineering team. Here's why:
+Teams like yours use Browserbase to handle browser automation and testing without managing extra infrastructure, so engineers can stay focused on shipping product.
 
-${prospectData.icpScore.recommendedTalkingPoints.slice(0, 3).map((point, idx) => `${idx + 1}. ${point}`).join('\n')}
-
-Browserbase provides cloud-based browser automation that integrates seamlessly with ${framework} applications, helping engineering teams:
-• Automate testing and QA workflows
-• Run browser-based integrations without infrastructure overhead
-• Scale browser automation without managing servers
-
-${prospectData.hiring.hasOpenEngineeringRoles ? `Given that you're actively hiring engineers, I thought this might be particularly relevant as you scale your team.` : ''}
-
-Would you be open to a quick 15-minute call to discuss how Browserbase could help ${companyName}? I'm happy to show you a quick demo tailored to your stack.
-
-${selectedTone.closing}
-[Your Name]
-Browserbase`;
+If it seems relevant, I can share a short overview of how similar teams run this today and you can tell me if it’s worth exploring.`;
 
     setEmailSubject(subject);
     setEmailBody(body);
@@ -205,6 +202,19 @@ Browserbase`;
           </div>
         </div>
 
+        <div className="space-y-2">
+          <Label>Email Style</Label>
+          <Select value={style} onValueChange={(value) => setStyle(value as EmailStyle)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bbq_plain">BBQ plain (conversational)</SelectItem>
+              <SelectItem value="exec_concise">Exec concise (short & direct)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Button onClick={generating ? undefined : generateEmail} className="w-full" disabled={generating}>
           {generating ? (
             <>
@@ -240,6 +250,30 @@ Browserbase`;
                 className="font-mono text-sm"
               />
             </div>
+
+            {(style || bbqScore !== null) && (
+              <div className="text-xs text-gray-600 flex flex-wrap gap-3">
+                {style && (
+                  <span>
+                    Style:{' '}
+                    <span className="font-medium">
+                      {style === 'bbq_plain' ? 'BBQ plain' : 'Exec concise'}
+                    </span>
+                  </span>
+                )}
+                {bbqScore !== null && (
+                  <span>
+                    BBQ Score:{' '}
+                    <span className="font-semibold">{bbqScore}/100</span>
+                  </span>
+                )}
+                {bbqIssues.length > 0 && (
+                  <span>
+                    Notes: {bbqIssues.slice(0, 2).join(' • ')}
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleCopy} className="flex-1">

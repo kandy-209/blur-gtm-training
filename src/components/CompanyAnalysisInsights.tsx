@@ -128,7 +128,7 @@ export default function CompanyAnalysisInsights({ symbol, companyName, sector, i
       <Card>
         <CardContent className="p-8 text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600">Analyzing how Cursor can help {companyName}...</p>
+          <p className="text-gray-600">Analyzing how Browserbase can help {companyName}...</p>
         </CardContent>
       </Card>
     );
@@ -227,7 +227,7 @@ export default function CompanyAnalysisInsights({ symbol, companyName, sector, i
               <Target className="h-5 w-5 text-orange-600" />
               Key Pain Points
             </CardTitle>
-            <CardDescription>Areas where Cursor can help</CardDescription>
+            <CardDescription>Areas where Browserbase can help</CardDescription>
           </CardHeader>
           <CardContent>
             {analysis.painPoints.length > 0 ? (
@@ -350,6 +350,9 @@ export default function CompanyAnalysisInsights({ symbol, companyName, sector, i
     </div>
   );
 }
+
+
+
 
 
 

@@ -5,6 +5,9 @@ import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { ProspectIntelligence } from '@/lib/prospect-intelligence/types';
+import { STYLE_CONFIG } from '@/lib/email-style/bbqConfig';
+import { cleanText } from '@/lib/email-style/bbqCleaner';
+import type { EmailStyle } from '@/lib/email-style/types';
 
 const requestSchema = z.object({
   prospectData: z.any(), // ProspectIntelligence schema
@@ -12,6 +15,7 @@ const requestSchema = z.object({
   recipientName: z.string().optional(),
   recipientTitle: z.string().optional(),
   llmProvider: z.enum(['claude', 'gemini']).optional(),
+  style: z.enum(['bbq_plain', 'exec_concise']).optional(),
 });
 
 /**
@@ -32,7 +36,23 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const validated = requestSchema.parse(body);
-    const { prospectData, tone, recipientName, recipientTitle, llmProvider = 'claude' } = validated;
+    const {
+      prospectData,
+      tone,
+      recipientName,
+      recipientTitle,
+      llmProvider = 'claude',
+      style: rawStyle,
+    } = validated;
+
+    const style: EmailStyle =
+      rawStyle === 'exec_concise' ? 'exec_concise' : 'bbq_plain';
+    const { minWords, maxWords } = STYLE_CONFIG[style];
+    const wordRangeText = `${minWords}–${maxWords} words`;
+    const styleNote =
+      style === 'exec_concise'
+        ? 'Write for a busy VP: open with the concrete situation in the first sentence and keep every line tight.'
+        : 'Sound like two people talking at a BBQ: relaxed but clear and direct.';
 
     const prompt = `Generate a personalized sales outreach email for Browserbase based on the following prospect intelligence:
 
@@ -50,13 +70,15 @@ Title: ${recipientTitle || 'Engineering Leader'}
 
 Tone: ${tone}
 
-Generate a professional, personalized email that:
-1. Opens with a relevant hook based on their tech stack or hiring activity
-2. Introduces Browserbase and its value proposition
-3. References specific talking points from the prospect intelligence
-4. Includes a clear call-to-action for a demo or call
-5. Is concise (under 150 words)
-6. Uses the specified tone
+Generate a professional, personalized email that follows these rules:
+1. Length: ${wordRangeText} total. Short, punchy, and easy to skim.
+2. No fluff or filler. Avoid phrases like "I hope this email finds you well", "I wanted to reach out", "just checking in", "circling back", or "touching base".
+3. Open with a relevant hook based on their tech stack, hiring, or a strong signal from the prospect intelligence.
+4. Introduce Browserbase and its value in one or two simple sentences, tied directly to their world.
+5. Include ONE clear call-to-action asking for their interest (for example: "Would it be worth exploring?") rather than asking for a specific time.
+6. Avoid ROI/percentage-heavy claims. Focus on concrete pains and outcomes instead.
+7. Use the specified tone without sounding like a corporate robot.
+8. ${styleNote}
 
 Return ONLY a valid JSON object with "subject" and "body" fields. Do not include any markdown formatting or code blocks. Example format:
 {"subject": "Email subject here", "body": "Email body here"}`;
@@ -77,10 +99,17 @@ Return ONLY a valid JSON object with "subject" and "body" fields. Do not include
           const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
+            const fallback = generateFallbackEmail(prospectData, tone, recipientName, recipientTitle);
+            const rawBody: string = parsed.body || fallback.body;
+            const cleaned = cleanText(rawBody, style);
+
             return NextResponse.json({
               success: true,
               subject: parsed.subject || `Quick question about ${prospectData.companyName}'s ${prospectData.techStack.primaryFramework || 'tech'} stack`,
-              body: parsed.body || generateFallbackEmail(prospectData, tone, recipientName, recipientTitle).body,
+              body: cleaned.revised,
+              bbqScore: cleaned.bbqScore,
+              issues: cleaned.lintAfter.issues,
+              style,
               requestId,
               provider: 'gemini',
             });
@@ -121,10 +150,17 @@ Return ONLY a valid JSON object with "subject" and "body" fields. Do not include
           const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
+            const fallback = generateFallbackEmail(prospectData, tone, recipientName, recipientTitle);
+            const rawBody: string = parsed.body || fallback.body;
+            const cleaned = cleanText(rawBody, style);
+
             return NextResponse.json({
               success: true,
               subject: parsed.subject || `Quick question about ${prospectData.companyName}'s ${prospectData.techStack.primaryFramework || 'tech'} stack`,
-              body: parsed.body || generateFallbackEmail(prospectData, tone, recipientName, recipientTitle).body,
+              body: cleaned.revised,
+              bbqScore: cleaned.bbqScore,
+              issues: cleaned.lintAfter.issues,
+              style,
               requestId,
               provider: 'claude',
             });
@@ -139,11 +175,15 @@ Return ONLY a valid JSON object with "subject" and "body" fields. Do not include
 
     // Fallback to template-based generation
     const email = generateFallbackEmail(prospectData, tone, recipientName, recipientTitle);
+    const cleaned = cleanText(email.body, style);
 
     return NextResponse.json({
       success: true,
       subject: email.subject,
-      body: email.body,
+      body: cleaned.revised,
+      bbqScore: cleaned.bbqScore,
+      issues: cleaned.lintAfter.issues,
+      style,
       requestId,
       note: process.env.ANTHROPIC_API_KEY ? 'Generated using template fallback' : 'ANTHROPIC_API_KEY not configured, using template',
     });
@@ -180,7 +220,7 @@ function generateFallbackEmail(
     ? `I noticed you're actively hiring ${prospectData.hiring.engineeringRoleCount || 'multiple'} engineering roles`
     : '';
   const blogSignal = prospectData.engineeringCulture.hasEngineeringBlog
-    ? `I've been following your engineering blog and love your approach to ${prospectData.engineeringCulture.recentBlogTopics[0] || 'engineering culture'}`
+    ? `I've been following your engineering blog and love your approach to ${prospectData.engineeringCulture.recentBlogTopics?.[0] || 'engineering culture'}`
     : '';
 
   const toneMap: Record<string, { greeting: string; opening: string; closing: string }> = {
@@ -208,28 +248,15 @@ function generateFallbackEmail(
 
   const selectedTone = toneMap[tone] || toneMap.professional;
 
-  const subject = `Quick question about ${companyName}'s ${framework} stack`;
+  const subject = `${companyName || 'your team'} & browserbase`;
   
   const body = `${selectedTone.greeting}
 
 ${selectedTone.opening} ${hiringSignal || blogSignal || `I noticed you're using ${framework} for your frontend.`}
 
-I'm reaching out because I think Browserbase could be a game-changer for your engineering team. Here's why:
+Teams like yours use Browserbase to run browser automation and testing without owning the infrastructure, so engineers can stay focused on product work.
 
-${prospectData.icpScore.recommendedTalkingPoints.slice(0, 3).map((point, idx) => `${idx + 1}. ${point}`).join('\n')}
-
-Browserbase provides cloud-based browser automation that integrates seamlessly with ${framework} applications, helping engineering teams:
-• Automate testing and QA workflows
-• Run browser-based integrations without infrastructure overhead
-• Scale browser automation without managing servers
-
-${prospectData.hiring.hasOpenEngineeringRoles ? `Given that you're actively hiring engineers, I thought this might be particularly relevant as you scale your team.` : ''}
-
-Would you be open to a quick 15-minute call to discuss how Browserbase could help ${companyName}? I'm happy to show you a quick demo tailored to your stack.
-
-${selectedTone.closing}
-[Your Name]
-Browserbase`;
+If it’s relevant, I can share a short overview of how similar teams set this up and you can tell me if it’s worth exploring.`;
 
   return { subject, body };
 }

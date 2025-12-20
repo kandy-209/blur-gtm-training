@@ -21,17 +21,19 @@ if (typeof window === 'undefined') {
 }
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
-const siteName = 'Blur Enterprise GTM Training Platform';
-const siteDescription = 'Master Blur Enterprise sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
+const siteName = 'Browserbase GTM Training Platform';
+const siteDescription = 'Master Browserbase sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
 const siteKeywords = [
-  'Blur Enterprise',
+  'Browserbase',
   'GTM training',
   'sales training',
   'AI role-play',
   'enterprise sales',
   'objection handling',
   'sales enablement',
-  'Blur AI',
+  'browser automation',
+  'web scraping',
+  'headless browsers',
   'sales positioning',
   'sales practice',
   'enterprise software sales',
@@ -60,7 +62,7 @@ export const metadata: Metadata = {
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
     'mobile-web-app-capable': 'yes',
   },
-  authors: [{ name: 'Blur GTM Team' }],
+  authors: [{ name: 'Browserbase GTM Team' }],
   creator: 'Blur',
   publisher: 'Blur',
   formatDetection: {
@@ -243,14 +245,14 @@ export default function RootLayout({
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Course',
-              name: 'Blur Enterprise GTM Sales Training',
+              name: 'Browserbase GTM Sales Training',
               description: siteDescription,
               provider: {
                 '@type': 'Organization',
-                name: 'Blur',
-                url: 'https://blur.com',
+                name: 'Browserbase',
+                url: 'https://browserbase.com',
               },
-              courseCode: 'BLUR-GTM-101',
+              courseCode: 'BROWSERBASE-GTM-101',
               educationalLevel: 'Professional',
               teaches: [
                 'Enterprise Sales Positioning',
@@ -290,10 +292,10 @@ export default function RootLayout({
               mainEntity: [
                 {
                   '@type': 'Question',
-                  name: 'What is Blur Enterprise GTM Training?',
+                  name: 'What is Browserbase GTM Training?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Blur Enterprise GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training.',
+                    text: 'Browserbase GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training.',
                   },
                 },
                 {
@@ -309,7 +311,7 @@ export default function RootLayout({
                   name: 'Is the training free?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Yes, the Blur Enterprise GTM Training platform is free to use. It provides comprehensive sales training tools including AI role-play, analytics, and skill development resources.',
+                    text: 'Yes, the Browserbase GTM Training platform is free to use. It provides comprehensive sales training tools including AI role-play, analytics, and skill development resources.',
                   },
                 },
               ],
@@ -329,7 +331,7 @@ export default function RootLayout({
                 <div className="relative h-9 w-9 rounded-lg bg-black flex items-center justify-center group-hover:bg-gray-900 transition-colors p-2">
                   <img
                     src="/logos/cursor-logo.svg"
-                    alt="Blur Enterprise GTM Training Platform Logo"
+                    alt="Browserbase GTM Training Platform Logo"
                     className="h-5 w-5 object-contain"
                     width={20}
                     height={20}
@@ -338,7 +340,7 @@ export default function RootLayout({
                     fetchPriority="high"
                   />
                 </div>
-                <span className="text-lg font-semibold tracking-tight hidden sm:inline text-gray-900">Blur Enterprise GTM</span>
+                <span className="text-lg font-semibold tracking-tight hidden sm:inline text-gray-900">Browserbase GTM</span>
                 <span className="text-base font-semibold tracking-tight sm:hidden text-gray-900">GTM Training</span>
               </Link>
               <NavUser />

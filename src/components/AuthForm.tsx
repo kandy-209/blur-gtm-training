@@ -106,7 +106,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
         <CardTitle>{mode === 'signin' ? 'Sign In' : 'Sign Up'}</CardTitle>
         <CardDescription>
           {mode === 'signin'
-            ? 'Sign in to your Cursor Enterprise GTM Training account'
+            ? 'Sign in to your Browserbase GTM Training account'
             : 'Create your account to start practicing Enterprise sales'}
         </CardDescription>
       </CardHeader>
@@ -203,7 +203,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
               </div>
 
               <div>
-                <Label htmlFor="roleAtCursor">Your Role at Cursor</Label>
+                <Label htmlFor="roleAtCursor">Your Role at Browserbase</Label>
                 <Select value={roleAtCursor} onValueChange={setRoleAtCursor} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />

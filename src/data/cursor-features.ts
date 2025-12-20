@@ -54,7 +54,7 @@ export const cursorFeatures: CursorFeature[] = [
           'Lower support costs'
         ],
         blogLinks: [
-          { title: 'Cursor Enterprise Blog', url: 'https://cursor.com/blog/enterprise' },
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' },
           { title: 'Introducing Cursor 2.0', url: 'https://cursor.com/blog/2-0' }
         ],
         youtubeLinks: []
@@ -69,7 +69,7 @@ export const cursorFeatures: CursorFeature[] = [
         ],
         timeSaved: '2-3 hours per day on average',
         blogLinks: [
-          { title: 'Cursor Enterprise Blog', url: 'https://cursor.com/blog/enterprise' },
+          { title: 'Browserbase Blog', url: 'https://www.browserbase.com/blog' },
           { title: 'Cloud Agents', url: 'https://cursor.com/blog/cloud-agents' }
         ],
         youtubeLinks: []

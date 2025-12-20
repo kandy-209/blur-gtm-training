@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
       fiscalYear: mergedMetrics.fiscalYear || new Date().getFullYear() - 1,
     };
 
-    // Step 4: Analyze with AI for Cursor-specific insights
+    // Step 4: Analyze with AI for Browserbase-specific insights
     const cursorAnalysis = await analyzeCompanyForCursor([completeMetrics], companyInfo);
 
     // Step 5: Calculate enhanced ROI

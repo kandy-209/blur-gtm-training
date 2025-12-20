@@ -23,6 +23,37 @@ export default function ProspectIntelligencePage() {
   } | null>(null);
   const [cached, setCached] = useState(false);
 
+  // Best-effort interaction logging for RL/analytics
+  const logInteraction = async (websiteUrl: string) => {
+    try {
+      let accountDomain = websiteUrl;
+      try {
+        const url = new URL(websiteUrl);
+        accountDomain = url.hostname.toLowerCase();
+      } catch {
+        // Fallback: keep raw string if URL parsing fails
+      }
+
+      await fetch('/api/prospect-intelligence/interaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accountDomain,
+          interactionType: 'opened_research',
+          metadata: {
+            source: 'prospect-intelligence-page',
+          },
+        }),
+      }).catch(() => {
+        // Swallow errors - logging is best-effort only
+      });
+    } catch {
+      // Completely ignore interaction logging failures on the client
+    }
+  };
+
   const handleResearch = async (websiteUrl: string, companyName?: string) => {
     setLoading(true);
     setError(null);
@@ -72,6 +103,8 @@ export default function ProspectIntelligencePage() {
       if (result.success && result.data) {
         setData(result.data);
         setCached(result.cached || false);
+        // Log that the user opened research for this account (best-effort)
+        void logInteraction(result.data.companyWebsite || websiteUrl);
         setProgress({ stage: 'complete', message: 'Research complete!', percentage: 100 });
         
         // Clear progress after 2 seconds

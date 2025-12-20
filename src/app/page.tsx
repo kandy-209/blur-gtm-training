@@ -34,7 +34,7 @@ export default function HomePage() {
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: 'Blur Enterprise GTM Training Platform',
+      name: 'Browserbase GTM Training Platform',
       description: 'Transform into a world-class GTM Operator with AI-powered role-play training that builds unshakeable confidence',
       mainEntity: {
         '@type': 'ItemList',
