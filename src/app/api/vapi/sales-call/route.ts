@@ -217,7 +217,7 @@ Objection: ${objectionStatement}`;
       const personaName = scenario.persona?.name || 'a prospect';
       const objectionStatement = scenario.objection_statement || 'I need to think about it';
       
-      systemPrompt = `You are ${personaName} evaluating Cursor Enterprise. 
+      systemPrompt = `You are ${personaName} evaluating Browserbase. 
 Respond naturally to the sales rep's questions and objections. 
 Objection: ${objectionStatement}`;
       
