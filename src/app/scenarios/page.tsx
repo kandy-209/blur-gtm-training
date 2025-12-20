@@ -56,7 +56,7 @@ const getBadgeColor = (text: string): string => {
   const normalizedText = text.toLowerCase().trim();
   
   // Category-based colors
-  if (normalizedText.includes('competitive') || normalizedText.includes('copilot')) {
+  if (normalizedText.includes('competitive') || normalizedText.includes('self-hosted')) {
     return 'bg-blue-100 text-blue-700 border-blue-200';
   }
   if (normalizedText.includes('security') || normalizedText.includes('privacy')) {
