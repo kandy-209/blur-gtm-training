@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 const categoryIcons: Record<string, any> = {
-  'Competitive_Copilot': Puzzle,
+  'Competitive_SelfHosted': Puzzle,
   'Security_Privacy': Shield,
   'Pricing_Value': DollarSign,
   'Integration_Complexity': Clock,
@@ -43,7 +43,7 @@ const categoryIcons: Record<string, any> = {
 };
 
 const categoryColors: Record<string, string> = {
-  'Competitive_Copilot': 'bg-blue-100 text-blue-700 border-blue-200',
+  'Competitive_SelfHosted': 'bg-blue-100 text-blue-700 border-blue-200',
   'Security_Privacy': 'bg-red-100 text-red-700 border-red-200',
   'Pricing_Value': 'bg-green-100 text-green-700 border-green-200',
   'Integration_Complexity': 'bg-purple-100 text-purple-700 border-purple-200',

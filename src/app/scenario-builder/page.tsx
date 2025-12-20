@@ -488,7 +488,7 @@ export default function ScenarioBuilderPage() {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Competitive_Copilot">Competitive (Copilot)</SelectItem>
+                    <SelectItem value="Competitive_SelfHosted">Competitive (Self-Hosted)</SelectItem>
                     <SelectItem value="Security_Privacy">Security & Privacy</SelectItem>
                     <SelectItem value="Pricing_Value">Pricing & Value</SelectItem>
                     <SelectItem value="Integration_Complexity">Integration Complexity</SelectItem>
