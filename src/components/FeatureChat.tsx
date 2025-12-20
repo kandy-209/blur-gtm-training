@@ -25,7 +25,7 @@ const leadershipLessons: Lesson[] = [
   {
     id: 'intro',
     title: 'Welcome to Leadership ROI Crash Course',
-    content: 'Learn how Cursor features drive measurable business value for engineering leadership. We\'ll cover ROI, metrics, and business impact.',
+    content: 'Learn how Browserbase features drive measurable business value for engineering leadership. We\'ll cover ROI, metrics, and business impact.',
     keyPoints: ['ROI measurement', 'Business metrics', 'Team productivity'],
     nextAction: 'start_lesson_1'
   },
@@ -71,7 +71,7 @@ const icLessons: Lesson[] = [
   {
     id: 'intro',
     title: 'Welcome to IC Impact Crash Course',
-    content: 'Discover how Cursor features help individual contributors work faster, smarter, and with more confidence. We\'ll cover productivity gains and daily impact.',
+    content: 'Discover how Browserbase features help individual contributors work faster, smarter, and with more confidence. We\'ll cover productivity gains and daily impact.',
     keyPoints: ['Time savings', 'Daily productivity', 'Code quality'],
     nextAction: 'start_lesson_1'
   },
@@ -172,7 +172,7 @@ export function FeatureChat({ initialRole = 'overview' }: { initialRole?: 'overv
       const summaryMessage: Message = {
         role: 'assistant',
         type: 'summary',
-        content: `🎉 Congratulations! You've completed the ${currentPath === 'leadership' ? 'Leadership ROI' : 'IC Impact'} crash course.\n\nKey takeaways:\n${lessons.slice(1).map((l, i) => `${i + 1}. ${l.title}`).join('\n')}\n\nYou now understand how Cursor features create value. Ready to explore specific features?`,
+        content: `🎉 Congratulations! You've completed the ${currentPath === 'leadership' ? 'Leadership ROI' : 'IC Impact'} crash course.\n\nKey takeaways:\n${lessons.slice(1).map((l, i) => `${i + 1}. ${l.title}`).join('\n')}\n\nYou now understand how Browserbase features create value. Ready to explore specific features?`,
         options: [
           { text: 'Start Over', action: 'restart' },
           { text: 'Explore Features', action: 'explore' }
@@ -271,7 +271,7 @@ export function FeatureChat({ initialRole = 'overview' }: { initialRole?: 'overv
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 mb-1">Leadership ROI Crash Course</h3>
                 <p className="text-sm text-gray-600">
-                  Learn how Cursor features drive business value, ROI, and team productivity metrics
+                  Learn how Browserbase features drive business value, ROI, and team productivity metrics
                 </p>
               </div>
               <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" />
@@ -294,7 +294,7 @@ export function FeatureChat({ initialRole = 'overview' }: { initialRole?: 'overv
               <div className="flex-1">
                 <h3 className="font-semibold text-gray-900 mb-1">IC Impact Crash Course</h3>
                 <p className="text-sm text-gray-600">
-                  Discover how Cursor features help individual contributors work faster and smarter
+                  Discover how Browserbase features help individual contributors work faster and smarter
                 </p>
               </div>
               <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-gray-900 transition-colors" />

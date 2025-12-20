@@ -23,7 +23,7 @@ export default function ChatPage() {
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Chat Assistant</h1>
               <p className="text-muted-foreground mt-1">
-                Ask questions about Cursor - Access based on your permissions
+                Ask questions about Browserbase - Access based on your permissions
               </p>
             </div>
           </div>

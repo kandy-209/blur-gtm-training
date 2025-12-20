@@ -69,10 +69,10 @@ export default function FeaturesPage() {
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3">
-              Cursor Features
+              Blur Features
             </h1>
             <p className="text-lg text-gray-600">
-              Learn how Cursor features impact engineering teams and ROI
+              Learn how Blur features impact engineering teams and ROI
             </p>
           </div>
 

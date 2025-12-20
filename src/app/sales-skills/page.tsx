@@ -359,7 +359,7 @@ export default function SalesSkillsPage() {
                 <Link href="/features" className="flex-1">
                   <Button variant="outline" className="w-full" size="lg">
                     <BookOpen className="mr-2 h-5 w-5" />
-                    Learn Cursor Features
+                    Learn Browserbase Features
                   </Button>
                 </Link>
               </div>

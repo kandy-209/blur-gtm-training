@@ -67,9 +67,7 @@ export async function GET(request: NextRequest) {
       achievements_unlocked: 0,
     };
 
-    let stats: any = statsResult.success && statsResult.data 
-      ? statsResult.data 
-      : defaultStats;
+    let stats: any = (statsResult.success && statsResult.data) ? statsResult.data : defaultStats;
 
     // Get additional data from analytics if available
     let analyticsData: any = null;

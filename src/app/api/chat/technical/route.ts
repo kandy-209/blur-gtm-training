@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
 
     // Technical chat responses - enhanced for authenticated users
     const technicalResponses: Record<string, string> = {
-      'api': 'Cursor provides APIs for integration. Check the documentation for API endpoints and authentication.',
-      'integration': 'Cursor integrates with VS Code, GitHub, GitLab, and many other tools. See the integration docs for setup instructions.',
-      'deployment': 'Cursor Enterprise supports on-premise deployment for security-sensitive environments. Contact sales for deployment options.',
-      'security': 'Cursor Enterprise includes SOC 2 Type II compliance, data encryption, and enterprise SSO. All data can stay on-premise.',
-      'performance': 'Cursor is optimized for large codebases. It uses efficient indexing and caching to maintain fast performance.',
+      'api': 'Browserbase provides APIs for integration. Check the documentation for API endpoints and authentication.',
+      'integration': 'Browserbase integrates with popular CI/CD tools, testing frameworks, and development environments. See the integration docs for setup instructions.',
+      'deployment': 'Browserbase supports cloud and on-premise deployment options for security-sensitive environments. Contact sales for deployment options.',
+      'security': 'Browserbase includes SOC 2 Type II compliance, data encryption, and enterprise SSO. All data can stay on-premise if needed.',
+      'performance': 'Browserbase is optimized for large-scale browser automation and web scraping. It uses efficient resource management and scaling to maintain fast performance.',
     };
 
     const lowerQuestion = sanitizedQuestion.toLowerCase();

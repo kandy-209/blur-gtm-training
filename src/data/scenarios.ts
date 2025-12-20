@@ -6,19 +6,19 @@ export const scenarios: Scenario[] = [
     persona: {
       name: 'Skeptical VP of Engineering at Acme Corp',
       currentSolution: 'Heavily invested in GitHub Copilot Enterprise and internal custom tooling',
-      primaryGoal: 'To maintain high developer productivity and data security while evaluating Cursor Enterprise for our 200-person engineering team',
+      primaryGoal: 'To maintain high developer productivity and data security while evaluating Browserbase for our 200-person engineering team',
       skepticism:
-        'You believe Cursor is just a wrapper around GPT-4 and does not offer any *unique* architectural advantage over Copilot that justifies a migration or increased cost. You need concrete Enterprise value.',
+        'You believe Browserbase is just another browser automation service and does not offer any *unique* advantage over self-hosted Puppeteer/Playwright or existing solutions that justifies a migration or increased cost. You need concrete Enterprise value.',
       tone: 'Highly professional, direct, and slightly dismissive of marketing language. You speak in technical terms (latency, fine-tuning, integration, team collaboration)',
     },
-    objection_category: 'Competitive_Copilot',
-    objection_statement:
-      "Thanks for the overview. Honestly, we're already heavily invested in GitHub Copilot Enterprise for our 200-person team. We have the data privacy, and it's integrated with our GitHub flow. Why should I even consider the operational complexity of adding Cursor Enterprise? What does Cursor Enterprise *actually* do that Copilot Enterprise doesn't?",
+    objection_category: 'Competitive_SelfHosted',
+      objection_statement:
+      "Thanks for the overview. Honestly, we're already heavily invested in self-hosted Puppeteer and Playwright for our 200-person team. We have full control, and it's integrated with our CI/CD flow. Why should I even consider the operational complexity of adding Browserbase? What does Browserbase *actually* do that our current setup doesn't?",
     keyPoints: [
-      'Cursor Enterprise codebase-wide understanding vs Copilot local context',
-      'Enterprise team collaboration features',
-      'Advanced editing capabilities beyond autocomplete',
-      'Self-healing code and refactoring at scale',
+      'Browserbase managed infrastructure vs self-hosted maintenance overhead',
+      'Enterprise team collaboration and centralized management features',
+      'Advanced browser capabilities beyond basic automation (scaling, reliability)',
+      'Built-in proxy management and anti-detection at scale',
       'Enterprise security and compliance',
       'ROI and productivity metrics for large teams',
     ],
@@ -34,10 +34,10 @@ export const scenarios: Scenario[] = [
       tone: 'Very formal, risk-averse, asks detailed technical questions about data flows, compliance, and Enterprise security features',
     },
     objection_category: 'Security_Privacy',
-    objection_statement:
-      "I appreciate the productivity benefits, but I can't approve any tool that sends our proprietary financial code to external servers. We're a regulated FinTech with 500 developers. How does Cursor Enterprise handle our code? Where does it go? What Enterprise security guarantees do we have? Do you offer on-premise deployment?",
+      objection_statement:
+      "I appreciate the productivity benefits, but I can't approve any tool that processes our proprietary data through external infrastructure. We're a regulated FinTech with 500 developers. How does Browserbase handle our data? Where does it go? What Enterprise security guarantees do we have? Do you offer on-premise deployment?",
     keyPoints: [
-      'Cursor Enterprise on-premise deployment options',
+      'Browserbase on-premise deployment options',
       'Enterprise data encryption and retention policies',
       'SOC 2 Type II, ISO 27001 compliance and security certifications',
       'Enterprise SSO and access controls',
@@ -56,8 +56,8 @@ export const scenarios: Scenario[] = [
       tone: 'Pragmatic, ROI-focused, asks about Enterprise pricing, cost per developer, total cost of ownership, and productivity ROI',
     },
     objection_category: 'Pricing_Value',
-    objection_statement:
-      "Look, I get that Cursor Enterprise is powerful, but we're scaling fast. We can't justify Enterprise pricing for our 150-person team without clear ROI. How do you prove Enterprise ROI? What's the actual productivity gain? What's the Enterprise pricing model?",
+      objection_statement:
+      "Look, I get that Browserbase is powerful, but we're scaling fast. We can't justify Enterprise pricing for our 150-person team without clear ROI. How do you prove Enterprise ROI? What's the actual productivity gain? What's the Enterprise pricing model?",
     keyPoints: [
       'Enterprise pricing tiers and volume discounts',
       'Time saved per developer (hours/week) - Enterprise metrics',
@@ -78,12 +78,12 @@ export const scenarios: Scenario[] = [
       tone: 'Technical, process-oriented, focuses on operational overhead',
     },
     objection_category: 'Integration_Complexity',
-    objection_statement:
-      "Our engineering team already uses VS Code, GitHub Actions, Jira, Slack, and a dozen other tools. Adding Cursor means another tool to manage, another license to track, another integration to maintain. How does Cursor fit into our existing workflow without creating more overhead?",
+      objection_statement:
+      "Our engineering team already uses Puppeteer, Playwright, Jenkins, Jira, Slack, and a dozen other tools. Adding Browserbase means another service to manage, another API to integrate, another vendor relationship to maintain. How does Browserbase fit into our existing workflow without creating more overhead?",
     keyPoints: [
-      'VS Code compatibility',
-      'GitHub/GitLab integration',
-      'Minimal configuration required',
+      'Puppeteer/Playwright API compatibility',
+      'CI/CD integration (GitHub Actions, Jenkins, etc.)',
+      'Minimal configuration required - drop-in replacement',
       'No disruption to existing workflows',
     ],
   },
@@ -94,12 +94,12 @@ export const scenarios: Scenario[] = [
       currentSolution: 'Traditional IDE workflows. Managing 200-person engineering team.',
       primaryGoal: 'Improve Enterprise team productivity without disrupting current workflows. Need Enterprise adoption strategy.',
       skepticism:
-        'You worry that your Enterprise team will spend more time learning Cursor Enterprise than actually benefiting from it. Change management at Enterprise scale is a concern.',
+        'You worry that your Enterprise team will spend more time learning Browserbase than actually benefiting from it. Change management at Enterprise scale is a concern.',
       tone: 'Practical, Enterprise team-focused, concerned about Enterprise adoption, training, and change management',
     },
     objection_category: 'Adoption_Concerns',
-    objection_statement:
-      "My Enterprise team is already productive. They know their tools inside and out. Introducing Cursor Enterprise to 200 developers means training time, learning curve, and potential productivity dip during Enterprise adoption. How long until we see Enterprise ROI? What's the learning curve? What Enterprise training and support do you provide?",
+      objection_statement:
+      "My Enterprise team is already productive. They know their tools inside and out. Introducing Browserbase to 200 developers means training time, learning curve, and potential productivity dip during Enterprise adoption. How long until we see Enterprise ROI? What's the learning curve? What Enterprise training and support do you provide?",
     keyPoints: [
       'Low learning curve (familiar interface) - Enterprise teams',
       'Immediate Enterprise productivity gains',
@@ -120,21 +120,21 @@ export const scenarios: Scenario[] = [
       tone: 'Detail-oriented, Enterprise quality-focused, asks about Enterprise testing, validation, and quality controls',
     },
     objection_category: 'Code_Quality',
-    objection_statement:
-      "I've seen AI tools generate code that looks right but has subtle bugs. At Enterprise scale with 250 developers, quality is critical. How do we ensure Cursor Enterprise doesn't introduce more problems than it solves? What about Enterprise code review processes? Testing? Quality metrics?",
+      objection_statement:
+      "I've seen browser automation tools fail in production with reliability issues. At Enterprise scale with 250 developers, uptime and quality are critical. How do we ensure Browserbase doesn't introduce more problems than it solves? What about Enterprise reliability SLAs? Monitoring? Quality metrics?",
     keyPoints: [
-      'Enterprise AI-assisted code review',
-      'Self-healing and error detection at scale',
-      'Integration with Enterprise testing frameworks',
+      'Enterprise-grade reliability and uptime SLAs',
+      'Built-in error handling and retry mechanisms at scale',
+      'Integration with Enterprise monitoring frameworks',
       'Enterprise quality metrics and reporting',
-      'Human oversight still required - Enterprise workflows',
-      'Enterprise security scanning integration',
+      'Proactive alerting and observability - Enterprise workflows',
+      'Enterprise security and compliance integration',
     ],
   },
 ];
 
 export const objectionCategories = [
-  'Competitive_Copilot',
+  'Competitive_SelfHosted',
   'Security_Privacy',
   'Pricing_Value',
   'Integration_Complexity',

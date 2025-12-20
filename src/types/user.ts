@@ -3,7 +3,8 @@ export interface UserProfile {
   email: string;
   username: string;
   fullName?: string;
-  roleAtCursor: string; // e.g., "Sales Rep", "Account Executive", "Sales Manager"
+  roleAtBlur: string; // e.g., "Sales Rep", "Account Executive", "Sales Manager"
+  roleAtCursor?: string; // Deprecated: use roleAtBlur instead (kept for backward compatibility)
   jobTitle: string; // e.g., "Senior Account Executive", "Enterprise Sales Manager"
   department?: string;
   avatarUrl?: string;
@@ -36,7 +37,8 @@ export interface SessionRating {
 export interface LeaderboardEntry {
   userId: string;
   username: string;
-  roleAtCursor: string;
+  roleAtBlur: string;
+  roleAtCursor?: string; // Deprecated: use roleAtBlur instead
   totalSessions: number;
   averageRating: number;
   totalRatings: number;

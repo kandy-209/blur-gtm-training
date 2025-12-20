@@ -33,13 +33,13 @@ export async function POST(request: NextRequest) {
     // General chat - available to all users
     // Enhanced responses with better context
     const responses: Record<string, string> = {
-      'hello': 'Hello! I\'m here to help you learn about Cursor Enterprise. You can ask me about features, ROI, technical questions, or how Cursor helps engineering teams. What would you like to know?',
-      'hi': 'Hi there! I can help you understand Cursor features, their impact on teams, and ROI. What questions do you have?',
-      'help': 'I can help you with:\n• Cursor features and capabilities\n• ROI and business impact\n• Technical questions (requires sign-in)\n• How features help ICs and leadership\n\nWhat would you like to learn about?',
-      'what is cursor': 'Cursor is an AI-powered code editor that helps developers write code faster and more efficiently. It understands your entire codebase and provides intelligent assistance. Cursor Enterprise adds team collaboration, security, and advanced features for large engineering teams.',
-      'features': 'Cursor has many powerful features:\n• Codebase-wide understanding\n• Composer mode for multi-file editing\n• Chat with codebase\n• Enterprise security & compliance\n• Team collaboration features\n• Self-healing code\n\nCheck out the Features page for detailed information!',
-      'roi': 'Cursor provides significant ROI:\n• 30-50% reduction in onboarding time\n• 2-3x faster development cycles\n• 40-60% faster feature development\n• Reduced bug rates\n\nSign in to access detailed ROI chat!',
-      'enterprise': 'Cursor Enterprise includes:\n• On-premise deployment options\n• SOC 2 Type II compliance\n• Enterprise SSO\n• Team collaboration features\n• Advanced security controls\n• Audit logs and compliance reporting\n\nPerfect for security-conscious organizations.',
+      'hello': 'Hello! I\'m here to help you learn about Browserbase. You can ask me about features, ROI, technical questions, or how Browserbase helps engineering teams with browser automation and web scraping. What would you like to know?',
+      'hi': 'Hi there! I can help you understand Browserbase features, their impact on teams, and ROI. What questions do you have?',
+      'help': 'I can help you with:\n• Browserbase features and capabilities\n• ROI and business impact\n• Technical questions (requires sign-in)\n• How features help ICs and leadership\n\nWhat would you like to learn about?',
+      'what is browserbase': 'Browserbase is a browser automation and web scraping platform that helps engineering teams scale their browser workflows without managing infrastructure. It provides headless browser infrastructure, testing capabilities, and web scraping tools for large engineering teams.',
+      'features': 'Browserbase has many powerful features:\n• Browser automation at scale\n• Web scraping infrastructure\n• Headless browser management\n• Enterprise security & compliance\n• Team collaboration features\n• Scalable infrastructure\n\nCheck out the Features page for detailed information!',
+      'roi': 'Browserbase provides significant ROI:\n• Reduced infrastructure management costs\n• Faster development cycles for browser-based testing\n• Improved reliability for web scraping\n• Reduced operational overhead\n\nSign in to access detailed ROI chat!',
+      'enterprise': 'Browserbase Enterprise includes:\n• On-premise deployment options\n• SOC 2 Type II compliance\n• Enterprise SSO\n• Team collaboration features\n• Advanced security controls\n• Audit logs and compliance reporting\n\nPerfect for security-conscious organizations.',
     };
 
     const lowerQuestion = sanitizedQuestion.toLowerCase();
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       if (lowerQuestion.includes('how') || lowerQuestion.includes('what') || lowerQuestion.includes('why')) {
         answer = `Great question! For detailed information about "${sanitizedQuestion}", I recommend:\n\n1. Check the Features page for comprehensive feature details\n2. Try the Features chat for feature-specific questions\n3. Sign in to access Technical and ROI chat for deeper insights\n\nWhat specific aspect would you like to learn more about?`;
       } else {
-        answer = `Thanks for your question! For information about "${sanitizedQuestion}", please:\n\n• Visit the Features page for detailed feature information\n• Try asking about specific Cursor capabilities\n• Sign in to access advanced chat features\n\nHow can I help you further?`;
+        answer = `Thanks for your question! For information about "${sanitizedQuestion}", please:\n\n• Visit the Features page for detailed feature information\n• Try asking about specific Browserbase capabilities\n• Sign in to access advanced chat features\n\nHow can I help you further?`;
       }
     }
 

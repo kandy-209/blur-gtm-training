@@ -4,8 +4,8 @@ import { ElevenLabsClient } from '@/lib/elevenlabs';
 
 // Initialize ElevenLabs client
 const elevenLabsClient = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY,
-  voiceId: process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID,
+  apiKey: process.env.ELEVENLABS_API_KEY?.trim(),
+  voiceId: process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID?.trim(),
   modelId: 'eleven_multilingual_v2', // Better model for multilingual support
   stability: 0.5,
   similarityBoost: 0.75,

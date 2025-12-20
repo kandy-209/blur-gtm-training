@@ -14,7 +14,7 @@ interface ScenarioPreviewModalProps {
 }
 
 const categoryIcons: Record<string, any> = {
-  'Competitive_Copilot': Puzzle,
+  'Competitive_SelfHosted': Puzzle,
   'Security_Privacy': Shield,
   'Pricing_Value': DollarSign,
   'Integration_Complexity': Clock,

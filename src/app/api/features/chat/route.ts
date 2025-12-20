@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (matchingFeatures.length === 0) {
       return NextResponse.json({
-        answer: "I couldn't find specific information about that. Try asking about Cursor features like 'codebase understanding', 'composer mode', 'enterprise security', or 'team collaboration'.",
+        answer: "I couldn't find specific information about that. Try asking about Browserbase features like 'managed infrastructure', 'automatic scaling', 'enterprise security', or 'browser automation'.",
         features: [],
       });
     }

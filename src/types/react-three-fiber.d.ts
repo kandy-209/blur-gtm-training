@@ -1,11 +1,17 @@
-/**
- * React Three Fiber Type Declarations
- * Extends JSX types for Three.js components
- */
+import 'react';
 
-/// <reference types="@react-three/fiber" />
-
-declare module '@react-three/fiber' {
-  export * from '@react-three/fiber/dist/declarations/src';
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      // React Three Fiber elements
+      group: any;
+      mesh: any;
+      boxGeometry: any;
+      meshStandardMaterial: any;
+      pointsMaterial: any;
+      points: any;
+      bufferGeometry: any;
+      [key: string]: any; // Allow any Three.js element
+    }
+  }
 }
-

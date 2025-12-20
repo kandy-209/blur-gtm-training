@@ -149,7 +149,7 @@ export function preloadCriticalResources() {
   if (typeof window === 'undefined') return;
   
   const criticalResources = [
-    '/logos/cursor-logo.svg',
+    '/logos/browserbase-logo.svg',
   ];
   
   criticalResources.forEach((resource) => {

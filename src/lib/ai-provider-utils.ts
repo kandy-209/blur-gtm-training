@@ -27,8 +27,8 @@ export async function checkProviderHealth(providerName: string, forceRefresh: bo
   };
 
   try {
-    // Simple health check - validate key format (Anthropic only)
-    if (providerName === 'anthropic') {
+    // Simple health check - validate key format
+    if (providerName === 'anthropic' || providerName === 'claude') {
       const key = process.env.ANTHROPIC_API_KEY;
       const validation = validateAPIKey('anthropic', key || '');
       if (validation.valid) {
@@ -36,10 +36,26 @@ export async function checkProviderHealth(providerName: string, forceRefresh: bo
       } else {
         health.error = validation.error || 'ANTHROPIC_API_KEY not configured or invalid';
       }
+    } else if (providerName === 'gemini') {
+      const key = process.env.GOOGLE_GEMINI_API_KEY;
+      const validation = validateAPIKey('gemini', key || '');
+      if (validation.valid) {
+        health.available = true;
+      } else {
+        health.error = validation.error || 'GOOGLE_GEMINI_API_KEY not configured or invalid';
+      }
+    } else if (providerName === 'openai') {
+      const key = process.env.OPENAI_API_KEY;
+      const validation = validateAPIKey('openai', key || '');
+      if (validation.valid) {
+        health.available = true;
+      } else {
+        health.error = validation.error || 'OPENAI_API_KEY not configured or invalid';
+      }
     } else {
       // Other providers not supported
       health.available = false;
-      health.error = `${providerName} provider not supported. Only Anthropic Claude is available.`;
+      health.error = `${providerName} provider not supported. Supported providers: claude, gemini, openai.`;
     }
   } catch (error: any) {
     health.error = error.message;
@@ -50,10 +66,10 @@ export async function checkProviderHealth(providerName: string, forceRefresh: bo
 }
 
 /**
- * Get health status for all providers (Anthropic only)
+ * Get health status for all providers
  */
 export async function getAllProviderHealth(): Promise<ProviderHealth[]> {
-  const providers = ['anthropic', 'huggingface', 'openai']; // Keep for compatibility but only anthropic works
+  const providers = ['claude', 'gemini', 'openai'];
   return Promise.all(providers.map(p => checkProviderHealth(p)));
 }
 
@@ -100,16 +116,27 @@ export function validateAPIKey(provider: string, key: string): { valid: boolean;
 
   switch (provider) {
     case 'anthropic':
+    case 'claude':
       if (!trimmed.startsWith('sk-ant-')) {
         return { valid: false, error: 'Anthropic key must start with sk-ant-' };
       }
       break;
-    case 'huggingface':
+    case 'gemini':
+      // Google API keys typically start with AIza
+      if (!trimmed.startsWith('AIza')) {
+        return { valid: false, error: 'Gemini key format invalid. Should start with AIza' };
+      }
+      break;
     case 'openai':
-      // Not supported - return invalid
-      return { valid: false, error: `${provider} is not supported. Only Anthropic Claude is available.` };
+      if (!trimmed.startsWith('sk-')) {
+        return { valid: false, error: 'OpenAI key must start with sk-' };
+      }
+      break;
+    case 'huggingface':
+      // Not supported
+      return { valid: false, error: 'HuggingFace is not supported. Use claude, gemini, or openai.' };
     default:
-      return { valid: false, error: `Unknown provider: ${provider}` };
+      return { valid: false, error: `Unknown provider: ${provider}. Supported: claude, gemini, openai` };
   }
 
   return { valid: true };

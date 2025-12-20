@@ -85,10 +85,18 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Call analytics error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch call analytics', message: error.message },
-      { status: 500 }
-    );
+    // Return empty data instead of 500 to prevent UI crashes
+    // This is non-critical data, so graceful degradation is better
+    return NextResponse.json({
+      totalCalls: 0,
+      averageScore: 0,
+      averageDuration: 0,
+      meetingBookingRate: 0,
+      saleClosingRate: 0,
+      averageObjectionsResolved: 0,
+      recentCalls: [],
+      error: 'Failed to fetch call analytics',
+    }, { status: 200 }); // Return 200 with empty data instead of 500
   }
 }
 

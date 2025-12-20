@@ -55,7 +55,7 @@ export default function FinancialDashboardPage() {
                 <CardHeader>
                   <CardTitle>Company ROI Analysis</CardTitle>
                   <CardDescription>
-                    Analyze how Cursor can impact a specific company's engineering productivity
+                    Analyze how Browserbase can impact a specific company's engineering productivity
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -66,7 +66,7 @@ export default function FinancialDashboardPage() {
                     </Button>
                   </Link>
                   <p className="text-sm text-gray-600 mt-4">
-                    Search for a company, then click "Calculate ROI" to see how Cursor Enterprise 
+                    Search for a company, then click "Calculate ROI" to see how Browserbase 
                     can impact their engineering team's productivity and ROI.
                   </p>
                 </CardContent>

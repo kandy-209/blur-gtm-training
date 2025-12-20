@@ -153,11 +153,29 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
       setCallMetrics(null);
       setCallAnalysis(null);
 
+      // Clean phone number: remove all non-digits
+      const cleanedPhone = phoneNumber.replace(/\D/g, '');
+      
+      // Validate phone number before sending
+      if (!cleanedPhone || cleanedPhone.length < 10) {
+        setError('Please enter a valid phone number with at least 10 digits');
+        setIsCalling(false);
+        setCallStatus('failed');
+        return;
+      }
+      
+      if (cleanedPhone.length > 15) {
+        setError('Phone number is too long (maximum 15 digits)');
+        setIsCalling(false);
+        setCallStatus('failed');
+        return;
+      }
+
       const response = await fetch('/api/vapi/sales-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phoneNumber: phoneNumber.replace(/\D/g, ''),
+          phoneNumber: cleanedPhone, // Send cleaned digits only
           userId,
           scenarioId: selectedScenario.id,
           trainingMode,
@@ -207,19 +225,31 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
       });
 
       // Start polling for call status and analysis
-      const interval = setInterval(async () => {
+      // Use longer intervals to avoid rate limiting (429 errors)
+      let pollCount = 0;
+      let consecutiveErrors = 0;
+      const baseInterval = 8000; // Start with 8 seconds (less aggressive)
+      const maxInterval = 15000; // Max 15 seconds
+      let currentInterval = baseInterval;
+      
+      const pollStatus = async () => {
         try {
+          pollCount++;
+          
           // Get call status via our API route (server-side handles Vapi auth)
           const statusResponse = await fetch(
             `/api/vapi/call/${data.callId}/status`
           );
 
           if (statusResponse.ok) {
+            consecutiveErrors = 0; // Reset error count on success
+            currentInterval = baseInterval; // Reset to base interval
+            
             const statusData = await statusResponse.json();
             const status = statusData.status;
 
             if (status === 'ended' || status === 'completed') {
-              clearInterval(interval);
+              if (interval) clearInterval(interval);
               setCallStatus('completed');
               setIsCalling(false);
               
@@ -230,36 +260,60 @@ export function PhoneCallTraining({ userId }: PhoneCallTrainingProps) {
               await fetchAnalysis(data.callId, selectedScenario.id);
             } else if (status === 'in-progress') {
               setCallDuration(statusData.duration || 0);
-            }
-          }
-
-          // Try to get live metrics if call is in progress (poll more frequently for live updates)
-          if (status === 'in-progress' || callStatus === 'in-progress') {
-            // Fetch enhanced metrics from new endpoint
-            try {
-              const metricsResponse = await fetch(`/api/vapi/call/${data.callId}/metrics`);
-              if (metricsResponse.ok) {
-                const metricsData = await metricsResponse.json();
-                if (metricsData.success && metricsData.callId) {
-                  // Update call metrics with enhanced data
-                  setCallMetrics(prev => ({
-                    ...prev,
-                    ...metricsData,
-                    callId: metricsData.callId,
-                  }));
+              
+              // Only fetch metrics every 4th poll to reduce API calls (every ~32 seconds)
+              if (pollCount % 4 === 0) {
+                try {
+                  const metricsResponse = await fetch(`/api/vapi/call/${data.callId}/metrics`);
+                  if (metricsResponse.ok) {
+                    const metricsData = await metricsResponse.json();
+                    if (metricsData.success && metricsData.callId) {
+                      setCallMetrics(prev => ({
+                        ...prev,
+                        ...metricsData,
+                        callId: metricsData.callId,
+                      }));
+                    }
+                  } else if (metricsResponse.status === 429) {
+                    // Skip metrics on rate limit
+                    console.warn('Rate limited on metrics, skipping this poll');
+                  }
+                } catch (err) {
+                  console.error('Error fetching enhanced metrics:', err);
                 }
               }
-            } catch (err) {
-              console.error('Error fetching enhanced metrics:', err);
             }
+          } else if (statusResponse.status === 429) {
+            // Rate limited - increase polling interval
+            consecutiveErrors++;
+            currentInterval = Math.min(currentInterval * 1.5, maxInterval);
+            console.warn(`Rate limited (${consecutiveErrors}x), increasing poll interval to ${currentInterval}ms`);
             
-            // Also fetch analysis
-            await fetchAnalysis(data.callId, selectedScenario.id);
+            // Clear and restart with longer interval
+            if (interval) clearInterval(interval);
+            const newInterval = setInterval(pollStatus, currentInterval);
+            setPollingInterval(newInterval);
+            return;
+          } else {
+            consecutiveErrors++;
+            if (consecutiveErrors > 5) {
+              // Too many errors, stop polling
+              console.error('Too many polling errors, stopping');
+              if (interval) clearInterval(interval);
+              setPollingInterval(null);
+            }
           }
         } catch (err) {
+          consecutiveErrors++;
           console.error('Error polling call status:', err);
+          if (consecutiveErrors > 5) {
+            if (interval) clearInterval(interval);
+            setPollingInterval(null);
+          }
         }
-      }, 3000);
+      };
+      
+      const interval = setInterval(pollStatus, currentInterval);
 
       setPollingInterval(interval);
     } catch (err) {

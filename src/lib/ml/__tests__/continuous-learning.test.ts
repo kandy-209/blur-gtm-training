@@ -50,11 +50,11 @@ describe('ContinuousLearningAgent', () => {
         },
       ]);
 
-      const insights = await ContinuousLearningAgent.learnFromData('Competitive_Copilot', 5);
+      const insights = await ContinuousLearningAgent.learnFromData('Competitive_SelfHosted', 5);
 
       expect(insights.length).toBeGreaterThan(0);
       expect(insights[0].type).toBeDefined();
-      expect(insights[0].category).toBe('Competitive_Copilot');
+      expect(insights[0].category).toBe('Competitive_SelfHosted');
     });
 
     it('should return empty array when insufficient data', async () => {
@@ -62,7 +62,7 @@ describe('ContinuousLearningAgent', () => {
         { response: 'Test', averageScore: 80, successRate: 0.8, count: 1 },
       ]);
 
-      const insights = await ContinuousLearningAgent.learnFromData('Competitive_Copilot', 10);
+      const insights = await ContinuousLearningAgent.learnFromData('Competitive_SelfHosted', 10);
 
       expect(insights.length).toBe(0);
     });
@@ -70,7 +70,7 @@ describe('ContinuousLearningAgent', () => {
     it('should handle errors gracefully', async () => {
       (db.getTopResponses as jest.Mock).mockRejectedValue(new Error('DB error'));
 
-      const insights = await ContinuousLearningAgent.learnFromData('Competitive_Copilot', 5);
+      const insights = await ContinuousLearningAgent.learnFromData('Competitive_SelfHosted', 5);
 
       expect(insights).toEqual([]);
     });
@@ -97,7 +97,7 @@ describe('ContinuousLearningAgent', () => {
 
       const result = await ContinuousLearningAgent.generateImprovedResponse(
         'Test objection',
-        'Competitive_Copilot',
+        'Competitive_SelfHosted',
         [{ role: 'rep', message: 'Previous message' }],
         { name: 'Test Persona', currentSolution: 'GitHub Copilot', primaryGoal: 'Productivity', skepticism: 'Low', tone: 'Professional' }
       );
@@ -114,7 +114,7 @@ describe('ContinuousLearningAgent', () => {
 
       const result = await ContinuousLearningAgent.generateImprovedResponse(
         'Test objection',
-        'Competitive_Copilot',
+        'Competitive_SelfHosted',
         [],
         { name: 'Test', currentSolution: 'Test', primaryGoal: 'Test', skepticism: 'Test', tone: 'Test' }
       );
@@ -135,7 +135,7 @@ describe('ContinuousLearningAgent', () => {
 
       (db.getTopResponses as jest.Mock).mockResolvedValue(mockResponses);
 
-      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_Copilot');
+      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_SelfHosted');
 
       expect(improvement).toBeDefined();
       if (improvement) {
@@ -151,7 +151,7 @@ describe('ContinuousLearningAgent', () => {
         { response: 'Test', averageScore: 80, successRate: 0.8, count: 1 },
       ]);
 
-      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_Copilot');
+      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_SelfHosted');
 
       expect(improvement).toBeNull();
     });
@@ -159,7 +159,7 @@ describe('ContinuousLearningAgent', () => {
     it('should handle errors gracefully', async () => {
       (db.getTopResponses as jest.Mock).mockRejectedValue(new Error('DB error'));
 
-      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_Copilot');
+      const improvement = await ContinuousLearningAgent.evaluateModelImprovement('Competitive_SelfHosted');
 
       expect(improvement).toBeNull();
     });

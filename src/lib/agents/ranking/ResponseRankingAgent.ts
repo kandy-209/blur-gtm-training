@@ -147,7 +147,7 @@ export class ResponseRankingAgent extends BaseAgent {
     // Check if response addresses objection category
     if (context.objectionCategory) {
       const categoryKeywords: Record<string, string[]> = {
-        'Competitive_Copilot': ['copilot', 'github', 'alternative', 'difference'],
+        'Competitive_SelfHosted': ['self-hosted', 'puppeteer', 'playwright', 'alternative', 'difference'],
         'Security_Concerns': ['security', 'data', 'privacy', 'compliance'],
         'Cost_Objection': ['cost', 'price', 'roi', 'value'],
       };

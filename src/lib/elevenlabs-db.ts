@@ -100,7 +100,7 @@ export class ElevenLabsConversationDB {
         id: conversationId,
         ...record,
         updated_at: new Date().toISOString(),
-      }, {
+      } as any, {
         onConflict: 'id'
       });
 

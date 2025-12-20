@@ -1,5 +1,6 @@
 // @ts-nocheck - React Three Fiber types
 'use client';
+// @ts-nocheck
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -14,7 +15,7 @@ export default function WaterParticles({
   count = 200,
   speed = 0.5
 }: WaterParticlesProps) {
-  const pointsRef = useRef<Points>(null);
+  const pointsRef = useRef<any>(null);
 
   // Create particle positions
   const { positions, velocities } = useMemo(() => {

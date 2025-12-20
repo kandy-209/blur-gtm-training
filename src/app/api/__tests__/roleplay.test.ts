@@ -83,7 +83,7 @@ describe('/api/roleplay', () => {
       scenarioInput: {
         turn_number: 1,
         scenario_id: 'test-scenario',
-        objection_category: 'Competitive_Copilot',
+        objection_category: 'Competitive_SelfHosted',
         objection_statement: 'Test objection',
       },
       persona: {
@@ -125,7 +125,7 @@ describe('/api/roleplay', () => {
       scenarioInput: {
         turn_number: 1,
         scenario_id: 'test-scenario',
-        objection_category: 'Competitive_Copilot',
+        objection_category: 'Competitive_SelfHosted',
         objection_statement: 'Test objection',
       },
       persona: {

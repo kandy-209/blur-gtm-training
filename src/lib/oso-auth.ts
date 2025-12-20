@@ -142,13 +142,12 @@ export function filterAuthorized<T extends AuthorizedResource>(
       role: (user as any).role,
       isGuest: (user as any).isGuest,
     };
-  } else if ('isGuest' in user || (user as any).isGuest !== undefined) {
-    // GuestUser type (has isGuest property but might not have role)
-    const isGuest = 'isGuest' in user ? user.isGuest : (user as any).isGuest;
+  } else if ('isGuest' in user && (user as any).isGuest === true) {
+    // GuestUser type - only treat as guest if isGuest is explicitly true
     userContext = {
       id: (user as any).id || 'anonymous',
       role: 'guest',
-      isGuest: isGuest || false,
+      isGuest: true,
     };
   } else {
     // AuthUser (Supabase User) - check user_metadata for role

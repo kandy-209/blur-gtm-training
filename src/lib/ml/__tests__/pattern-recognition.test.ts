@@ -23,7 +23,7 @@ describe('PatternRecognitionAgent', () => {
 
       (db.getTopResponses as jest.Mock).mockResolvedValue(mockResponses);
 
-      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_Copilot', 80, 3);
+      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_SelfHosted', 80, 3);
 
       expect(patterns.length).toBeGreaterThan(0);
       expect(patterns[0].pattern.keyTerms.length).toBeGreaterThan(0);
@@ -33,7 +33,7 @@ describe('PatternRecognitionAgent', () => {
     it('should return empty array when no responses found', async () => {
       (db.getTopResponses as jest.Mock).mockResolvedValue([]);
 
-      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_Copilot', 80, 3);
+      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_SelfHosted', 80, 3);
 
       expect(patterns).toEqual([]);
     });
@@ -41,7 +41,7 @@ describe('PatternRecognitionAgent', () => {
     it('should handle errors gracefully', async () => {
       (db.getTopResponses as jest.Mock).mockRejectedValue(new Error('DB error'));
 
-      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_Copilot', 80, 3);
+      const patterns = await PatternRecognitionAgent.identifyPatterns('Competitive_SelfHosted', 80, 3);
 
       expect(patterns).toEqual([]);
     });

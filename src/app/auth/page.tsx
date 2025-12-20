@@ -53,21 +53,6 @@ export default function AuthPage() {
       <ErrorBoundaryWithContext component="AuthPageGuestForm">
         <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-md mx-auto">
-          {/* Cursor Employee Banner */}
-          <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-sm">C</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-1">For Cursor Employees</h3>
-                <p className="text-sm text-blue-800">
-                  No signup required! Start training immediately. You can create an account later if you want to save progress.
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="text-center mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">Quick Start - No Signup</h1>
             <p className="text-muted-foreground">
@@ -78,7 +63,7 @@ export default function AuthPage() {
             <CardHeader className="bg-gray-50">
               <CardTitle className="text-xl">Start Training Now</CardTitle>
               <CardDescription>
-                No email or password needed. Perfect for Cursor team members!
+                No email or password needed.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -97,7 +82,7 @@ export default function AuthPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="guest-role" className="text-base font-medium">Your Role at Cursor</Label>
+                  <Label htmlFor="guest-role" className="text-base font-medium">Your Role at Blur</Label>
                   <Select value={guestRole} onValueChange={setGuestRole}>
                     <SelectTrigger id="guest-role" className="mt-2 h-12 text-base">
                       <SelectValue />
@@ -164,7 +149,7 @@ export default function AuthPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Cursor Enterprise GTM Training</h1>
+          <h1 className="text-3xl font-bold mb-2">Browserbase GTM Training</h1>
           <p className="text-muted-foreground">
             {mode === 'signin' ? 'Welcome back!' : 'Create your account to start practicing'}
           </p>
@@ -188,31 +173,6 @@ export default function AuthPage() {
         </Card>
         
         <div className="mt-6 space-y-2 text-center">
-          <p className="text-sm text-muted-foreground">
-            {mode === 'signin' ? (
-              <>
-                Cursor employee?{' '}
-                <button
-                  type="button"
-                  onClick={() => setShowGuestForm(true)}
-                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
-                >
-                  Start without signing up
-                </button>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('signin')}
-                  className="text-blue-600 hover:text-blue-700 font-semibold underline"
-                >
-                  Sign in
-                </button>
-              </>
-            )}
-          </p>
           <p className="text-xs text-muted-foreground">
             Need admin access?{' '}
             <Link href="/admin/signup" className="text-red-600 hover:text-red-700 font-semibold underline">

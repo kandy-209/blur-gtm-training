@@ -130,7 +130,7 @@ export default function CompanyLookupPage() {
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-bold">Company Intelligence & ROI Analysis</h1>
-            <p className="text-gray-600">Discover how Cursor Enterprise can help companies based on their financial profile</p>
+            <p className="text-gray-600">Discover how Browserbase can help companies based on their financial profile</p>
           </div>
 
           {/* Search Section */}

@@ -53,15 +53,14 @@ export async function POST(request: NextRequest) {
     } else {
       // General enterprise information
       if (view === 'leadership') {
-        answer = 'Cursor Enterprise provides comprehensive security, compliance, and administrative controls for organizations deploying AI-assisted development. ';
+        answer = 'Browserbase provides comprehensive security, compliance, and administrative controls for organizations deploying browser automation at scale. ';
         answer += 'Key value propositions include SOC 2 Type II certification, GDPR compliance, SSO/SCIM integration, and advanced analytics. ';
-        answer += 'These features enable AI adoption in regulated industries while reducing IT overhead and improving security posture.';
+        answer += 'These features enable browser automation adoption in regulated industries while reducing IT overhead and improving security posture.';
       } else if (view === 'technical') {
-        answer = 'Cursor Enterprise includes features like Hooks for agent control, Team Rules for consistency, Sandbox Mode for safe execution, ';
-        answer += 'and comprehensive Identity & Access Management. Technical capabilities include MDM policy enforcement, ';
-        answer += 'Privacy Mode with zero data retention, and advanced network configuration options.';
+        answer = 'Browserbase includes features like managed infrastructure, automatic scaling, proxy management, and comprehensive Identity & Access Management. Technical capabilities include browser session management, ';
+        answer += 'data encryption, secure API access, and advanced network configuration options for enterprise deployments.';
       } else {
-        answer = 'Cursor Enterprise offers enterprise-grade security, compliance, and administrative controls. ';
+        answer = 'Browserbase offers enterprise-grade security, compliance, and administrative controls. ';
         answer += 'Key features include Security & Compliance (SOC 2 Type II), Identity & Access Management (SSO, SCIM), ';
         answer += 'Privacy & Data Governance, Hooks for agent control, Team Rules, Analytics, Audit Logs, and Sandbox Mode. ';
         answer += 'These features enable organizations to deploy AI-assisted development at scale with confidence.';

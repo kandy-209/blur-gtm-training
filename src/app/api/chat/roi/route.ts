@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     if (matchingFeatures.length === 0) {
       return NextResponse.json({
-        answer: `As a ${role}, you have access to ROI information. For "${sanitizedQuestion}", I recommend checking the Features page for detailed ROI metrics. Generally, Cursor provides 30-50% productivity improvements and 2-3x faster development cycles.`,
+        answer: `As a ${role}, you have access to ROI information. For "${sanitizedQuestion}", I recommend checking the Features page for detailed ROI metrics. Generally, Browserbase provides significant productivity improvements through reduced infrastructure management and improved browser automation reliability.`,
         role,
         chatType,
       });

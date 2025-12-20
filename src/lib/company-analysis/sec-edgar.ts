@@ -6,7 +6,7 @@
  */
 
 const SEC_API_BASE = 'https://data.sec.gov';
-const USER_AGENT = 'CursorGTMTraining/1.0 (contact@cursor.com)'; // SEC requires user agent
+const USER_AGENT = 'BrowserbaseGTMTraining/1.0 (contact@browserbase.com)'; // SEC requires user agent
 
 interface SECCompanyTicker {
   cik: string;
@@ -121,6 +121,15 @@ export async function extractFinancialMetricsFromFiling(
   // For now, return null - this will be implemented with AI extraction
   return null;
 }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
 /**
- * ROI Calculator for Cursor Enterprise
+ * ROI Calculator for Browserbase
  * 
  * Calculates Total Economic Impact (TEI) and Net Present Value (NPV)
  * Based on productivity improvements and cost savings
@@ -51,7 +51,7 @@ export interface ROICalculatorOutput {
 }
 
 /**
- * Calculate ROI for Cursor Enterprise
+ * Calculate ROI for Browserbase
  */
 export function calculateROI(input: ROICalculatorInput): ROICalculatorOutput {
   // Cap cost per seat at $60/month

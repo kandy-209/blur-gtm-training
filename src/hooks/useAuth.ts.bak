@@ -1,0 +1,174 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+// Use type-only import to prevent runtime evaluation
+import type { User } from '@supabase/supabase-js';
+// Use dynamic import to prevent HMR issues - don't import auth module at top level
+import { trackAuthEvent } from '@/lib/vercel-analytics';
+
+export interface GuestUser {
+  id: string;
+  email: string;
+  username: string;
+  roleAtCursor: string;
+  isGuest: true;
+}
+
+export type AuthUser = User | GuestUser;
+
+export function useAuth() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:23',message:'useEffect entry',data:{hasWindow:typeof window!=='undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    // Check for guest user first
+    const checkGuestUser = () => {
+      if (typeof window === 'undefined') return null;
+      const guestData = localStorage.getItem('guest_user');
+      if (guestData) {
+        try {
+          return JSON.parse(guestData) as GuestUser;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    };
+
+    // Check initial session
+    const checkSession = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:39',message:'checkSession entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      // Check guest user first
+      const guestUser = checkGuestUser();
+      if (guestUser) {
+        setUser(guestUser);
+        setLoading(false);
+        return;
+      }
+
+      // Dynamically import auth module to prevent HMR issues
+      try {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:50',message:'Before dynamic import',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        const { getSupabaseAsync } = await import('@/lib/auth');
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:51',message:'After import, before getSupabaseAsync',data:{hasGetSupabaseAsync:typeof getSupabaseAsync!=='undefined'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        const supabase = await getSupabaseAsync();
+        
+        if (!supabase) {
+          setLoading(false);
+          return;
+        }
+
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          setUser(session?.user ?? null);
+        } catch (error) {
+          console.error('Error checking session:', error);
+          setUser(null);
+        } finally {
+          setLoading(false);
+        }
+      } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:67',message:'Error in checkSession',data:{errorString:String(error),errorName:error?.name,errorMessage:error?.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
+        console.error('Error loading auth module:', error);
+        setLoading(false);
+      }
+    };
+
+    checkSession();
+
+    // Listen for auth changes (async initialization on client)
+    const setupAuthListener = async () => {
+      // #region agent log
+      fetch('http://127.0.0.1:7243/ingest/07b364a5-6862-4730-a70c-26891b09d092',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuth.ts:76',message:'setupAuthListener entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
+      try {
+        // Dynamically import auth module to prevent HMR issues
+        const { getSupabaseAsync } = await import('@/lib/auth');
+        const supabase = await getSupabaseAsync();
+        
+        if (supabase) {
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // If user signs in, clear guest user
+            if (session?.user) {
+              localStorage.removeItem('guest_user');
+              setUser(session.user);
+              if (event === 'SIGNED_IN') {
+                trackAuthEvent('sign_in', { userId: session.user.id });
+              }
+            } else {
+              // Check if guest user exists
+              const guestUser = checkGuestUser();
+              setUser(guestUser);
+              if (event === 'SIGNED_OUT') {
+                trackAuthEvent('sign_out');
+              }
+            }
+            setLoading(false);
+          });
+
+          return () => {
+            subscription.unsubscribe();
+          };
+        }
+      } catch (error) {
+        console.error('Error setting up auth listener:', error);
+      }
+    };
+
+    const cleanup = setupAuthListener();
+    return () => {
+      cleanup.then(fn => fn && fn());
+    };
+  }, []);
+
+  const signInAsGuest = (username: string, roleAtCursor: string = 'Sales Rep') => {
+    const guestUser: GuestUser = {
+      id: `guest_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      email: `guest_${Date.now()}@guest.local`,
+      username,
+      roleAtCursor,
+      isGuest: true,
+    };
+    localStorage.setItem('guest_user', JSON.stringify(guestUser));
+    setUser(guestUser);
+    trackAuthEvent('guest_mode', { userId: guestUser.id });
+  };
+
+  const signOut = async () => {
+    // Clear guest user
+    localStorage.removeItem('guest_user');
+    
+    // Sign out from Supabase if authenticated
+    try {
+      const { getSupabaseAsync } = await import('@/lib/auth');
+      const supabase = await getSupabaseAsync();
+      if (supabase && user && !('isGuest' in user)) {
+        await supabase.auth.signOut();
+      }
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+    
+    setUser(null);
+  };
+
+  return { 
+    user, 
+    loading,
+    isGuest: user ? 'isGuest' in user : false,
+    signInAsGuest,
+    signOut,
+  };
+}
+

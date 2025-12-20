@@ -1,5 +1,6 @@
 // @ts-nocheck - React Three Fiber types
 'use client';
+// @ts-nocheck
 
 import { Suspense, useRef, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -73,8 +74,7 @@ export default function WebGLCanvas({ className = '', showLogo = true }: WebGLCa
 
 // Particle field for background effects
 function ParticleField() {
-  // @ts-ignore - React Three Fiber types
-  const particlesRef = useRef(null);
+  const particlesRef = useRef<any>(null);
 
   // @ts-ignore - React Three Fiber types
   useFrame((state: any) => {

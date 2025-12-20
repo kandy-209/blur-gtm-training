@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
       results.details.hasAnonKey = true;
     }
 
-    // Check Service Role Key
-    if (serviceRoleKey && serviceRoleKey.startsWith('eyJ')) {
+    // Check Service Role Key (supports both JWT format and new sb_secret format)
+    if (serviceRoleKey && (serviceRoleKey.startsWith('eyJ') || serviceRoleKey.startsWith('sb_secret_'))) {
       results.checks.serviceRoleKey = true;
       results.details.hasServiceRoleKey = true;
     }

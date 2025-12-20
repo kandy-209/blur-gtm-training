@@ -37,6 +37,15 @@ class UpdateChecker {
    * Check for updates
    */
   async checkForUpdates(force: boolean = false): Promise<UpdateCheckResult> {
+    // Skip update checks in development to avoid CSP errors
+    if (process.env.NODE_ENV === 'development' || typeof window === 'undefined') {
+      return {
+        hasUpdate: false,
+        currentVersion: this.currentVersion,
+        lastChecked: this.lastCheck || undefined,
+      };
+    }
+
     // Don't check too frequently unless forced
     if (!force && this.lastCheck) {
       const timeSinceLastCheck = Date.now() - this.lastCheck.getTime();
@@ -81,7 +90,14 @@ class UpdateChecker {
         return result;
       }
     } catch (error) {
-      console.warn('Failed to check for updates:', error);
+      // Silently handle errors in development (CSP blocks localhost)
+      // Only log in production if it's not a CSP-related error
+      if (process.env.NODE_ENV === 'production') {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (!errorMessage.includes('CSP') && !errorMessage.includes('localhost')) {
+          console.warn('Failed to check for updates:', error);
+        }
+      }
     }
 
     return {

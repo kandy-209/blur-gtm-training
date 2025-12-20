@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cursorsalestrainer.com';
-const siteName = 'Cursor Enterprise GTM Training Platform';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
+const siteName = 'Browserbase GTM Training Platform';
 
 /**
  * Generate page-specific metadata with SEO optimizations
@@ -92,7 +92,7 @@ export function generateStructuredData(type: 'WebPage' | 'Article' | 'Course', d
       datePublished: data.datePublished || new Date().toISOString(),
       author: {
         '@type': 'Organization',
-        name: 'Cursor',
+        name: 'Browserbase',
       },
     };
   }
@@ -104,7 +104,7 @@ export function generateStructuredData(type: 'WebPage' | 'Article' | 'Course', d
       educationalLevel: data.level || 'Professional',
       provider: {
         '@type': 'Organization',
-        name: 'Cursor',
+        name: 'Browserbase',
       },
     };
   }

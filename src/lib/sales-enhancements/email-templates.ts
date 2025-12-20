@@ -68,57 +68,52 @@ function generateEmailTemplateFallback(request: TemplateRequest): EmailTemplate 
 
   switch (emailType) {
     case 'cold-outreach':
-      subject = `Quick question about ${companyName}'s engineering productivity`;
+      // Gong-style: short, concrete, interest-based CTA
+      subject = `${companyName || 'your team'} engineering`;
       body = `${greetings[tone]}
 
-I noticed ${companyName} is in the ${request.industry || 'technology'} space. I wanted to reach out because we've helped similar companies increase their engineering team's productivity by 30%+ using AI-powered coding tools.
+I work with engineering teams like ${companyName || 'yours'} to make shipping code and code reviews feel lighter without adding more process.
 
-Would you be open to a brief 15-minute conversation to see if this could be valuable for your team?
+If it’s relevant, I can send a brief overview of how teams are using Browserbase to keep velocity high and reviews focused.
 
-${closings[tone]}`;
-      cta = 'Schedule a quick call';
+Would it be worth exploring?`;
+      cta = 'Worth exploring?';
       break;
 
     case 'follow-up':
-      subject = `Following up on ${companyName}`;
+      subject = `${companyName || 'browserbase'} follow-up`;
       body = `${greetings[tone]}
 
-I wanted to follow up on my previous message about Cursor Enterprise. I understand you're likely busy, but I believe this could significantly impact ${companyName}'s engineering velocity.
+Just checking whether our last note about Browserbase and your browser automation needs is still on your radar.
 
-Would you be available for a quick 10-minute call this week?
+If it is, I can share a concise overview of how teams like ${companyName || 'yours'} scale web scraping and testing with Browserbase.
 
-${closings[tone]}`;
-      cta = 'Reply to schedule';
+Still interested in exploring?`;
+      cta = 'Still interested?';
       break;
 
     case 'demo-invite':
-      subject = `Demo: How ${companyName} can accelerate engineering productivity`;
+      subject = `${companyName || 'browserbase'} demo`;
       body = `${greetings[tone]}
 
-I'd love to show you how Cursor Enterprise can help ${companyName}'s engineering team ship faster and reduce technical debt.
+I can walk you through a short Browserbase demo focused on how your team handles browser automation today and where infrastructure management slows things down.
 
-Are you available for a 30-minute demo this week? I can show you:
-- Real-time codebase understanding
-- Enterprise security and compliance
-- Team collaboration features
-- ROI calculator specific to your team size
+If that would be helpful, I can send a couple of time options or a quick loom so you can see it in action first.
 
-${closings[tone]}`;
+Would you like to see a quick demo?`;
       cta = 'Book a demo';
       break;
 
     case 'objection-response':
-      subject = `Addressing your concerns about Cursor Enterprise`;
+      subject = `about browserbase`;
       body = `${greetings[tone]}
 
-I understand your concerns about ${request.context || 'implementation'}. Let me address those directly:
+You mentioned concerns about ${request.context || 'rolling out a new tool'}. That’s fair, so I wanted to acknowledge it directly and share how similar teams approached it in a lightweight way.
 
-[Address specific objection here]
+If it’s still on your mind, I’m happy to send a short summary of what worked for them and let you react.
 
-Would you be open to a quick call to discuss this further?
-
-${closings[tone]}`;
-      cta = "Let's discuss";
+How does that sound?`;
+      cta = "Share your thoughts";
       break;
   }
 

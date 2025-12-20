@@ -1,73 +1,61 @@
-# 🔧 Fix Vercel Deployment - Wrong Branch & Domain
+# 🚨 FIX: Vercel Deployment Issue
 
-## Issue Identified
+## Problem Found
 
-**Vercel is deploying from the WRONG branch:**
-- ❌ Currently deploying: `restore-call-analytics` (commit 931b12f)
-- ✅ Should deploy: `main` branch
-- ❌ Deploying to: Preview URL (cursor-gtm-training-git-res-9a9630...)
-- ✅ Should deploy to: `howtosellcursor.me` (production)
+From your logs, deployment **CDnyzNoM4** shows:
+- ❌ Deployment domain: `cursor-gtm-training-h68mii9qc...` (OLD name!)
+- ❌ This means Vercel is still connected to the OLD repository
 
----
+## Root Cause
 
-## 🔧 THE FIX (3 Steps)
+Vercel is either:
+1. Still connected to `kandy-209/cursor-gtm-training` (old repo)
+2. OR deploying from an old commit before the rebranding
 
-### Step 1: Fix Production Branch in Vercel
+## ✅ Solution - Update Vercel Git Connection
 
-**CRITICAL:** Change Vercel to deploy from `main` branch:
+### Step 1: Disconnect Old Repository
 
 1. Go to: https://vercel.com/dashboard
-2. Click project: **cursor-gtm-training**
-3. Go to: **Settings** → **Git**
-4. Find: **Production Branch**
-5. **Change it from `restore-call-analytics` to `main`**
-6. Click **Save**
+2. Find project: `prj_hfzYCvz6nMvURckSqJvuCc43ncz7`
+3. Go to **Settings** → **Git**
+4. If it shows: `kandy-209/cursor-gtm-training`
+   - Click **"Disconnect"**
+   - Confirm disconnection
 
-### Step 2: Verify Domain Configuration
+### Step 2: Connect New Repository
 
-1. Still in Vercel Settings
-2. Go to: **Domains** tab
-3. Verify `howtosellcursor.me` is listed
-4. If not, add it:
-   - Click **"Add Domain"**
-   - Enter: `howtosellcursor.me`
-   - Click **Add**
+1. Still in **Settings** → **Git**
+2. Click **"Connect Git Repository"**
+3. Select: `kandy-209/blur-gtm-training`
+4. Select branch: `main`
+5. Click **"Connect"**
+6. This will trigger a NEW deployment automatically
 
-### Step 3: Promote Main Branch Deployment
+### Step 3: Verify New Deployment
 
 1. Go to **Deployments** tab
-2. Find the latest deployment from `main` branch
-3. Click **"..."** menu on that deployment
-4. Click **"Promote to Production"**
-5. Wait 2-3 minutes
+2. You should see a NEW deployment starting
+3. Check the commit hash - should be: `3851e81` or later
+4. Wait for it to complete (2-5 minutes)
 
----
+### Step 4: Update Project Name (Optional)
 
-## ✅ What Should Happen
+1. **Settings** → **General**
+2. Change **Project Name** from `cursor-gtm-training` to `blur-gtm-training`
+3. Save
 
-After fixing:
-- ✅ Vercel deploys from `main` branch automatically
-- ✅ Production domain: `howtosellcursor.me`
-- ✅ All your latest code (phone calls, sales training) will be live
+## ✅ Expected Result
 
----
+After reconnecting to the new repository:
+- ✅ New deployment will use commit `3851e81`
+- ✅ Deployment domain will update to new name
+- ✅ Live site will show "Blur Enterprise GTM Training Platform"
 
-## 🎯 Quick Checklist
+## 🔍 Verification
 
-- [ ] Changed Production Branch to `main` in Vercel Settings → Git
-- [ ] Verified `howtosellcursor.me` is in Domains
-- [ ] Promoted latest `main` deployment to Production
-- [ ] Waited 2-3 minutes for deployment
-- [ ] Tested: https://howtosellcursor.me/sales-training
+Latest commit on GitHub (`blur-gtm-training`):
+- **Commit:** `3851e81` - "fix: ensure Blur branding is deployed"
+- **Contains:** `'Blur Enterprise GTM Training Platform'`
 
----
-
-## ⚠️ Why This Happened
-
-Vercel was configured to deploy from `restore-call-analytics` branch instead of `main`. This is why:
-- Old code is showing
-- Phone training features aren't visible
-- Wrong deployment URL
-
-**Fix the Production Branch setting and everything will work!**
-
+This is the commit that needs to be deployed!

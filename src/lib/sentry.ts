@@ -54,7 +54,7 @@ export function initSentry() {
         },
         // Add user context when available
         initialScope: (scope) => {
-          scope.setTag('app', 'cursor-gtm-training');
+          scope.setTag('app', 'blur-gtm-training');
           return scope;
         },
         // Performance monitoring

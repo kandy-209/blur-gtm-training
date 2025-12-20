@@ -29,7 +29,7 @@ export const logger = winston.createLogger({
   level: logLevel,
   format: logFormat,
   defaultMeta: {
-    service: 'cursor-gtm-training',
+    service: 'blur-gtm-training',
     environment: process.env.NODE_ENV || 'development',
   },
   transports: [
