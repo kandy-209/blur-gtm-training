@@ -110,13 +110,13 @@ export default function AdminSignupPage() {
                   value={adminCode}
                   onChange={(e) => setAdminCode(e.target.value)}
                   placeholder="Enter admin invitation code"
-                  required={!email || !email.toLowerCase().endsWith('@browserbase.com')}
+                  required={!email || !email.toLowerCase().endsWith('@blur.com')}
                   disabled={isLoading}
                   className="mt-2"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {email && email.toLowerCase().endsWith('@blur.com')
-                    ? 'Admin code not required for @blur.com email addresses'
+                  {email && email.toLowerCase().endsWith('@browserbase.com')
+                    ? 'Admin code not required for @browserbase.com email addresses'
                     : 'Contact your system administrator for the admin code'}
                 </p>
               </div>
@@ -128,14 +128,14 @@ export default function AdminSignupPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@browserbase.com"
+                  placeholder="admin@blur.com"
                   required
                   disabled={isLoading}
                   className="mt-2"
                 />
-                {email && email.toLowerCase().endsWith('@blur.com') && (
+                {email && email.toLowerCase().endsWith('@browserbase.com') && (
                   <p className="text-xs text-green-600 mt-1 font-medium">
-                    ✓ @blur.com email detected - Admin code not required
+                    ✓ @browserbase.com email detected - Admin code not required
                   </p>
                 )}
               </div>
