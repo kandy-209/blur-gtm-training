@@ -65,7 +65,7 @@ describe('POST /api/auth/signup', () => {
         email: 'test@example.com',
         password: 'password123',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -91,7 +91,7 @@ describe('POST /api/auth/signup', () => {
       body: JSON.stringify({
         password: 'password123',
         username: 'johnsmith',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -106,7 +106,7 @@ describe('POST /api/auth/signup', () => {
     // Should auto-generate email from username
     expect(mockSignUp).toHaveBeenCalledWith(
       expect.objectContaining({
-        email: 'johnsmith@cursor.local',
+        email: 'johnsmith@browserbase.local',
         username: 'johnsmith',
       })
     );
@@ -120,7 +120,7 @@ describe('POST /api/auth/signup', () => {
       body: JSON.stringify({
         password: 'password123',
         username: 'John Smith', // Contains space, which violates username regex
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -141,7 +141,7 @@ describe('POST /api/auth/signup', () => {
         email: 'invalid-email',
         password: 'password123',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -161,7 +161,7 @@ describe('POST /api/auth/signup', () => {
         email: 'test@example.com',
         password: 'short',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -199,7 +199,7 @@ describe('POST /api/auth/signup', () => {
         email: '', // Empty string should trigger auto-generation
         password: 'password123',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -212,7 +212,7 @@ describe('POST /api/auth/signup', () => {
     // Should auto-generate email even if empty string provided
     expect(mockSignUp).toHaveBeenCalledWith(
       expect.objectContaining({
-        email: 'testuser@cursor.local',
+        email: 'testuser@browserbase.local',
       })
     );
   });
@@ -224,7 +224,7 @@ describe('POST /api/auth/signup', () => {
         email: '   ', // Whitespace only
         password: 'password123',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },
@@ -237,7 +237,7 @@ describe('POST /api/auth/signup', () => {
     // Should auto-generate email for whitespace-only input
     expect(mockSignUp).toHaveBeenCalledWith(
       expect.objectContaining({
-        email: 'testuser@cursor.local',
+        email: 'testuser@browserbase.local',
       })
     );
   });
@@ -249,7 +249,7 @@ describe('POST /api/auth/signup', () => {
         email: 'user@example.com',
         password: 'password123',
         username: 'testuser',
-        roleAtCursor: 'Sales Rep',
+        roleAtBrowserbase: 'Sales Rep',
         jobTitle: 'Account Executive',
       }),
       headers: { 'Content-Type': 'application/json' },

@@ -94,7 +94,7 @@ describe('Database', () => {
         userId: 'test-user',
         scenarioId: 'test-scenario',
         question: 'How does this work?',
-        category: 'Competitive_Copilot',
+        category: 'Competitive_SelfHosted',
       });
 
       expect(question.id).toBeTruthy();
@@ -110,7 +110,7 @@ describe('Database', () => {
         userId: 'test-user',
         scenarioId: 'test-scenario',
         question: 'Test question?',
-        category: 'Competitive_Copilot',
+        category: 'Competitive_SelfHosted',
       });
 
       const upvoted = await db.upvoteQuestion(question.id);

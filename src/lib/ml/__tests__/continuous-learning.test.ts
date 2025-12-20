@@ -62,7 +62,7 @@ describe('ContinuousLearningAgent', () => {
         { response: 'Test', averageScore: 80, successRate: 0.8, count: 1 },
       ]);
 
-      const insights = await ContinuousLearningAgent.learnFromData('Competitive_Copilot', 10);
+      const insights = await ContinuousLearningAgent.learnFromData('Competitive_SelfHosted', 10);
 
       expect(insights.length).toBe(0);
     });

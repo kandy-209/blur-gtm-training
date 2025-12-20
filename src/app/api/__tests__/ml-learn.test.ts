@@ -129,7 +129,7 @@ describe('/api/ml/learn', () => {
       (ContinuousLearningAgent.learnFromData as jest.Mock).mockResolvedValue(mockInsights);
       (ContinuousLearningAgent.evaluateModelImprovement as jest.Mock).mockResolvedValue(mockImprovement);
 
-      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_Copilot', {
+      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_SelfHosted', {
         method: 'GET',
       }) as any;
 
@@ -159,7 +159,7 @@ describe('/api/ml/learn', () => {
         new Error('Learning failed')
       );
 
-      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_Copilot', {
+      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_SelfHosted', {
         method: 'GET',
       }) as any;
 

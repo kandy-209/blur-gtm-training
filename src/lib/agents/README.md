@@ -46,8 +46,8 @@ const result = await orchestrator.execute('generate', {
 ```typescript
 // Execute a workflow
 const result = await orchestrator.orchestrateWorkflow('improve-with-resources', {
-  originalMessage: 'Cursor is better than Copilot',
-  objectionCategory: 'Competitive_Copilot',
+  originalMessage: 'Browserbase is better than self-hosted solutions',
+  objectionCategory: 'Competitive_SelfHosted',
 }, context);
 ```
 

@@ -26,7 +26,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
   // Sign up fields
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
-  const [roleAtCursor, setRoleAtCursor] = useState('');
+  const [roleAtBrowserbase, setRoleAtBrowserbase] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [department, setDepartment] = useState('');
 
@@ -56,14 +56,14 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
 
         onSuccess?.();
       } else {
-        if (!username || !roleAtCursor || !jobTitle) {
+        if (!username || !roleAtBrowserbase || !jobTitle) {
           throw new Error('Please fill in all required fields');
         }
 
         // Email is optional - generate one for Supabase Auth if not provided
         // The actual email (if provided) will be stored separately for analytics
         const providedEmail = email.trim() || '';
-        const userEmail = providedEmail || `${username.toLowerCase().replace(/\s+/g, '')}@blur.local`;
+        const userEmail = providedEmail || `${username.toLowerCase().replace(/\s+/g, '')}@browserbase.local`;
 
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
@@ -74,7 +74,7 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
             password,
             username,
             fullName: fullName || undefined,
-            roleAtCursor,
+            roleAtBrowserbase,
             jobTitle,
             department: department || undefined,
           }),
@@ -203,8 +203,8 @@ export default function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProp
               </div>
 
               <div>
-                <Label htmlFor="roleAtCursor">Your Role at Browserbase</Label>
-                <Select value={roleAtCursor} onValueChange={setRoleAtCursor} required>
+                <Label htmlFor="roleAtBrowserbase">Your Role at Browserbase</Label>
+                <Select value={roleAtBrowserbase} onValueChange={setRoleAtBrowserbase} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>

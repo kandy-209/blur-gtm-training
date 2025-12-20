@@ -27,22 +27,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, emailForAnalytics, password, username, fullName, roleAtBlur, roleAtCursor, jobTitle, department } = body;
+    const { email, emailForAnalytics, password, username, fullName, roleAtBrowserbase, roleAtBlur, roleAtCursor, jobTitle, department } = body;
 
     // Validate required fields (email is optional, will be generated if not provided)
-    const roleAtCompany = roleAtBlur || roleAtCursor; // Support both for backward compatibility
+    // Support all variants for backward compatibility
+    const roleAtCompany = roleAtBrowserbase || roleAtBlur || roleAtCursor;
     if (!password || !username || !roleAtCompany || !jobTitle) {
       return NextResponse.json(
-        { error: 'Missing required fields: password, username, roleAtBlur (or roleAtCursor), jobTitle' },
+        { error: 'Missing required fields: password, username, roleAtBrowserbase (or roleAtBlur/roleAtCursor), jobTitle' },
         { status: 400 }
       );
     }
 
-    // Check if email is from @blur.com domain (auto-admin) - check before generation
-    const isBlurEmail = email?.trim() && email.toLowerCase().endsWith('@blur.com');
+    // Check if email is from @browserbase.com domain (auto-admin) - check before generation
+    const isBrowserbaseEmail = email?.trim() && email.toLowerCase().endsWith('@browserbase.com');
 
     // Generate email from username if not provided
-    const userEmail = email?.trim() || `${username.toLowerCase().replace(/\s+/g, '')}@blur.local`;
+    const userEmail = email?.trim() || `${username.toLowerCase().replace(/\s+/g, '')}@browserbase.local`;
 
     // Validate email format if provided
     if (email && email.trim()) {
@@ -101,8 +102,9 @@ export async function POST(request: NextRequest) {
       password,
       username: sanitizeInput(username, 30),
       fullName: fullName ? sanitizeInput(fullName, 100) : undefined,
-      roleAtBlur: isBlurEmail ? 'Admin' : sanitizeInput(roleAtCompany, 100),
-      jobTitle: isBlurEmail ? 'Administrator' : sanitizeInput(jobTitle, 100),
+      roleAtBrowserbase: isBrowserbaseEmail ? 'Admin' : sanitizeInput(roleAtCompany, 100),
+      roleAtBlur: isBrowserbaseEmail ? 'Admin' : sanitizeInput(roleAtCompany, 100), // Backward compatibility
+      jobTitle: isBrowserbaseEmail ? 'Administrator' : sanitizeInput(jobTitle, 100),
       department: department ? sanitizeInput(department, 100) : undefined,
       analyticsEmail: emailForAnalytics && emailForAnalytics.trim() 
         ? sanitizeInput(emailForAnalytics.toLowerCase().trim(), 255) 
