@@ -103,7 +103,7 @@ export function useAnalytics(options: UseAnalyticsOptions = {}): UseAnalyticsRet
       const result = await requestDeduplicator.deduplicate(
         cacheKey,
         async () => {
-          return retryWithBackoff(
+          const retryResult = await retryWithBackoff(
             async () => {
               const response = await fetch(
                 `/api/analytics?userId=${userId || ''}&includeStats=true&limit=50`,
@@ -126,11 +126,18 @@ export function useAnalytics(options: UseAnalyticsOptions = {}): UseAnalyticsRet
               retryDelay: 500,
             }
           );
+          
+          // Unwrap retryWithBackoff result - if successful, return data, otherwise throw error
+          if (retryResult.success && retryResult.data) {
+            return retryResult.data;
+          }
+          throw retryResult.error || new Error('Failed to fetch analytics after retries');
         },
         2000 // 2 second deduplication window
       );
 
       if (result.success && result.data) {
+        // result.data is the JSON response from the API
         const data = result.data;
         const newStats: AnalyticsStats = {
           totalScenarios: data.stats?.totalScenarios || 0,
