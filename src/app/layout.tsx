@@ -300,6 +300,18 @@ export default function RootLayout({
         <meta name="rating" content="general" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@browserbase" />
+        <meta name="twitter:creator" content="@browserbase" />
+        <meta name="twitter:title" content={siteName} />
+        <meta name="twitter:description" content={siteDescription.substring(0, 200)} />
+        <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
+        
+        {/* Additional Performance Hints */}
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
+        <meta httpEquiv="x-dns-prefetch-control" content="on" />
+        
         {/* Professional Contact Information */}
         {businessInfo.email && <meta name="contact" content={businessInfo.email} />}
         {businessInfo.phone && <meta name="contact:phone" content={businessInfo.phone} />}
@@ -875,6 +887,22 @@ export default function RootLayout({
                     text: 'Browserbase ROI comes from eliminating infrastructure management overhead, reducing development time for proxy management and anti-detection features, enabling team collaboration without custom tooling, automated scaling without capacity planning, enterprise security compliance without dedicated security resources, and 24/7 infrastructure monitoring without on-call rotations. For large teams, Browserbase typically delivers significant time and cost savings compared to maintaining self-hosted Puppeteer/Playwright infrastructure.',
                   },
                 },
+                {
+                  '@type': 'Question',
+                  name: 'How does Browserbase compare to Skyvern, Browser-Use, Anchor, and Kernel?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase vs Skyvern: Browserbase is an infrastructure platform optimized for high-scale deterministic scraping and enterprise isolation (subscription + usage pricing), while Skyvern is an AI agent with computer vision better suited for one-off complex tasks (pure usage pricing). Browserbase vs Browser-Use: Browserbase provides managed cloud infrastructure with stealth, proxies, and enterprise controls, while Browser-Use is an open-source library (~74k stars) focused on agent memory and planning. Browserbase vs Anchor: Browserbase has superior latency (~1.9s connection vs Anchor\'s ~5.5s) and better page creation speed (397.2ms vs 923.0ms), while Anchor excels at long-running multi-hour workflows. Browserbase vs Kernel: Browserbase prioritizes workflow intelligence and AI capabilities (Stagehand, Skills, Judge), while Kernel prioritizes raw speed (sub-300ms cold starts).',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What are Browserbase performance benchmarks?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'According to Browserless Practical Benchmark 2025, Browserbase performance metrics are: Connection time 1,929.9ms, Page creation 397.2ms (best in class - faster than Hyperbrowser\'s 505.8ms, Browserless\'s 482.3ms, and Anchor\'s 923.0ms), Navigation 317.0ms. Browserbase excels at page creation speed, making it ideal for high-volume page creation workflows. While connection time is higher than some competitors, Browserbase\'s superior page creation and navigation performance, combined with enterprise features, make it the best choice for production-scale browser automation.',
+                  },
+                },
               ],
             }),
           }}
@@ -1189,6 +1217,98 @@ export default function RootLayout({
                       bestRating: '5',
                     },
                   },
+                },
+              ],
+            }),
+          }}
+        />
+        {/* Structured Data - Competitive Comparison */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              '@id': `${siteUrl}#competitive-comparison`,
+              name: 'Browserbase Competitive Comparison',
+              description: 'How Browserbase compares to alternative browser automation solutions',
+              numberOfItems: 4,
+              itemListElement: [
+                {
+                  '@type': 'ListItem',
+                  position: 1,
+                  item: {
+                    '@type': 'Thing',
+                    name: 'Browserbase vs Skyvern',
+                    description: 'Browserbase: Infrastructure platform for high-scale deterministic scraping and enterprise isolation (subscription + usage). Skyvern: AI agent with computer vision for one-off complex tasks (pure usage pricing).',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 2,
+                  item: {
+                    '@type': 'Thing',
+                    name: 'Browserbase vs Browser-Use',
+                    description: 'Browserbase: Managed cloud infrastructure with stealth, proxies, enterprise controls. Browser-Use: Open-source library (~74k stars) focused on agent memory and planning. Browserbase provides production-grade infrastructure.',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  item: {
+                    '@type': 'Thing',
+                    name: 'Browserbase vs Anchor Browser',
+                    description: 'Browserbase: Superior latency (~1.9s connection time vs Anchor\'s ~5.5s), best page creation speed (397.2ms). Anchor: Better for long-running multi-hour workflows with strong session persistence.',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 4,
+                  item: {
+                    '@type': 'Thing',
+                    name: 'Browserbase vs Kernel',
+                    description: 'Browserbase: Focused on workflow intelligence (Stagehand, Skills, Judge) plus solid infrastructure. Kernel: Prioritizes raw speed (sub-300ms cold starts) using unikernel technology.',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
+        {/* Structured Data - Performance Benchmarks */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Dataset',
+              '@id': `${siteUrl}#performance-benchmarks`,
+              name: 'Browserbase Performance Benchmarks 2025',
+              description: 'Performance metrics from Browserless Practical Benchmark 2025 comparing Browserbase to competitors',
+              creator: {
+                '@type': 'Organization',
+                name: 'Browserless',
+              },
+              datePublished: '2025',
+              measurementTechnique: 'Browserless Practical Benchmark',
+              variableMeasured: [
+                {
+                  '@type': 'PropertyValue',
+                  name: 'Connection Time',
+                  value: '1,929.9 ms',
+                  unitText: 'milliseconds',
+                },
+                {
+                  '@type': 'PropertyValue',
+                  name: 'Page Creation Time',
+                  value: '397.2 ms',
+                  unitText: 'milliseconds',
+                  description: 'Best in class - faster than Hyperbrowser (505.8ms), Browserless (482.3ms), and Anchor (923.0ms)',
+                },
+                {
+                  '@type': 'PropertyValue',
+                  name: 'Navigation Time',
+                  value: '317.0 ms',
+                  unitText: 'milliseconds',
                 },
               ],
             }),
