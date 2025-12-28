@@ -215,7 +215,9 @@ export const metadata: Metadata = {
     'product:category': 'Browser Automation, Web Scraping, Cloud Infrastructure',
     'product:target_market': 'Enterprise Development Teams, Automation Engineers, Data Teams',
     'product:use_cases': 'Web Scraping, Browser Automation, Testing, CI/CD Integration, Data Extraction',
-    'product:competitors': 'Self-hosted Puppeteer, Self-hosted Playwright, Selenium Grid, Custom Browser Infrastructure',
+    'product:competitors': 'Self-hosted Puppeteer, Self-hosted Playwright, Selenium Grid, Custom Browser Infrastructure, Skyvern, Browser-Use, Anchor Browser, Kernel, Hyperbrowser, Browserless',
+    'product:competitive_advantages': 'Best page creation speed (397.2ms), Superior to Anchor (1.9s vs 5.5s connection), Enterprise isolation vs Browser-Use, Workflow intelligence vs Kernel speed, High-scale deterministic scraping vs Skyvern one-off tasks',
+    'product:performance_benchmarks': 'Connection: 1,929.9ms, Page Creation: 397.2ms (best in class), Navigation: 317.0ms (Browserless Practical Benchmark 2025)',
     'product:value_proposition': 'Browserbase managed browser infrastructure eliminates operational overhead, scales seamlessly, provides enterprise reliability, built-in proxy management and anti-detection at scale, enables enterprise team collaboration with centralized management, and delivers ROI optimization for large teams compared to self-hosted Puppeteer/Playwright solutions',
     'product:key_features': 'Managed Infrastructure, Built-in Proxy Management, Anti-Detection (Patchright), CI/CD Integration, Team Collaboration, Enterprise Security, Global Network (US/EU/Asia), 24/7 Support, Stagehand SDK, Director 2.0, Skills API, Library Judge, 1Password Integration, VM Isolation, Zero-Trust Architecture',
     'product:target_industries': 'E-commerce, Data Analytics, Financial Services, Real Estate, Marketing, Research, Software Development, QA Testing, Healthcare (HIPAA), CRM & Sales Operations, Merchant Onboarding, Market Intelligence',
@@ -318,9 +320,15 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
         <link rel="preconnect" href="https://api.browserbase.com" />
         <link rel="preconnect" href="https://api.supabase.co" />
+        <link rel="preconnect" href="https://api.vapi.ai" />
+        <link rel="preconnect" href="https://vercel.live" />
+        <link rel="dns-prefetch" href="https://cdn.elevenlabs.io" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         
         {/* Preload critical resources - Above the fold */}
         <link rel="preload" href="/logos/browserbase-logo.svg" as="image" type="image/svg+xml" fetchPriority="high" />
+        <link rel="preload" href="/og-image.png" as="image" type="image/png" fetchPriority="high" />
         
         {/* Font display optimization - prevents layout shift */}
         <style dangerouslySetInnerHTML={{
@@ -356,6 +364,9 @@ export default function RootLayout({
         <link rel="prefetch" href="/sales-skills" as="document" />
         <link rel="prefetch" href="/analytics" as="document" />
         <link rel="prefetch" href="/prospect-intelligence" as="document" />
+        <link rel="prefetch" href="/roi-calculator" as="document" />
+        <link rel="prefetch" href="/features" as="document" />
+        <link rel="prefetch" href="/enterprise" as="document" />
         
         {/* Language and region alternatives */}
         <link rel="alternate" hrefLang="en" href={siteUrl} />
@@ -534,7 +545,7 @@ export default function RootLayout({
               '@type': 'Product',
               '@id': `${siteUrl}#browserbase-product`,
               name: 'Browserbase',
-              description: 'Browserbase is a cloud-based browser infrastructure platform (founded 2024, $300M valuation, 1,000+ companies, 20,000+ developers) that provides managed headless browsers for web scraping, browser automation, and testing. Enterprise-grade zero-trust infrastructure with VM isolation, instant provisioning, and global data centers (US West, US East, EU, Asia). Eliminates infrastructure management overhead compared to self-hosted Puppeteer/Playwright, provides built-in proxy management and rotation at scale, advanced anti-detection capabilities via Patchright (Chromium fork), enables enterprise team collaboration with centralized browser management, automated scaling to thousands of concurrent sessions, enterprise security and compliance (SOC 2 Type II, GDPR, ISO 27001), 24/7 infrastructure monitoring, global browser network with low latency, and delivers ROI optimization for large teams. Includes Stagehand (agentic browser interaction SDK), Director 2.0 (no-code builder), Skills (API for anything), and Library Judge (task verification). Full API compatibility with Puppeteer, Playwright, and Selenium Grid ensures smooth migration from self-hosted solutions. Notable customers: Perplexity, Vercel, Commure, 11x, Customer.io. 50M+ browser sessions served, 25M sessions in H1 2025.',
+              description: 'Browserbase is a cloud-based browser infrastructure platform (founded 2024, $300M valuation, 1,000+ companies, 20,000+ developers) that provides managed headless browsers for web scraping, browser automation, and testing. Enterprise-grade zero-trust infrastructure with VM isolation, instant provisioning, and global data centers (US West, US East, EU, Asia). Best-in-class page creation speed (397.2ms per Browserless Practical Benchmark 2025), superior to competitors like Hyperbrowser (505.8ms), Browserless (482.3ms), and Anchor (923.0ms). Connection time 1.9s vs Anchor\'s 5.5s. Eliminates infrastructure management overhead compared to self-hosted Puppeteer/Playwright, provides built-in proxy management and rotation at scale, advanced anti-detection capabilities via Patchright (Chromium fork), enables enterprise team collaboration with centralized browser management, automated scaling to thousands of concurrent sessions, enterprise security and compliance (SOC 2 Type II, GDPR, ISO 27001), 24/7 infrastructure monitoring, global browser network with low latency, and delivers ROI optimization for large teams. Includes Stagehand (agentic browser interaction SDK), Director 2.0 (no-code builder), Skills (API for anything), and Library Judge (task verification). Full API compatibility with Puppeteer, Playwright, and Selenium Grid ensures smooth migration from self-hosted solutions. Competitive advantages: vs Skyvern (high-scale deterministic scraping), vs Browser-Use (production-grade infrastructure), vs Anchor (superior latency), vs Kernel (workflow intelligence). Notable customers: Perplexity, Vercel, Commure, 11x, Customer.io. 50M+ browser sessions served, 25M sessions in H1 2025.',
               brand: {
                 '@type': 'Brand',
                 name: 'Browserbase',
