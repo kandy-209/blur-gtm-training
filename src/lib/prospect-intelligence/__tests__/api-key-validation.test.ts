@@ -165,25 +165,14 @@ describe('API Key Validation Tests', () => {
       process.env.BROWSERBASE_API_KEY = 'test-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       process.env.STAGEHAND_LLM_PROVIDER = 'gemini';
-      // No GOOGLE_GEMINI_API_KEY - should fallback to Claude
+      // No GOOGLE_GEMINI_API_KEY - should throw error (not fallback)
+      delete process.env.GOOGLE_GEMINI_API_KEY;
       process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
-      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
-      const { Stagehand } = require('@browserbasehq/stagehand');
-      let capturedConfig: any = null;
-      (Stagehand as jest.Mock).mockImplementation((config: any) => {
-        capturedConfig = config;
-        return { init: jest.fn().mockResolvedValue(undefined) };
-      });
-
       const service = new ResearchService();
-      await service.initialize();
       
-      // Should fallback to Claude since Gemini not supported
-      // Stagehand uses modelName, not model
-      if (capturedConfig) {
-        expect(capturedConfig.modelName).toBe('claude-3-5-sonnet-20241022');
-      }
+      // Should throw error when Gemini is requested but key is missing
+      await expect(service.initialize()).rejects.toThrow('GOOGLE_GEMINI_API_KEY');
     });
   });
 });

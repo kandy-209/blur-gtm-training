@@ -6,6 +6,7 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import OpenAI from 'openai';
+import { agentMonitor } from '@/lib/agent-monitor';
 
 interface CoachingContext {
   userMessage: string;
@@ -62,19 +63,48 @@ export class CoachingAgent {
    */
   async analyzeAndCoach(context: CoachingContext): Promise<CoachingAnalysis> {
     const provider = process.env.STAGEHAND_LLM_PROVIDER || 'claude';
+    const startTime = Date.now();
+    let cacheHit = false;
     
     try {
+      let result: CoachingAnalysis;
+      
       if (provider === 'claude' && this.anthropic) {
-        return await this.analyzeWithClaude(context);
+        result = await this.analyzeWithClaude(context);
       } else if (provider === 'openai' && this.openai) {
-        return await this.analyzeWithOpenAI(context);
+        result = await this.analyzeWithOpenAI(context);
       } else if (provider === 'gemini' && this.gemini) {
-        return await this.analyzeWithGemini(context);
+        result = await this.analyzeWithGemini(context);
       } else {
         // Fallback to rule-based coaching
-        return this.fallbackCoaching(context);
+        result = this.fallbackCoaching(context);
       }
-    } catch (error) {
+
+      // Record successful call
+      agentMonitor.recordCall({
+        agentName: 'CoachingAgent',
+        timestamp: new Date(),
+        duration: Date.now() - startTime,
+        success: true,
+        inputSize: JSON.stringify(context).length,
+        outputSize: JSON.stringify(result).length,
+        cacheHit,
+      });
+
+      return result;
+    } catch (error: any) {
+      // Record failed call
+      agentMonitor.recordCall({
+        agentName: 'CoachingAgent',
+        timestamp: new Date(),
+        duration: Date.now() - startTime,
+        success: false,
+        error: error.message,
+        inputSize: JSON.stringify(context).length,
+        outputSize: 0,
+        cacheHit,
+      });
+
       console.error('Coaching agent error:', error);
       return this.fallbackCoaching(context);
     }

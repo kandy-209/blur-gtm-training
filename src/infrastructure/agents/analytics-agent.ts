@@ -51,7 +51,10 @@ export class AnalyticsAgent {
 
   constructor() {
     if (process.env.ANTHROPIC_API_KEY) {
-      this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      this.anthropic = new Anthropic({ 
+        apiKey: process.env.ANTHROPIC_API_KEY,
+        dangerouslyAllowBrowser: process.env.NODE_ENV === 'test' || false,
+      });
     }
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

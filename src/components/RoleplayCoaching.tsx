@@ -5,6 +5,8 @@ import { Lightbulb, X, CheckCircle, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { coachingAgent } from '@/infrastructure/agents/coaching-agent';
+import { advancedPerformanceOptimizer } from '@/lib/performance-optimizer-advanced';
 
 interface CoachingTip {
   type: 'hint' | 'warning' | 'success' | 'info';
@@ -63,9 +65,24 @@ export default function RoleplayCoaching({
       return;
     }
 
-    // Use AI coaching agent for intelligent analysis
+    // Use AI coaching agent for intelligent analysis with caching
     const analyzeWithAgent = async () => {
       try {
+        // Check cache first
+        const cacheKey = `coaching:${scenario.id}:${userMessage.substring(0, 50)}`;
+        const cached = advancedPerformanceOptimizer.getCachedResult(cacheKey);
+        if (cached) {
+          const newTips: CoachingTip[] = cached.suggestions.map((s: any) => ({
+            type: s.type,
+            message: s.message,
+            suggestion: s.suggestion,
+            keyword: s.keywords?.[0],
+          }));
+          setTips(newTips);
+          return;
+        }
+
+        const startTime = performance.now();
         const analysis = await coachingAgent.analyzeAndCoach({
           userMessage,
           conversationHistory: conversationHistory.map(h => ({
@@ -92,6 +109,18 @@ export default function RoleplayCoaching({
           suggestion: s.suggestion,
           keyword: s.keywords?.[0],
         }));
+
+        // Cache result
+        advancedPerformanceOptimizer.cacheAgentResult(cacheKey, analysis, 30000); // 30s cache
+        
+        // Track performance
+        const endTime = performance.now();
+        advancedPerformanceOptimizer.trackMetrics('coaching', {
+          agentCallTime: endTime - startTime,
+          componentRenderTime: 0,
+          dataProcessingTime: 0,
+          totalTime: endTime - startTime,
+        });
 
         setTips(newTips);
       } catch (error) {
