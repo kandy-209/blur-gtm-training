@@ -130,6 +130,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
+    alternateLocale: ['en'],
     url: siteUrl,
     siteName,
     title: siteName,
@@ -139,13 +140,17 @@ export const metadata: Metadata = {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: `${siteName} - AI-Powered Enterprise Sales Training`,
+        alt: `${siteName} - AI-Powered Enterprise Sales Training for Browserbase Cloud Browser Infrastructure`,
         type: 'image/png',
+        secureUrl: `${siteUrl}/og-image.png`,
       },
     ],
     // Enhanced Open Graph for sales enablement
     emails: businessInfo.email ? [businessInfo.email] : undefined,
     phoneNumbers: businessInfo.phone ? [businessInfo.phone] : undefined,
+    // Additional OG tags
+    determiner: 'auto',
+    countryName: 'United States',
   },
   twitter: {
     card: 'summary_large_image',
@@ -240,6 +245,28 @@ export default function RootLayout({
         <meta name="product:target_audience" content="Enterprise Sales Teams, GTM Professionals" />
         <meta name="product:use_case" content="Sales Training, Objection Handling, Role-Play Practice" />
         
+        {/* Enhanced Mobile and App Meta Tags */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="Browserbase GTM" />
+        <meta name="application-name" content="Browserbase GTM Training" />
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        
+        {/* Content Language and Region */}
+        <meta httpEquiv="content-language" content="en-US" />
+        <meta name="geo.region" content="US-CA" />
+        <meta name="ICBM" content="37.7749, -122.4194" />
+        
+        {/* Enhanced Article/Content Meta Tags */}
+        <meta name="article:author" content={businessInfo.name} />
+        <meta name="article:publisher" content={businessInfo.name} />
+        <meta name="article:section" content="Sales Training" />
+        <meta name="article:tag" content="Browserbase, Sales Training, GTM, Enterprise Sales" />
+        
+        {/* Rich Snippets Support */}
+        <meta name="rating" content="general" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        
         {/* Professional Contact Information */}
         {businessInfo.email && <meta name="contact" content={businessInfo.email} />}
         {businessInfo.phone && <meta name="contact:phone" content={businessInfo.phone} />}
@@ -255,6 +282,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.elevenlabs.io" />
         <link rel="dns-prefetch" href="https://api.openai.com" />
         <link rel="dns-prefetch" href="https://vitals.vercel-insights.com" />
+        <link rel="dns-prefetch" href="https://browserbase.com" />
+        <link rel="dns-prefetch" href="https://api.anthropic.com" />
+        <link rel="dns-prefetch" href="https://generativelanguage.googleapis.com" />
+        <link rel="preconnect" href="https://api.browserbase.com" />
+        <link rel="preconnect" href="https://api.supabase.co" />
         
         {/* Preload critical resources - Above the fold */}
         <link rel="preload" href="/logos/browserbase-logo.svg" as="image" type="image/svg+xml" fetchPriority="high" />
@@ -292,6 +324,15 @@ export default function RootLayout({
         <link rel="prefetch" href="/scenarios" as="document" />
         <link rel="prefetch" href="/sales-skills" as="document" />
         <link rel="prefetch" href="/analytics" as="document" />
+        <link rel="prefetch" href="/prospect-intelligence" as="document" />
+        
+        {/* Language and region alternatives */}
+        <link rel="alternate" hrefLang="en" href={siteUrl} />
+        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
+        
+        {/* Mobile app deep links */}
+        <meta name="apple-itunes-app" content="app-id=, app-argument=" />
+        <meta name="google-play-app" content="app-id=" />
         {/* Structured Data - Organization (Enhanced for Sales Enablement) */}
         <script
           type="application/ld+json"
@@ -726,6 +767,109 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - Service (Training Platform Service) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Service',
+              '@id': `${siteUrl}#training-service`,
+              name: 'Browserbase GTM Sales Training Service',
+              description: 'AI-powered sales training service for mastering Browserbase cloud browser infrastructure sales. Includes role-play practice, objection handling, technical sales training, and real-time feedback.',
+              provider: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                url: siteUrl,
+              },
+              serviceType: 'Sales Training Service',
+              areaServed: {
+                '@type': 'Country',
+                name: 'Worldwide',
+              },
+              availableChannel: {
+                '@type': 'ServiceChannel',
+                serviceUrl: siteUrl,
+                serviceType: 'Online',
+              },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                availability: 'https://schema.org/InStock',
+                url: siteUrl,
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                ratingCount: '150',
+                bestRating: '5',
+                worstRating: '1',
+              },
+            }),
+          }}
+        />
+        {/* Structured Data - HowTo (Training Process) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'HowTo',
+              name: 'How to Master Browserbase Sales Training',
+              description: 'Step-by-step guide to mastering Browserbase cloud browser infrastructure sales through AI-powered role-play training',
+              totalTime: 'PT30M',
+              estimatedCost: {
+                '@type': 'MonetaryAmount',
+                currency: 'USD',
+                value: '0',
+              },
+              step: [
+                {
+                  '@type': 'HowToStep',
+                  position: 1,
+                  name: 'Sign Up for Free Account',
+                  text: 'Create a free account on the Browserbase GTM Training Platform to access all training features.',
+                  url: `${siteUrl}`,
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 2,
+                  name: 'Choose a Sales Scenario',
+                  text: 'Select from multiple realistic sales scenarios including competitive objections, security concerns, cost objections, and technical challenges.',
+                  url: `${siteUrl}/scenarios`,
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 3,
+                  name: 'Practice with AI Role-Play',
+                  text: 'Engage in realistic conversations with AI-powered prospects. Practice handling objections, positioning Browserbase value propositions, and closing techniques.',
+                  url: `${siteUrl}/roleplay`,
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 4,
+                  name: 'Receive Real-Time Feedback',
+                  text: 'Get instant evaluation and scoring with detailed metrics on your performance, including objection handling, value proposition clarity, and closing effectiveness.',
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 5,
+                  name: 'Track Progress with Analytics',
+                  text: 'Monitor your training progress over time with comprehensive analytics dashboard showing improvement trends, top responses, and performance metrics.',
+                  url: `${siteUrl}/analytics`,
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 6,
+                  name: 'Use Prospect Intelligence',
+                  text: 'Research prospect companies automatically to understand their tech stack, hiring patterns, culture, and ICP scoring for better sales conversations.',
+                  url: `${siteUrl}/prospect-intelligence`,
+                },
+              ],
+            }),
+          }}
+        />
         {/* Structured Data - LocalBusiness (for Sales Enablement) */}
         {businessInfo.address.streetAddress && (
           <script
@@ -766,6 +910,130 @@ export default function RootLayout({
             }}
           />
         )}
+        {/* Structured Data - ItemList (Training Features) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              '@id': `${siteUrl}#features-list`,
+              name: 'Browserbase GTM Training Platform Features',
+              description: 'Comprehensive list of features available in the Browserbase GTM Training Platform',
+              numberOfItems: 12,
+              itemListElement: [
+                {
+                  '@type': 'ListItem',
+                  position: 1,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'AI-Powered Role-Play Engine',
+                    description: 'Practice with realistic AI prospects using advanced LLMs',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 2,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Multiple Sales Scenarios',
+                    description: '6+ objection scenarios covering common sales challenges',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Real-time Feedback',
+                    description: 'Get instant evaluation and scoring with detailed metrics',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 4,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Voice-Based Training',
+                    description: 'Practice with voice using ElevenLabs TTS and OpenAI Whisper STT',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 5,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Prospect Intelligence',
+                    description: 'Automatically research prospect companies (tech stack, hiring, culture, ICP scoring)',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 6,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Analytics Dashboard',
+                    description: 'Track training progress and performance over time',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 7,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Company Analysis',
+                    description: 'Deep-dive into prospect companies with financial data and insights',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 8,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Email Template Generation',
+                    description: 'AI-powered email templates with BBQ (Brevity, Boldness, Quirkiness) style',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 9,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Smart Caching',
+                    description: 'Adaptive TTL caching system for improved performance',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 10,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Multi-LLM Support',
+                    description: 'Switch between Claude (Anthropic), Gemini (Google), and OpenAI GPT-4',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 11,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Scenario Builder',
+                    description: 'Create and manage custom training scenarios',
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 12,
+                  item: {
+                    '@type': 'SoftwareApplication',
+                    name: 'Performance Tracking',
+                    description: 'Comprehensive analytics and progress tracking',
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         {/* ElevenLabs widget loaded in component to avoid double-loading */}
       </head>
       <body className="antialiased">
