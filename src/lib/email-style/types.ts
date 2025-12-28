@@ -51,3 +51,4 @@ export interface CleanResult {
   bbqScore: BbqScore;
 }
 
+

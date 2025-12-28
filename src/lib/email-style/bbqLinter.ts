@@ -75,3 +75,4 @@ export function lintText(text: string, style: EmailStyle): LintResult {
   return { wordCount, issues };
 }
 
+
