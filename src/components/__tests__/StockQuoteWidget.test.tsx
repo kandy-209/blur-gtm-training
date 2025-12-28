@@ -14,9 +14,11 @@ describe('StockQuoteWidget', () => {
   });
 
   it('should render component', () => {
-    render(<StockQuoteWidget symbol="AAPL" />);
+    render(<StockQuoteWidget />);
     
-    expect(screen.getByText(/AAPL/i)).toBeInTheDocument();
+    // Component renders with search input and button
+    expect(screen.getByPlaceholderText(/Enter symbol/i)).toBeInTheDocument();
+    expect(screen.getByText(/Stock Quote/i)).toBeInTheDocument();
   });
 
   it('should display loading state initially', () => {
