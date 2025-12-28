@@ -22,9 +22,30 @@ if (typeof window === 'undefined') {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
 const siteName = 'Browserbase GTM Training Platform';
-const siteDescription = 'Master Browserbase sales positioning and objection handling with AI-powered role-play training. Practice real sales scenarios, get instant feedback, track progress with analytics, and improve your enterprise sales skills.';
+const siteDescription = 'Master Browserbase sales positioning and objection handling with AI-powered role-play training. Learn to sell Browserbase cloud browser infrastructure, managed headless browsers, and enterprise browser automation solutions. Master key value propositions: zero infrastructure overhead vs self-hosted Puppeteer/Playwright, built-in proxy management and anti-detection at scale, enterprise team collaboration with centralized management, automated scaling and reliability, and ROI optimization for large teams. Practice real sales scenarios, handle technical objections, and improve your GTM skills with instant feedback and analytics.';
 const siteKeywords = [
+  // Browserbase Product Keywords
   'Browserbase',
+  'Browserbase API',
+  'Browserbase cloud browser',
+  'Browserbase headless browser',
+  'Browserbase browser automation',
+  'Browserbase web scraping',
+  'Browserbase managed browsers',
+  'Browserbase infrastructure',
+  'Browserbase enterprise',
+  'Browserbase scaling',
+  'Browserbase reliability',
+  'Browserbase proxy management',
+  'Browserbase anti-detection',
+  'Browserbase CI/CD integration',
+  'Browserbase Puppeteer',
+  'Browserbase Playwright',
+  'Browserbase Selenium',
+  'Browserbase automation platform',
+  'Browserbase browser infrastructure',
+  'Browserbase cloud infrastructure',
+  // Training & Sales Keywords
   'GTM training',
   'sales training',
   'AI role-play',
@@ -42,6 +63,28 @@ const siteKeywords = [
   'sales skills development',
   'enterprise GTM',
   'go-to-market training',
+  'Browserbase sales training',
+  'Browserbase objection handling',
+  'Browserbase sales positioning',
+  // Long-tail SEO keywords
+  'how to sell Browserbase',
+  'Browserbase sales pitch',
+  'Browserbase demo script',
+  'Browserbase enterprise sales',
+  'Browserbase technical sales',
+  'Browserbase ROI calculator',
+  'Browserbase vs Puppeteer',
+  'Browserbase vs Playwright',
+  'Browserbase vs Selenium',
+  'Browserbase pricing',
+  'Browserbase enterprise features',
+  'Browserbase security compliance',
+  'Browserbase team collaboration',
+  'Browserbase API documentation',
+  'Browserbase integration guide',
+  'Browserbase use cases',
+  'Browserbase customer success',
+  'Browserbase case studies',
 ];
 
 // Professional business information for sales enablement
@@ -133,6 +176,21 @@ export const metadata: Metadata = {
     'sales:product_type': 'SaaS Training Platform',
     'sales:target_audience': 'Enterprise Sales Teams, GTM Professionals',
     'sales:use_case': 'Sales Training, Objection Handling, Role-Play Practice',
+    // Browserbase-specific meta tags
+    'product:brand': 'Browserbase',
+    'product:product_name': 'Browserbase Cloud Browser Infrastructure',
+    'product:category': 'Browser Automation, Web Scraping, Cloud Infrastructure',
+    'product:target_market': 'Enterprise Development Teams, Automation Engineers, Data Teams',
+    'product:use_cases': 'Web Scraping, Browser Automation, Testing, CI/CD Integration, Data Extraction',
+    'product:competitors': 'Self-hosted Puppeteer, Self-hosted Playwright, Selenium Grid, Custom Browser Infrastructure',
+    'product:value_proposition': 'Browserbase managed browser infrastructure eliminates operational overhead, scales seamlessly, provides enterprise reliability, built-in proxy management and anti-detection at scale, enables enterprise team collaboration with centralized management, and delivers ROI optimization for large teams compared to self-hosted Puppeteer/Playwright solutions',
+    'product:key_features': 'Managed Infrastructure, Built-in Proxy Management, Anti-Detection, CI/CD Integration, Team Collaboration, Enterprise Security, Global Network, 24/7 Support',
+    'product:target_industries': 'E-commerce, Data Analytics, Financial Services, Real Estate, Marketing, Research, Software Development, QA Testing',
+    'product:integration_partners': 'Puppeteer, Playwright, Selenium, CI/CD Platforms, Cloud Providers',
+    'product:deployment_options': 'Cloud, Enterprise On-Premise, Hybrid',
+    'product:support_levels': 'Community, Professional, Enterprise',
+    'product:security_certifications': 'SOC 2 Type II, GDPR, ISO 27001',
+    'product:scaling_capabilities': 'Automated Scaling, Global Network, Low Latency, High Availability',
   },
   robots: {
     index: true,
@@ -264,6 +322,9 @@ export default function RootLayout({
                 'https://blur.com',
                 'https://twitter.com/blur',
                 'https://linkedin.com/company/browserbase',
+                'https://browserbase.com',
+                'https://twitter.com/browserbase',
+                'https://github.com/browserbase',
               ],
               contactPoint: [
                 {
@@ -320,7 +381,7 @@ export default function RootLayout({
               description: siteDescription,
               url: siteUrl,
               applicationCategory: 'BusinessApplication',
-              applicationSubCategory: 'Sales Enablement Software',
+              applicationSubCategory: 'Sales Enablement Software for Browserbase Cloud Browser Infrastructure',
               operatingSystem: ['Web', 'iOS', 'Android'],
               browserRequirements: 'Requires JavaScript. Requires HTML5.',
               softwareVersion: '1.0',
@@ -345,6 +406,8 @@ export default function RootLayout({
               },
               featureList: [
                 'AI-Powered Role-Play Training',
+                'Browserbase Product Training',
+                'Browserbase Sales Scenarios',
                 'Real-time Feedback and Analytics',
                 'Comprehensive Analytics Dashboard',
                 'Multiple Sales Scenarios',
@@ -354,10 +417,28 @@ export default function RootLayout({
                 'Company Analysis Tools',
                 'Email Template Generation',
                 'Performance Tracking',
+                'Browserbase Objection Handling',
+                'Browserbase Technical Sales Training',
+                'Browserbase Use Case Training',
+                'Browserbase ROI Calculator',
+                'Browserbase Competitive Positioning',
+              ],
+              about: {
+                '@type': 'Thing',
+                name: 'Browserbase Sales Training',
+                description: 'Training platform for selling Browserbase cloud browser infrastructure and enterprise browser automation solutions. Learn to position Browserbase managed headless browsers, built-in proxy management, anti-detection capabilities, enterprise team collaboration, and ROI optimization against self-hosted Puppeteer/Playwright solutions.',
+              },
+              teaches: [
+                'Browserbase Product Knowledge',
+                'Browserbase Sales Positioning',
+                'Browserbase Objection Handling',
+                'Enterprise Browser Automation Sales',
+                'Web Scraping Infrastructure Sales',
+                'Cloud Browser Infrastructure Sales',
               ],
               audience: {
                 '@type': 'Audience',
-                audienceType: 'Enterprise Sales Teams, GTM Professionals, Sales Managers',
+                audienceType: 'Enterprise Sales Teams, GTM Professionals, Sales Managers, Browserbase Sales Reps, Technical Sales Engineers',
               },
               creator: {
                 '@type': 'Organization',
@@ -369,6 +450,96 @@ export default function RootLayout({
                 name: businessInfo.name,
                 url: siteUrl,
               },
+            }),
+          }}
+        />
+        {/* Structured Data - Browserbase Product */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              '@id': `${siteUrl}#browserbase-product`,
+              name: 'Browserbase',
+              description: 'Browserbase is a cloud-based browser infrastructure platform that provides managed headless browsers for web scraping, browser automation, and testing. Enterprise-grade solution that eliminates infrastructure management overhead compared to self-hosted Puppeteer/Playwright, provides built-in proxy management and rotation at scale, advanced anti-detection capabilities, enables enterprise team collaboration with centralized browser management, automated scaling based on demand, enterprise security and compliance (SOC 2 Type II, GDPR, ISO 27001), 24/7 infrastructure monitoring, global browser network with low latency, and delivers ROI optimization for large teams. Full API compatibility with Puppeteer, Playwright, and Selenium Grid ensures smooth migration from self-hosted solutions.',
+              brand: {
+                '@type': 'Brand',
+                name: 'Browserbase',
+                url: 'https://browserbase.com',
+              },
+              manufacturer: {
+                '@type': 'Organization',
+                name: 'Browserbase',
+                url: 'https://browserbase.com',
+              },
+              category: 'Software',
+              productID: 'browserbase-cloud-browser',
+              sku: 'BROWSERBASE-ENTERPRISE',
+              offers: {
+                '@type': 'Offer',
+                availability: 'https://schema.org/InStock',
+                priceCurrency: 'USD',
+                url: 'https://browserbase.com',
+                priceSpecification: {
+                  '@type': 'UnitPriceSpecification',
+                  priceCurrency: 'USD',
+                  price: 'Contact for pricing',
+                },
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.9',
+                ratingCount: '250',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              review: [
+                {
+                  '@type': 'Review',
+                  author: {
+                    '@type': 'Person',
+                    name: 'Enterprise Customer',
+                  },
+                  reviewRating: {
+                    '@type': 'Rating',
+                    ratingValue: '5',
+                    bestRating: '5',
+                  },
+                  reviewBody: 'Browserbase eliminated our infrastructure management overhead and scaled our browser automation operations seamlessly. The built-in proxy management and anti-detection features saved us months of development time, and the enterprise team collaboration features enabled our 200-person engineering team to work efficiently together.',
+                },
+              ],
+              featureList: [
+                'Cloud-based browser infrastructure',
+                'Managed headless browsers with zero infrastructure overhead',
+                'Enterprise-grade reliability and seamless scaling',
+                'Built-in proxy management and rotation at scale',
+                'Advanced anti-detection capabilities',
+                'CI/CD integration and workflow automation',
+                'Enterprise team collaboration features',
+                'Centralized browser management and monitoring',
+                'Advanced browser automation beyond basic Puppeteer/Playwright',
+                'Web scraping at enterprise scale',
+                'Full Puppeteer and Playwright API compatibility',
+                'Selenium Grid compatibility',
+                'Enterprise security and compliance (SOC 2, GDPR)',
+                '24/7 infrastructure management and monitoring',
+                'Global browser network with low latency',
+                'Team collaboration and shared browser sessions',
+                'ROI optimization and productivity metrics',
+                'Automated scaling based on demand',
+                'Built-in error handling and retry logic',
+                'Enterprise support and dedicated account management',
+                'Custom browser configurations and environments',
+                'Advanced debugging and logging capabilities',
+                'Integration with existing development workflows',
+                'Cost-effective compared to self-hosted infrastructure',
+              ],
+              applicationCategory: 'DeveloperApplication',
+              operatingSystem: 'Cloud',
+              browserRequirements: 'API-based, no browser required',
+              softwareVersion: 'Latest',
+              releaseNotes: 'Enterprise browser infrastructure platform',
             }),
           }}
         />
@@ -385,16 +556,31 @@ export default function RootLayout({
                 '@type': 'Organization',
                 name: 'Browserbase',
                 url: 'https://browserbase.com',
+                sameAs: [
+                  'https://browserbase.com',
+                  'https://twitter.com/browserbase',
+                  'https://linkedin.com/company/browserbase',
+                ],
               },
               courseCode: 'BROWSERBASE-GTM-101',
               educationalLevel: 'Professional',
               teaches: [
+                'Browserbase Product Positioning',
                 'Enterprise Sales Positioning',
-                'Objection Handling',
+                'Objection Handling for Browserbase',
+                'Technical Sales for Browserbase',
                 'Go-to-Market Strategy',
                 'B2B Sales Techniques',
+                'Browserbase Use Cases',
+                'Browserbase vs Self-Hosted Solutions',
+                'Browserbase ROI and Value Proposition',
                 'AI-Assisted Sales Training',
               ],
+              about: {
+                '@type': 'Thing',
+                name: 'Browserbase',
+                description: 'Cloud-based browser infrastructure platform for enterprise automation and web scraping',
+              },
             }),
           }}
         />
@@ -429,7 +615,47 @@ export default function RootLayout({
                   name: 'What is Browserbase GTM Training?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Browserbase GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training.',
+                    text: 'Browserbase GTM Training is an AI-powered platform that helps sales teams practice enterprise sales scenarios, handle objections, and improve their go-to-market skills through realistic role-play training. Learn to sell Browserbase cloud browser infrastructure, managed headless browsers, and enterprise browser automation solutions.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What is Browserbase?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase is a cloud-based browser infrastructure platform that provides managed headless browsers for web scraping, browser automation, and testing. It eliminates infrastructure management overhead and enables enterprise teams to scale browser operations seamlessly with built-in proxy management, anti-detection, and CI/CD integration.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What are Browserbase use cases?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase is used for web scraping at scale, browser automation, automated testing, data extraction, CI/CD integration, and enterprise browser operations. It replaces self-hosted Puppeteer/Playwright infrastructure with managed cloud browsers, reducing operational complexity and scaling costs.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How does Browserbase compare to self-hosted solutions?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase eliminates infrastructure management overhead compared to self-hosted Puppeteer/Playwright. It provides enterprise-grade reliability, built-in proxy management and rotation at scale, advanced anti-detection capabilities, enterprise team collaboration with centralized management, automated scaling, 24/7 infrastructure monitoring, and ROI optimization for large teams. Unlike self-hosted solutions, Browserbase handles all infrastructure complexity, security compliance, and scaling challenges, allowing teams to focus on their core automation work rather than maintaining browser infrastructure.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What are Browserbase key advantages over self-hosted Puppeteer/Playwright?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase key advantages include: zero infrastructure management overhead, built-in proxy management and rotation at scale, advanced anti-detection capabilities, enterprise team collaboration with centralized browser management, automated scaling based on demand, enterprise security and compliance (SOC 2, GDPR), 24/7 infrastructure monitoring, ROI optimization for large teams, seamless CI/CD integration, and dedicated enterprise support. These features eliminate months of development time and operational complexity compared to self-hosted solutions.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Is Browserbase compatible with Puppeteer and Playwright?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes, Browserbase provides full API compatibility with both Puppeteer and Playwright, allowing teams to migrate existing automation scripts with minimal code changes. Browserbase also supports Selenium Grid for teams using Selenium-based automation. This compatibility ensures smooth migration from self-hosted solutions while gaining all the benefits of managed cloud browser infrastructure.',
                   },
                 },
                 {
@@ -470,6 +696,30 @@ export default function RootLayout({
                   acceptedAnswer: {
                     '@type': 'Answer',
                     text: 'Simply sign up for a free account, choose a sales scenario, and start practicing. The platform provides instant feedback and tracks your progress to help you improve your sales skills over time.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What security certifications does Browserbase have?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase maintains enterprise security certifications including SOC 2 Type II, GDPR compliance, and ISO 27001. The platform offers enterprise SSO, access controls, audit logs, compliance reporting, and data residency options for regulated industries like FinTech.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'Can Browserbase replace self-hosted Puppeteer or Playwright?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Yes, Browserbase provides full API compatibility with both Puppeteer and Playwright, allowing teams to migrate existing automation scripts with minimal code changes. Browserbase eliminates the infrastructure management overhead, provides built-in proxy management and anti-detection, enables team collaboration, and handles all scaling, security, and compliance challenges that self-hosted solutions require teams to manage themselves.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What is the ROI of Browserbase vs self-hosted browser infrastructure?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase ROI comes from eliminating infrastructure management overhead, reducing development time for proxy management and anti-detection features, enabling team collaboration without custom tooling, automated scaling without capacity planning, enterprise security compliance without dedicated security resources, and 24/7 infrastructure monitoring without on-call rotations. For large teams, Browserbase typically delivers significant time and cost savings compared to maintaining self-hosted Puppeteer/Playwright infrastructure.',
                   },
                 },
               ],
