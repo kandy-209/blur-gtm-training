@@ -32,6 +32,7 @@
     "test:api": "jest src/__tests__/api",
     "test:verbose": "jest --verbose",
     "test:ui": "jest src/__tests__/components",
+    "verify:improvements": "node scripts/verify-improvements.js",
     "setup:production": "bash scripts/setup-production.sh",
     "setup:interactive": "node setup-production.js",
     "db:migrate": "echo 'Run scripts/create-supabase-tables.sql in Supabase SQL Editor'",

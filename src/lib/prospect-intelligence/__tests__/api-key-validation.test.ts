@@ -3,6 +3,14 @@
  * Specifically testing Anthropic API key configuration
  */
 
+// Mock Stagehand before importing ResearchService to avoid ESM issues
+jest.mock('@browserbasehq/stagehand', () => ({
+  Stagehand: jest.fn().mockImplementation(() => ({
+    run: jest.fn(),
+    close: jest.fn(),
+  })),
+}));
+
 import { ResearchService } from '../research-service';
 
 describe('API Key Validation Tests', () => {

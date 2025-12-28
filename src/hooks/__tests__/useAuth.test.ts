@@ -40,8 +40,7 @@ describe('useAuth', () => {
   });
 
   it('should return null user initially when no session', async () => {
-    if (!supabase) throw new Error('Supabase client not initialized');
-    (supabase.auth.getSession as jest.Mock).mockResolvedValue({
+    (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
       data: { session: null },
     });
 
@@ -80,7 +79,6 @@ describe('useAuth', () => {
 
   it('should handle auth state changes', async () => {
     const mockUser = { id: 'user_123', email: 'test@example.com' };
-    authStateChangeCallback = null;
 
     (mockSupabase.auth.getSession as jest.Mock).mockResolvedValue({
       data: { session: null },
@@ -94,7 +92,7 @@ describe('useAuth', () => {
 
     expect(result.current.user).toBeNull();
 
-    // Simulate auth state change if callback was set
+    // Simulate auth state change - use the stored callback
     if (authStateChangeCallback) {
       authStateChangeCallback('SIGNED_IN', { session: { user: mockUser } });
 

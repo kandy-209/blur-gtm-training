@@ -12,6 +12,7 @@ import WebVitals from '@/components/WebVitals';
 import { UpdateNotification } from '@/components/UpdateNotification';
 import PerformanceOptimizer from '@/components/PerformanceOptimizer';
 import AccessibilityEnhancer from '@/components/AccessibilityEnhancer';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { initSentry } from '@/lib/sentry';
@@ -305,6 +306,21 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://vercel.live" />
+        
+        {/* Security Meta Tags */}
+        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
+        <meta httpEquiv="X-Frame-Options" content="DENY" />
+        <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
+        <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+        <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), interest-cohort=()" />
+        
+        {/* Privacy and Cookie Policy */}
+        <meta name="privacy-policy" content={`${siteUrl}/privacy`} />
+        <meta name="cookie-policy" content={`${siteUrl}/cookies`} />
+        <meta name="terms-of-service" content={`${siteUrl}/terms`} />
+        
+        {/* Content Security */}
+        <meta name="content-security-policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://vercel.live https://*.supabase.co; frame-src 'self';" />
         
         {/* Enhanced Mobile and App Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
@@ -1387,6 +1403,99 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - Event (Training Sessions) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Event',
+              name: 'Browserbase GTM Training Session',
+              description: 'AI-powered sales role-play training session for mastering Browserbase positioning and objection handling',
+              startDate: new Date().toISOString(),
+              endDate: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour session
+              eventStatus: 'https://schema.org/EventScheduled',
+              eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+              location: {
+                '@type': 'VirtualLocation',
+                url: siteUrl,
+              },
+              organizer: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                url: siteUrl,
+              },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                availability: 'https://schema.org/InStock',
+                url: `${siteUrl}/scenarios`,
+              },
+            }),
+          }}
+        />
+        {/* Structured Data - Article (Training Content) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Article',
+              headline: 'Master Browserbase Sales with AI-Powered Training',
+              description: siteDescription,
+              image: `${siteUrl}/og-image.png`,
+              datePublished: '2025-01-01',
+              dateModified: new Date().toISOString().split('T')[0],
+              author: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                url: siteUrl,
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                logo: {
+                  '@type': 'ImageObject',
+                  url: `${siteUrl}/logos/browserbase-logo.svg`,
+                },
+              },
+              mainEntityOfPage: {
+                '@type': 'WebPage',
+                '@id': siteUrl,
+              },
+            }),
+          }}
+        />
+        {/* Structured Data - WebPage (Homepage) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebPage',
+              '@id': `${siteUrl}#webpage`,
+              name: siteName,
+              description: siteDescription,
+              url: siteUrl,
+              inLanguage: 'en-US',
+              isPartOf: {
+                '@type': 'WebSite',
+                '@id': `${siteUrl}#website`,
+                name: siteName,
+              },
+              about: {
+                '@type': 'Thing',
+                name: 'Browserbase Sales Training',
+                description: 'AI-powered sales training platform for mastering Browserbase positioning',
+              },
+              primaryImageOfPage: {
+                '@type': 'ImageObject',
+                url: `${siteUrl}/og-image.png`,
+              },
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"
@@ -1549,6 +1658,7 @@ export default function RootLayout({
         <UpdateNotification autoCheck={true} checkInterval={60 * 60 * 1000} />
         <WebVitals />
         <AccessibilityEnhancer />
+        <AnalyticsTracker />
         <Analytics />
         <SpeedInsights />
       </body>
