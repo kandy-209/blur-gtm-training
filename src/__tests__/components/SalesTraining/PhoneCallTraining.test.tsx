@@ -76,7 +76,7 @@ describe('PhoneCallTraining', () => {
     // Select scenario
     const select = screen.getByRole('combobox');
     await user.click(select);
-    await waitFor(() => {
+    await waitFor(async () => {
       const option = screen.getByText('Test Persona');
       await user.click(option);
     });

@@ -96,7 +96,7 @@ export async function GET(
     const energyLevel = Math.min(100, Math.round((exclamations * 5) + (positiveWords * 10) + 50));
     
     // Calculate confidence score (based on various factors)
-    const wordCount = transcript.split(' ').length;
+    const wordCount = transcript.trim() ? transcript.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
     const avgWordsPerMessage = userMessages.length > 0 ? wordCount / userMessages.length : 0;
     const confidenceScore = Math.min(100, Math.round(
       (Math.min(avgWordsPerMessage / 20, 1) * 30) + // Message length
