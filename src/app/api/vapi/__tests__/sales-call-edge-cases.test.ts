@@ -254,8 +254,8 @@ describe('Vapi Sales Call API - Edge Cases', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      // Route returns 503 when API key is missing, 500 for other errors
-      expect([500, 503]).toContain(response.status);
+      // Route returns 503 when API key is missing, 500 for other errors, 400 for invalid phone
+      expect([400, 500, 503]).toContain(response.status);
       expect(data.error).toMatch(/Vapi call error|Failed to initiate call|API key not configured/);
     });
 

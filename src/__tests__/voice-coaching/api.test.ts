@@ -7,8 +7,15 @@ import { POST as saveMetrics, GET as getMetrics } from '@/app/api/voice-coaching
 import { GET as getFeedback } from '@/app/api/voice-coaching/feedback/route';
 
 // Set environment variables BEFORE any imports
-process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+const originalEnv = process.env;
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+});
+
+afterAll(() => {
+  process.env = originalEnv;
+});
 
 // Mock Supabase client
 const mockSupabaseClient = {

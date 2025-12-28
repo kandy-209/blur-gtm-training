@@ -10,6 +10,7 @@ jest.mock('@/lib/vercel-analytics', () => ({
 // Create a mock callback storage
 let authStateChangeCallback: any = null;
 
+// Define mockSupabase first
 const mockSupabase = {
   auth: {
     getSession: jest.fn(),
@@ -22,8 +23,10 @@ const mockSupabase = {
   },
 };
 
+// Mock the auth module
 jest.mock('@/lib/auth', () => ({
   supabase: mockSupabase,
+  getSupabaseAsync: jest.fn().mockResolvedValue(mockSupabase),
 }));
 
 describe('useAuth', () => {
