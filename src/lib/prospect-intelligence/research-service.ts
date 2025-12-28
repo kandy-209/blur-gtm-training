@@ -1311,28 +1311,28 @@ export class ResearchService {
       // Step 3: Detect technologies with retry
       let techDetection: TechDetection;
       try {
-        techDetection = await withRetry(
+        const rawTechDetection = await withRetry(
           () => detectTechnologies(this.stagehand!),
           CONFIG.maxRetries,
           CONFIG.rateLimitDelayMs,
           'Tech stack detection'
         );
-        // Ensure techDetection has the expected structure (safety check for tests)
-        if (!techDetection) {
-          techDetection = {
-            detectedFromSource: [],
-            detectedFromScripts: [],
-            detectedFromMeta: [],
-            overallAssessment: "",
-          };
-        } else if (!techDetection.detectedFromScripts) {
-          techDetection = {
-            detectedFromSource: techDetection.detectedFromSource || [],
-            detectedFromScripts: [],
-            detectedFromMeta: techDetection.detectedFromMeta || [],
-            overallAssessment: techDetection.overallAssessment || "",
-          };
-        }
+        // Ensure techDetection has the expected structure with all required properties
+        // This defensive programming ensures we always have valid arrays
+        techDetection = {
+          detectedFromSource: Array.isArray(rawTechDetection?.detectedFromSource) 
+            ? rawTechDetection.detectedFromSource 
+            : [],
+          detectedFromScripts: Array.isArray(rawTechDetection?.detectedFromScripts)
+            ? rawTechDetection.detectedFromScripts
+            : [],
+          detectedFromMeta: Array.isArray(rawTechDetection?.detectedFromMeta)
+            ? rawTechDetection.detectedFromMeta
+            : [],
+          overallAssessment: typeof rawTechDetection?.overallAssessment === 'string'
+            ? rawTechDetection.overallAssessment
+            : "",
+        };
       } catch (error) {
         // Fallback if detection fails
         console.warn('Tech detection failed, using empty structure:', error);
@@ -1437,13 +1437,24 @@ export class ResearchService {
 
       // Build the complete prospect profile
       // Ensure techDetection has the expected structure (safety check for tests)
-      const safeTechDetection = techDetection || {
-        detectedFromSource: [],
-        detectedFromScripts: [],
-        detectedFromMeta: [],
-        overallAssessment: "",
-      };
-      const detectedSource = safeTechDetection.detectedFromSource || [];
+      // This is a critical safety check - ensure techDetection is always defined
+      if (!techDetection) {
+        techDetection = {
+          detectedFromSource: [],
+          detectedFromScripts: [],
+          detectedFromMeta: [],
+          overallAssessment: "",
+        };
+      }
+      const safeTechDetection = techDetection;
+      // Ensure all properties are arrays (defensive programming)
+      const detectedSource = Array.isArray(safeTechDetection.detectedFromSource) 
+        ? safeTechDetection.detectedFromSource 
+        : [];
+      // Extra defensive check - ensure detectedFromScripts is always an array
+      const detectedScriptsArray = Array.isArray(safeTechDetection.detectedFromScripts)
+        ? safeTechDetection.detectedFromScripts
+        : [];
       
       const primaryFramework =
         detectedSource.find((d) => d.confidence === "high")?.technology ||
@@ -1521,21 +1532,28 @@ export class ResearchService {
       const icpResult = calculateICPScore(partialData);
 
       // Build final result
-      // Use the safeTechDetection already defined above
-      const detectedScripts = safeTechDetection.detectedFromScripts || [];
+      // Use detectedScriptsArray already defined above (ensures it's always an array)
+      // Add extra safety check in case detectedScriptsArray is somehow undefined
+      const detectedScripts = Array.isArray(detectedScriptsArray) ? detectedScriptsArray : [];
+      
+      // Final safety check - ensure detectedScripts is always an array before using .filter()
+      if (!Array.isArray(detectedScripts)) {
+        console.error('detectedScripts is not an array, using empty array as fallback');
+      }
+      const safeDetectedScripts = Array.isArray(detectedScripts) ? detectedScripts : [];
       
       const result: ProspectIntelligence = {
         ...partialData,
         thirdPartyTools: {
-          analytics: detectedScripts.filter((s) =>
+          analytics: safeDetectedScripts.filter((s) =>
             s.includes("analytics")
           ),
-          monitoring: detectedScripts.filter((s) =>
+          monitoring: safeDetectedScripts.filter((s) =>
             s.includes("monitoring")
           ),
           deployment: [],
-          chat: detectedScripts.filter((s) => s.includes("chat")),
-          other: detectedScripts.filter(
+          chat: safeDetectedScripts.filter((s) => s.includes("chat")),
+          other: safeDetectedScripts.filter(
             (s) =>
               !s.includes("analytics") &&
               !s.includes("monitoring") &&
@@ -1558,7 +1576,7 @@ export class ResearchService {
         dataQuality: {
           completenessScore: calculateCompleteness(partialData),
           confidenceLevel:
-            safeTechDetection.detectedFromSource.length > 0 ? "medium" : "low",
+            detectedSource.length > 0 ? "medium" : "low",
           sourcesChecked,
           missingData: findMissingData(partialData),
         },

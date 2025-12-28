@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "verify:all": "node scripts/verify-all.js",
     "setup:prospect-db": "node scripts/setup-prospect-intelligence-db.js",
     "db:migrate:prospect": "bash scripts/run-prospect-intelligence-migration.sh",
     "dev": "next dev",

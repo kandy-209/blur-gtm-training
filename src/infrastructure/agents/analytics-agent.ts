@@ -57,7 +57,10 @@ export class AnalyticsAgent {
       });
     }
     if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      this.openai = new OpenAI({ 
+        apiKey: process.env.OPENAI_API_KEY,
+        dangerouslyAllowBrowser: process.env.NODE_ENV === 'test' || false,
+      });
     }
     if (process.env.GOOGLE_GEMINI_API_KEY) {
       this.gemini = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY);

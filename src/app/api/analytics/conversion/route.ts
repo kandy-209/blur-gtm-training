@@ -16,6 +16,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseClient()
 
+    if (!supabase) {
+      // Gracefully handle missing database configuration
+      return NextResponse.json({ success: true })
+    }
+
     // Store conversion event in database
     const { error } = await supabase.from('conversion_events').insert({
       event_type: event.eventType,

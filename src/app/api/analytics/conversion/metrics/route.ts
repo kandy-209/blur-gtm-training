@@ -5,6 +5,21 @@ export async function GET() {
   try {
     const supabase = getSupabaseClient()
 
+    if (!supabase) {
+      // Return empty data if database not configured
+      return NextResponse.json({
+        totalConversions: 0,
+        conversionRate: 0,
+        averageTimeToConversion: 0,
+        topScenarios: [],
+        funnelData: {
+          started: 0,
+          completed: 0,
+          converted: 0,
+        },
+      })
+    }
+
     // Get conversion events
     const { data: conversions, error: convError } = await supabase
       .from('conversion_events')
