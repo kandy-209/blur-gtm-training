@@ -4,6 +4,8 @@ import { getSupabaseClient } from '@/lib/supabase-client';
 import { analytics } from '@/lib/analytics';
 import { log } from '@/lib/logger';
 
+// Note: retryWithBackoff not needed here as ConversionTracker handles retries
+
 /**
  * API endpoint for tracking funnel progression
  * Tracks user journey through the sales training funnel

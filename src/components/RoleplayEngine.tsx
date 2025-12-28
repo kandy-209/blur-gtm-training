@@ -248,6 +248,19 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       setState(newState);
       setShowFeedback(true);
 
+      // Update advanced metrics after agent response
+      try {
+        const updatedAnalysis = analyzeCompleteConversation(newState, scenario, []);
+        setAdvancedMetrics({
+          metrics: updatedAnalysis.metrics,
+          behavior: updatedAnalysis.behavior,
+          insights: updatedAnalysis.insights,
+          context: updatedAnalysis.context,
+        });
+      } catch (error) {
+        console.warn('Failed to update advanced metrics:', error);
+      }
+
       // Track feedback view
       analytics.track({
         eventType: 'feedback_view',
@@ -553,6 +566,46 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         />
       )}
 
+      {/* Advanced Metrics Dashboard - Show when available */}
+      {!state.isComplete && advancedMetrics && state.conversationHistory.length >= 2 && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {advancedMetrics.metrics && (
+              <ConversationQualityIndicator 
+                metrics={advancedMetrics.metrics} 
+                className="animate-fade-in"
+              />
+            )}
+            {advancedMetrics.behavior && (
+              <AdaptiveDifficultyIndicator 
+                behavior={advancedMetrics.behavior}
+                className="animate-fade-in"
+              />
+            )}
+            {advancedMetrics.context && (
+              <ProgressTracker 
+                context={advancedMetrics.context}
+                scenario={scenario}
+                className="animate-fade-in"
+              />
+            )}
+          </div>
+
+          {/* Conversation Insights Panel */}
+          {advancedMetrics.insights && (
+            <ConversationInsightsPanel 
+              insights={{
+                strengths: advancedMetrics.insights.strengths || [],
+                opportunities: advancedMetrics.insights.opportunities || [],
+                criticalActions: advancedMetrics.insights.criticalActions || [],
+                nextSteps: advancedMetrics.insights.nextSteps || [],
+              }}
+              className="animate-fade-in"
+            />
+          )}
+        </div>
+      )}
+
       {/* Conversation History */}
       <Card className="flex-1 border-gray-200 overflow-hidden">
         <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-6 min-h-[300px] sm:min-h-[400px] max-h-[500px] sm:max-h-[600px]">
@@ -734,9 +787,14 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           {/* Real-Time Coaching */}
           <RoleplayCoaching
             userMessage={repMessage}
-            scenario={scenario}
+            scenario={{
+              id: scenario.id,
+              keyPoints: scenario.keyPoints,
+              objection_category: scenario.objection_category,
+            }}
             conversationHistory={state.conversationHistory}
           />
+          
           {voiceMode ? (
             <VoiceControls
               onTranscript={handleVoiceTranscript}
@@ -806,9 +864,6 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
               }}
             />
           )}
-          
-          {/* Real-Time Coaching */}
-          <RealTimeCoachingPanel coaching={realTimeCoaching} />
         </div>
       )}
 

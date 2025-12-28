@@ -72,6 +72,69 @@ class CacheManager {
 export const cacheManager = new CacheManager();
 
 /**
+ * Request Deduplicator
+ * Prevents multiple simultaneous requests with the same key
+ */
+class RequestDeduplicator {
+  private pendingRequests: Map<string, Promise<{ success: boolean; data?: any; error?: Error }>> = new Map();
+  
+  /**
+   * Deduplicate requests - if a request with the same key is already in progress,
+   * return the existing promise instead of making a new request
+   */
+  async deduplicate<T>(
+    key: string,
+    fn: () => Promise<T>,
+    windowMs: number = 2000
+  ): Promise<{ success: boolean; data?: T; error?: Error }> {
+    // Check if there's already a pending request
+    const existing = this.pendingRequests.get(key);
+    if (existing) {
+      return existing;
+    }
+    
+    // Create new request promise
+    const requestPromise = (async () => {
+      try {
+        const data = await fn();
+        return { success: true, data };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error : new Error(String(error)),
+        };
+      } finally {
+        // Remove from pending after a delay to allow deduplication window
+        setTimeout(() => {
+          this.pendingRequests.delete(key);
+        }, windowMs);
+      }
+    })();
+    
+    // Store the promise
+    this.pendingRequests.set(key, requestPromise);
+    
+    return requestPromise;
+  }
+  
+  /**
+   * Clear all pending requests
+   */
+  clear(): void {
+    this.pendingRequests.clear();
+  }
+  
+  /**
+   * Get number of pending requests
+   */
+  getPendingCount(): number {
+    return this.pendingRequests.size;
+  }
+}
+
+export const requestDeduplicator = new RequestDeduplicator();
+
+/**
  * Cache decorator for functions
  */
 export function cached(config: CacheConfig) {
