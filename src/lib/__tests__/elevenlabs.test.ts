@@ -32,7 +32,7 @@ describe('ElevenLabsClient', () => {
         }),
       });
 
-      const result = await client.textToSpeech('Hello, world!');
+      const result = await client.textToSpeech({ text: 'Hello, world!' });
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/text-to-speech'),
@@ -59,7 +59,14 @@ describe('ElevenLabsClient', () => {
         json: jest.fn().mockResolvedValue({ error: 'Invalid API key' }),
       });
 
-      await expect(client.textToSpeech('Hello')).rejects.toThrow();
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: jest.fn().mockResolvedValue('Invalid API key'),
+      });
+      
+      await expect(client.textToSpeech({ text: 'Hello' })).rejects.toThrow();
     });
 
     it('should respect text length limits', async () => {
@@ -70,9 +77,15 @@ describe('ElevenLabsClient', () => {
 
       const longText = 'a'.repeat(5001);
       
-      await expect(client.textToSpeech(longText)).rejects.toThrow(
-        'Text exceeds maximum length'
-      );
+      // Mock API response for text that's too long (ElevenLabs API will reject it)
+      (fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        statusText: 'Bad Request',
+        text: jest.fn().mockResolvedValue('Text exceeds maximum length'),
+      });
+      
+      await expect(client.textToSpeech({ text: longText })).rejects.toThrow();
     });
 
     it('should use custom voice ID when provided', async () => {
@@ -88,7 +101,7 @@ describe('ElevenLabsClient', () => {
         headers: new Headers({ 'content-type': 'audio/mpeg' }),
       });
 
-      await client.textToSpeech('Test', { voiceId: customVoiceId });
+      await client.textToSpeech({ text: 'Test', voiceId: customVoiceId });
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining(customVoiceId),
@@ -126,7 +139,7 @@ describe('ElevenLabsClient', () => {
           }),
         })
       );
-      expect(voices).toEqual(mockVoices);
+      expect(voices).toEqual(mockVoices.voices);
     });
   });
 

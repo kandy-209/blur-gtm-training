@@ -206,8 +206,8 @@ describe('GlobalVoiceAssistant', () => {
       const openButton = screen.getByRole('button', { name: /open ai training assistant/i });
       fireEvent.click(openButton);
       
-      expect(screen.getByText(/AI Cursor Training Assistant/i)).toBeInTheDocument();
-      expect(screen.getByText(/Powerful AI assistant for Cursor training/i)).toBeInTheDocument();
+      expect(screen.getByText(/AI Browserbase Training Assistant/i)).toBeInTheDocument();
+      expect(screen.getByText(/Powerful AI assistant for Browserbase training/i)).toBeInTheDocument();
     });
   });
 
@@ -277,7 +277,7 @@ describe('GlobalVoiceAssistant', () => {
     
     await waitFor(() => {
       // Check for the widget container - look for specific title text
-      const card = screen.getByText(/AI Cursor Training Assistant/i);
+      const card = screen.getByText(/AI Browserbase Training Assistant/i);
       expect(card).toBeInTheDocument();
     });
   });
@@ -298,7 +298,7 @@ describe('GlobalVoiceAssistant', () => {
     
     await waitFor(() => {
       // Check that the floating widget card is rendered - look for specific title
-      const card = screen.getByText(/AI Cursor Training Assistant/i);
+      const card = screen.getByText(/AI Browserbase Training Assistant/i);
       expect(card).toBeInTheDocument();
     });
   });

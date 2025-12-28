@@ -32,6 +32,8 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import SiteSearch from '@/components/SiteSearch';
+import SocialShare from '@/components/SocialShare';
 
 const categoryIcons: Record<string, any> = {
   'Competitive_SelfHosted': Puzzle,

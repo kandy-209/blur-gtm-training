@@ -10,6 +10,7 @@ import { LiveRegion } from '@/components/ui/live-region';
 import SEOHead from '@/components/SEOHead';
 import WebVitals from '@/components/WebVitals';
 import { UpdateNotification } from '@/components/UpdateNotification';
+import PerformanceOptimizer from '@/components/PerformanceOptimizer';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { initSentry } from '@/lib/sentry';
@@ -157,6 +158,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
+    images: [
+      {
+        url: `${siteUrl}/api/og?title=${encodeURIComponent(siteName)}&description=${encodeURIComponent(siteDescription.substring(0, 100))}`,
+        width: 1200,
+        height: 630,
+        alt: siteName,
+      },
+    ],
     locale: 'en_US',
     alternateLocale: ['en'],
     url: siteUrl,
@@ -165,7 +174,7 @@ export const metadata: Metadata = {
     description: siteDescription,
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
+        url: `${siteUrl}/api/og?title=${encodeURIComponent(siteName)}&description=${encodeURIComponent(siteDescription.substring(0, 100))}`,
         width: 1200,
         height: 630,
         alt: `${siteName} - AI-Powered Enterprise Sales Training for Browserbase Cloud Browser Infrastructure`,
@@ -1314,6 +1323,27 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - SearchAction (Site Search) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              '@id': `${siteUrl}#website`,
+              name: siteName,
+              url: siteUrl,
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: `${siteUrl}/api/search?q={search_term_string}`,
+                },
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"
@@ -1444,6 +1474,7 @@ export default function RootLayout({
         <SkipLinks />
         <SEOHead />
         <BypassProtection />
+        <PerformanceOptimizer />
         <nav id="navigation" className="sticky top-0 z-[100] w-full bg-white/80 backdrop-blur-md border-b border-gray-200/60" aria-label="Main navigation">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
             <div className="flex h-16 items-center justify-between">

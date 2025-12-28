@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import SiteSearch from '@/components/SiteSearch';
 
 // Define nav links outside component to ensure consistency between server and client
 const navLinks = [
@@ -47,6 +48,9 @@ export default function NavUser() {
     <>
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center space-x-1">
+        <div className="mr-4">
+          <SiteSearch />
+        </div>
         {navLinks.map((link) => (
           <Link key={link.href} href={link.href} prefetch={false}>
             <Button variant="ghost" className="text-sm font-medium">{link.label}</Button>

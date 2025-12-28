@@ -51,7 +51,7 @@ describe('PermissionAwareChat', () => {
     const generalChatElements = screen.getAllByText(/General Chat/i);
     expect(generalChatElements.length).toBeGreaterThan(0);
     // Check for placeholder text
-    expect(screen.getByPlaceholderText(/Ask any question about Cursor/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Ask any question about Browserbase/i)).toBeInTheDocument();
   });
 
   it('should show permission warning for restricted chat types', () => {
@@ -113,7 +113,7 @@ describe('PermissionAwareChat', () => {
     // Try multiple ways to find the input
     let input: HTMLElement;
     try {
-      input = screen.getByPlaceholderText(/Ask any question about Cursor/i);
+      input = screen.getByPlaceholderText(/Ask any question about Browserbase/i);
     } catch {
       try {
         input = screen.getByPlaceholderText(/Ask any question/i);

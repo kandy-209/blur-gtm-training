@@ -1,112 +1,81 @@
-import { MetadataRoute } from 'next';
-import { scenarios } from '@/data/scenarios';
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com';
+import { MetadataRoute } from 'next'
+import { scenarios } from '@/data/scenarios'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://blursalestrainer.com'
+  const now = new Date()
   
-  const baseRoutes: MetadataRoute.Sitemap = [
+  // Core pages with high priority for SEO
+  const corePages: MetadataRoute.Sitemap = [
     {
-      url: siteUrl,
+      url: baseUrl,
       lastModified: now,
       changeFrequency: 'daily',
-      priority: 1,
+      priority: 1.0,
     },
     {
-      url: `${siteUrl}/scenarios`,
+      url: `${baseUrl}/scenarios`,
       lastModified: now,
       changeFrequency: 'weekly',
       priority: 0.9,
     },
     {
-      url: `${siteUrl}/sales-skills`,
+      url: `${baseUrl}/roi-calculator`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/sales-skills`,
       lastModified: now,
       changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/roi-calculator`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/prospect-intelligence`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/prospect-intelligence/saved`,
-      lastModified: now,
-      changeFrequency: 'daily',
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/company-lookup`,
+      url: `${baseUrl}/analytics`,
       lastModified: now,
       changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/financial-dashboard`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/analytics`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/sales-training`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/leaderboard`,
-      lastModified: now,
-      changeFrequency: 'daily',
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/features`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/enterprise`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/help`,
-      lastModified: now,
-      changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${siteUrl}/feedback`,
+      url: `${baseUrl}/prospect-intelligence`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/enterprise`,
       lastModified: now,
       changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/company-lookup`,
+      lastModified: now,
+      changeFrequency: 'weekly',
       priority: 0.6,
     },
-  ];
-
-  // Add dynamic roleplay scenario pages
-  const scenarioRoutes: MetadataRoute.Sitemap = scenarios.map((scenario) => ({
-    url: `${siteUrl}/roleplay/${scenario.id}`,
+    {
+      url: `${baseUrl}/financial-dashboard`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/sales-training`,
+      lastModified: now,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+  ]
+  
+  // Dynamic roleplay scenario pages - critical for SEO discovery
+  const scenarioPages: MetadataRoute.Sitemap = scenarios.map((scenario) => ({
+    url: `${baseUrl}/roleplay/${scenario.id}`,
     lastModified: now,
-    changeFrequency: 'monthly',
+    changeFrequency: 'monthly' as const,
     priority: 0.7,
-  }));
-
-  return [...baseRoutes, ...scenarioRoutes];
+  }))
+  
+  return [...corePages, ...scenarioPages]
 }
-

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { analytics } from '@/lib/analytics';
 import { trackRoleplayEvent } from '@/lib/vercel-analytics';
+import { ConversionTracker } from '@/lib/conversion-tracking';
 import VoiceControls from '@/components/VoiceControls';
 import ResponseSuggestions from '@/components/ResponseSuggestions';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -49,6 +50,10 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       eventType: 'scenario_start',
       scenarioId: scenario.id,
     });
+    
+    // Track conversion event
+    const userId = analytics.getUserId();
+    ConversionTracker.trackScenarioStart(scenario.id, userId);
   }, [scenario.id]);
 
   const handlePlayAudio = useCallback(async (text: string) => {
@@ -244,6 +249,25 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           eventType: 'scenario_complete',
           scenarioId: scenario.id,
           score: agentResponse.confidence_score,
+        });
+        
+        // Track conversion with detailed metrics
+        const userId = analytics.getUserId();
+        const meetingBooked = agentResponse.next_step_action === 'MEETING_BOOKED' || 
+                              agentResponse.sale_indicators?.meeting_agreed === true;
+        const timeToComplete = Date.now() - (state.conversationHistory[0]?.timestamp?.getTime() || Date.now());
+        const objectionsHandled = state.conversationHistory.filter(h => 
+          h.role === 'rep' && scenario.keyPoints.some(kp => 
+            h.message.toLowerCase().includes(kp.toLowerCase())
+          )
+        ).length;
+        
+        ConversionTracker.trackScenarioComplete(scenario.id, userId, {
+          score: agentResponse.confidence_score,
+          timeToComplete: Math.floor(timeToComplete / 1000), // Convert to seconds
+          objectionsHandled,
+          turnCount: state.turnNumber,
+          meetingBooked,
         });
 
         // Generate comprehensive feedback
