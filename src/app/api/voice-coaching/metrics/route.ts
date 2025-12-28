@@ -14,9 +14,15 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 let supabase: ReturnType<typeof createClient> | null = null;
 
 // Initialize supabase if both URL and key are available
+// In test environment, this will use the mocked createClient
 if (supabaseUrl && supabaseKey) {
   try {
     supabase = createClient(supabaseUrl, supabaseKey);
+    // In test environment, ensure we have a valid client (mock should return one)
+    if (process.env.NODE_ENV === 'test' && !supabase) {
+      // Re-try with mock (should be available from jest.mock)
+      supabase = createClient(supabaseUrl, supabaseKey);
+    }
   } catch (error) {
     console.error('Failed to initialize Supabase client:', error);
     supabase = null;

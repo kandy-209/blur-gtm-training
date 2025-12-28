@@ -284,6 +284,11 @@ if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = jest.fn();
 }
 
+// Polyfill fetch for Anthropic SDK in test environment
+if (typeof global.fetch === 'undefined') {
+  global.fetch = require('node-fetch');
+}
+
 // Suppress console errors in tests (optional - remove if you want to see them)
 global.console = {
   ...console,

@@ -981,10 +981,11 @@ export class ResearchService {
         try {
           if (this.configuredModel?.startsWith('claude') || this.configuredModel === 'claude-3-haiku-20240307') {
             const { Anthropic } = require('@anthropic-ai/sdk');
-            // In test environment (Jest/JSDOM), allow browser usage for Anthropic SDK
+            // In test environment (Jest/JSDOM), allow browser usage and provide fetch polyfill
             llmClient = new Anthropic({ 
               apiKey,
-              dangerouslyAllowBrowser: process.env.NODE_ENV === 'test' || false
+              dangerouslyAllowBrowser: process.env.NODE_ENV === 'test' || false,
+              fetch: globalThis.fetch || global.fetch || require('node-fetch')
             });
             (this.stagehand as any).llmClient = llmClient;
             console.log(`✅ llmClient initialized (Anthropic) - extract handler will be created`);
