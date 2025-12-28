@@ -57,7 +57,7 @@ describe('AuthForm', () => {
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
       // Select component label - check by text content
-      expect(screen.getByText(/your role at cursor/i)).toBeInTheDocument();
+      expect(screen.getByText(/your role at browserbase/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/job title/i)).toBeInTheDocument();
     });
 
