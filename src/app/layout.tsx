@@ -85,6 +85,34 @@ const siteKeywords = [
   'Browserbase use cases',
   'Browserbase customer success',
   'Browserbase case studies',
+  // New Browserbase Product Features
+  'Stagehand SDK',
+  'Stagehand browser automation',
+  'Stagehand agentic workflows',
+  'Stagehand action caching',
+  'Patchright anti-detection',
+  'Patchright Chromium fork',
+  'Patchright Cloudflare bypass',
+  'Director 2.0 no-code',
+  'Director 2.0 browser automation',
+  'Browserbase Skills API',
+  'Library Judge verification',
+  'Browserbase 1Password integration',
+  'Browserbase VM isolation',
+  'Browserbase zero-trust',
+  'Browserbase global infrastructure',
+  'Browserbase data centers',
+  // Enterprise Use Cases
+  'Browserbase CRM automation',
+  'Browserbase merchant onboarding',
+  'Browserbase healthcare automation',
+  'Browserbase market intelligence',
+  'Browserbase website optimization',
+  // Training Specific
+  'BBQ email writing',
+  'Brevity Boldness Quirkiness',
+  'sales email training',
+  'enterprise sales objection handling',
 ];
 
 // Professional business information for sales enablement
@@ -689,7 +717,39 @@ export default function RootLayout({
                   name: 'What are Browserbase use cases?',
                   acceptedAnswer: {
                     '@type': 'Answer',
-                    text: 'Browserbase is used for web scraping at scale, browser automation, automated testing, data extraction, CI/CD integration, and enterprise browser operations. Specific enterprise use cases include: CRM & Sales Operations (automating Salesforce/HubSpot workflows), Merchant Onboarding (reducing 2-week processes to 1 day), Healthcare (HIPAA-compliant monitoring saving 8,000+ manual hours), Market Intelligence (crawling millions of domains with advanced stealth), and Website Optimization (parallel workers for code extraction and A/B testing). It replaces self-hosted Puppeteer/Playwright infrastructure with managed cloud browsers, reducing operational complexity and scaling costs.',
+                    text: 'Browserbase is used for web scraping at scale, browser automation, automated testing, data extraction, CI/CD integration, and enterprise browser operations. Specific enterprise use cases include: CRM & Sales Operations (automating Salesforce/HubSpot workflows), Merchant Onboarding (Benny reduced 2-week processes to 1 day using Stagehand), Healthcare (Commure saved 8,000+ manual hours with HIPAA-compliant monitoring), Market Intelligence (Vercel Prism crawls millions of domains with advanced stealth), and Website Optimization (Coframe achieved 1,000× reduction in engineering effort). It replaces self-hosted Puppeteer/Playwright infrastructure with managed cloud browsers, reducing operational complexity and scaling costs.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What are Browserbase customer success stories?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase customers have achieved significant results: Benny reduced merchant onboarding from 2 weeks to 1 day using Stagehand, Commure saved 8,000+ manual hours in one quarter with HIPAA-compliant hospital payer portal monitoring, Vercel Prism crawls millions of domains for sales signals using advanced stealth capabilities, Coframe achieved 1,000× reduction in engineering effort for code extraction and A/B testing, and Structify processes large datasets at scale with thousands of concurrent sessions. These results demonstrate Browserbase\'s ability to eliminate infrastructure overhead and deliver measurable ROI.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How does Browserbase help with email writing for sales?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'This training platform includes BBQ (Brevity, Boldness, Quirkiness) email writing style training. BBQ emails are short (50-75 words), concrete, and use interest-based CTAs. The style avoids overused phrases like "leverage", "seamless", "holistic", and "empower" in favor of direct, clear language. This approach helps sales reps write more effective Browserbase outreach emails that get responses.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What are Browserbase customer success stories?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Browserbase customers have achieved significant results: Benny reduced merchant onboarding from 2 weeks to 1 day using Stagehand, Commure saved 8,000+ manual hours in one quarter with HIPAA-compliant hospital payer portal monitoring, Vercel Prism crawls millions of domains for sales signals using advanced stealth capabilities, Coframe achieved 1,000× reduction in engineering effort for code extraction and A/B testing, and Structify processes large datasets at scale with thousands of concurrent sessions. These results demonstrate Browserbase\'s ability to eliminate infrastructure overhead and deliver measurable ROI.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How does Browserbase help with email writing for sales?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'This training platform includes BBQ (Brevity, Boldness, Quirkiness) email writing style training. BBQ emails are short (50-75 words), concrete, and use interest-based CTAs. The style avoids overused phrases like "leverage", "seamless", "holistic", and "empower" in favor of direct, clear language. This approach helps sales reps write more effective Browserbase outreach emails that get responses.',
                   },
                 },
                 {
@@ -817,13 +877,29 @@ export default function RootLayout({
               '@type': 'Service',
               '@id': `${siteUrl}#training-service`,
               name: 'Browserbase GTM Sales Training Service',
-              description: 'AI-powered sales training service for mastering Browserbase cloud browser infrastructure sales. Includes role-play practice, objection handling, technical sales training, and real-time feedback.',
+              description: 'AI-powered sales training service for mastering Browserbase cloud browser infrastructure sales ($300M valuation, 1,000+ companies). Includes role-play practice, objection handling, technical sales training, real-time feedback, BBQ email writing style training, customer success story analysis, ROI calculation tools, and prospect intelligence research.',
               provider: {
                 '@type': 'Organization',
                 name: businessInfo.name,
                 url: siteUrl,
               },
               serviceType: 'Sales Training Service',
+              category: 'Professional Development',
+              serviceOutput: {
+                '@type': 'Thing',
+                name: 'Browserbase Sales Expertise',
+                description: 'Mastery of Browserbase product knowledge, objection handling, technical sales, email writing (BBQ style), and ROI demonstration',
+              },
+              audience: {
+                '@type': 'Audience',
+                audienceType: 'Enterprise Sales Teams, GTM Professionals, Sales Managers, Browserbase Sales Reps, Technical Sales Engineers',
+              },
+              hoursAvailable: {
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                opens: '00:00',
+                closes: '23:59',
+              },
               areaServed: {
                 '@type': 'Country',
                 name: 'Worldwide',
@@ -859,7 +935,37 @@ export default function RootLayout({
               '@type': 'HowTo',
               name: 'How to Master Browserbase Sales Training',
               description: 'Step-by-step guide to mastering Browserbase cloud browser infrastructure sales through AI-powered role-play training',
-              totalTime: 'PT30M',
+              totalTime: 'PT2H',
+              prepTime: 'PT5M',
+              performTime: 'PT1H30M',
+              tool: [
+                {
+                  '@type': 'HowToTool',
+                  name: 'Browserbase GTM Training Platform',
+                },
+                {
+                  '@type': 'HowToTool',
+                  name: 'AI-Powered Role-Play Engine',
+                },
+                {
+                  '@type': 'HowToTool',
+                  name: 'BBQ Email Writing Style Guide',
+                },
+                {
+                  '@type': 'HowToTool',
+                  name: 'ROI Calculator',
+                },
+              ],
+              supply: [
+                {
+                  '@type': 'HowToSupply',
+                  name: 'Free Account',
+                },
+                {
+                  '@type': 'HowToSupply',
+                  name: 'Internet Connection',
+                },
+              ],
               estimatedCost: {
                 '@type': 'MonetaryAmount',
                 currency: 'USD',
@@ -907,6 +1013,31 @@ export default function RootLayout({
                   text: 'Research prospect companies automatically to understand their tech stack, hiring patterns, culture, and ICP scoring for better sales conversations.',
                   url: `${siteUrl}/prospect-intelligence`,
                 },
+                {
+                  '@type': 'HowToStep',
+                  position: 7,
+                  name: 'Master Browserbase Product Knowledge',
+                  text: 'Learn Browserbase core products: Stagehand (agentic browser interaction), Patchright (anti-detection), Director 2.0 (no-code builder), Skills (API for anything), and Library Judge (task verification).',
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 8,
+                  name: 'Practice Email Writing with BBQ Style',
+                  text: 'Master BBQ (Brevity, Boldness, Quirkiness) email writing style. Learn to write short (50-75 words), concrete emails with interest-based CTAs, avoiding overused phrases like "leverage" and "seamless".',
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 9,
+                  name: 'Study Customer Success Stories',
+                  text: 'Review real Browserbase customer results: Benny (2 weeks → 1 day onboarding), Commure (8,000+ hours saved), Vercel Prism (millions of domains crawled), Coframe (1,000× engineering reduction), and Structify (large-scale processing).',
+                },
+                {
+                  '@type': 'HowToStep',
+                  position: 10,
+                  name: 'Calculate ROI and Business Impact',
+                  text: 'Use the ROI calculator to demonstrate Browserbase value: zero infrastructure overhead, built-in proxy management, automated scaling, enterprise security, and team collaboration benefits.',
+                  url: `${siteUrl}/roi-calculator`,
+                },
               ],
             }),
           }}
@@ -951,6 +1082,107 @@ export default function RootLayout({
             }}
           />
         )}
+        {/* Structured Data - Customer Success Stories */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              '@id': `${siteUrl}#customer-success-stories`,
+              name: 'Browserbase Customer Success Stories',
+              description: 'Real customer results and ROI achieved with Browserbase cloud browser infrastructure',
+              numberOfItems: 5,
+              itemListElement: [
+                {
+                  '@type': 'ListItem',
+                  position: 1,
+                  item: {
+                    '@type': 'Review',
+                    author: {
+                      '@type': 'Organization',
+                      name: 'Benny',
+                    },
+                    reviewBody: 'Reduced merchant onboarding from 2 weeks to 1 day using Browserbase Stagehand, replacing brittle scripts with resilient agentic workflows.',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5',
+                    },
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 2,
+                  item: {
+                    '@type': 'Review',
+                    author: {
+                      '@type': 'Organization',
+                      name: 'Commure',
+                    },
+                    reviewBody: 'Saved 8,000+ manual hours in one quarter with HIPAA-compliant hospital payer portal monitoring using Browserbase.',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5',
+                    },
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  item: {
+                    '@type': 'Review',
+                    author: {
+                      '@type': 'Organization',
+                      name: 'Vercel Prism',
+                    },
+                    reviewBody: 'Crawls millions of domains for sales signals using Browserbase advanced stealth capabilities to bypass CDN defenses.',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5',
+                    },
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 4,
+                  item: {
+                    '@type': 'Review',
+                    author: {
+                      '@type': 'Organization',
+                      name: 'Coframe',
+                    },
+                    reviewBody: 'Achieved 1,000× reduction in engineering effort for code extraction and A/B test analysis using Browserbase parallel workers.',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5',
+                    },
+                  },
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 5,
+                  item: {
+                    '@type': 'Review',
+                    author: {
+                      '@type': 'Organization',
+                      name: 'Structify',
+                    },
+                    reviewBody: 'Processes large datasets at scale with thousands of concurrent Browserbase sessions, eliminating infrastructure management overhead.',
+                    reviewRating: {
+                      '@type': 'Rating',
+                      ratingValue: '5',
+                      bestRating: '5',
+                    },
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"
