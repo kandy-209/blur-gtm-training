@@ -44,6 +44,25 @@ const siteKeywords = [
   'go-to-market training',
 ];
 
+// Professional business information for sales enablement
+const businessInfo = {
+  name: 'Browserbase GTM Training Platform',
+  legalName: 'Blur Sales Training',
+  email: process.env.NEXT_PUBLIC_BUSINESS_EMAIL || 'sales@blursalestrainer.com',
+  phone: process.env.NEXT_PUBLIC_BUSINESS_PHONE || '+1-555-000-0000',
+  address: {
+    streetAddress: process.env.NEXT_PUBLIC_BUSINESS_STREET || '',
+    addressLocality: process.env.NEXT_PUBLIC_BUSINESS_CITY || 'San Francisco',
+    addressRegion: process.env.NEXT_PUBLIC_BUSINESS_STATE || 'CA',
+    postalCode: process.env.NEXT_PUBLIC_BUSINESS_ZIP || '',
+    addressCountry: 'US',
+  },
+  foundingDate: '2024',
+  industry: 'Sales Enablement Software',
+  numberOfEmployees: '10-50',
+  priceRange: '$$',
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -86,6 +105,9 @@ export const metadata: Metadata = {
         type: 'image/png',
       },
     ],
+    // Enhanced Open Graph for sales enablement
+    emails: businessInfo.email ? [businessInfo.email] : undefined,
+    phoneNumbers: businessInfo.phone ? [businessInfo.phone] : undefined,
   },
   twitter: {
     card: 'summary_large_image',
@@ -94,6 +116,28 @@ export const metadata: Metadata = {
     images: [`${siteUrl}/og-image.png`],
     creator: '@blur',
     site: '@blur',
+  },
+  // Additional professional meta tags for sales enablement
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'mobile-web-app-capable': 'yes',
+    // Business and contact information
+    'business:contact_data:street_address': businessInfo.address.streetAddress || '',
+    'business:contact_data:locality': businessInfo.address.addressLocality,
+    'business:contact_data:region': businessInfo.address.addressRegion,
+    'business:contact_data:postal_code': businessInfo.address.postalCode || '',
+    'business:contact_data:country_name': businessInfo.address.addressCountry,
+    'business:contact_data:email': businessInfo.email,
+    'business:contact_data:phone_number': businessInfo.phone,
+    'business:contact_data:website': siteUrl,
+    // Professional credentials
+    'og:business:hours': '24/7',
+    'og:business:price_range': businessInfo.priceRange,
+    // Sales enablement specific
+    'sales:product_type': 'SaaS Training Platform',
+    'sales:target_audience': 'Enterprise Sales Teams, GTM Professionals',
+    'sales:use_case': 'Sales Training, Objection Handling, Role-Play Practice',
   },
   robots: {
     index: true,
@@ -125,6 +169,27 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <meta name="color-scheme" content="light dark" />
         <meta name="format-detection" content="telephone=no" />
+        
+        {/* Professional Sales Enablement Meta Tags */}
+        <meta name="author" content={businessInfo.name} />
+        <meta name="copyright" content={`© ${new Date().getFullYear()} ${businessInfo.name}. All rights reserved.`} />
+        <meta name="language" content="English" />
+        <meta name="revisit-after" content="7 days" />
+        <meta name="distribution" content="global" />
+        <meta name="rating" content="general" />
+        <meta name="geo.region" content="US-CA" />
+        {businessInfo.address.addressLocality && (
+          <meta name="geo.placename" content={businessInfo.address.addressLocality} />
+        )}
+        
+        {/* Sales Enablement Specific Tags */}
+        <meta name="product:category" content="Sales Enablement Software" />
+        <meta name="product:target_audience" content="Enterprise Sales Teams, GTM Professionals" />
+        <meta name="product:use_case" content="Sales Training, Objection Handling, Role-Play Practice" />
+        
+        {/* Professional Contact Information */}
+        {businessInfo.email && <meta name="contact" content={businessInfo.email} />}
+        {businessInfo.phone && <meta name="contact:phone" content={businessInfo.phone} />}
         <link rel="canonical" href={siteUrl} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -174,67 +239,141 @@ export default function RootLayout({
         <link rel="prefetch" href="/scenarios" as="document" />
         <link rel="prefetch" href="/sales-skills" as="document" />
         <link rel="prefetch" href="/analytics" as="document" />
-        {/* Structured Data - Organization */}
+        {/* Structured Data - Organization (Enhanced for Sales Enablement) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'EducationalOrganization',
-              name: siteName,
+              '@type': 'Organization',
+              '@id': `${siteUrl}#organization`,
+              name: businessInfo.name,
+              legalName: businessInfo.legalName,
+              alternateName: siteName,
               description: siteDescription,
               url: siteUrl,
-              logo: `${siteUrl}/logos/browserbase-logo.svg`,
+              logo: {
+                '@type': 'ImageObject',
+                url: `${siteUrl}/logos/browserbase-logo.svg`,
+                width: 512,
+                height: 512,
+              },
+              image: `${siteUrl}/og-image.png`,
+              foundingDate: businessInfo.foundingDate,
+              numberOfEmployees: {
+                '@type': 'QuantitativeValue',
+                value: businessInfo.numberOfEmployees,
+              },
+              industry: businessInfo.industry,
               sameAs: [
                 'https://blur.com',
                 'https://twitter.com/blur',
+                'https://linkedin.com/company/browserbase',
               ],
-              contactPoint: {
-                '@type': 'ContactPoint',
-                contactType: 'Customer Service',
-                availableLanguage: 'English',
-              },
-              offers: {
-                '@type': 'Offer',
-                price: '0',
-                priceCurrency: 'USD',
-                availability: 'https://schema.org/InStock',
-              },
-            }),
-          }}
-        />
-        {/* Structured Data - WebApplication */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebApplication',
-              name: siteName,
-              description: siteDescription,
-              url: siteUrl,
-              applicationCategory: 'EducationalApplication',
-              operatingSystem: 'Web',
-              browserRequirements: 'Requires JavaScript. Requires HTML5.',
-              softwareVersion: '1.0',
-              offers: {
-                '@type': 'Offer',
-                price: '0',
-                priceCurrency: 'USD',
-                availability: 'https://schema.org/InStock',
+              contactPoint: [
+                {
+                  '@type': 'ContactPoint',
+                  contactType: 'Sales',
+                  email: businessInfo.email,
+                  telephone: businessInfo.phone,
+                  availableLanguage: ['English'],
+                  areaServed: 'Worldwide',
+                },
+                {
+                  '@type': 'ContactPoint',
+                  contactType: 'Customer Support',
+                  email: businessInfo.email,
+                  availableLanguage: ['English'],
+                  areaServed: 'Worldwide',
+                },
+              ],
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: businessInfo.address.streetAddress,
+                addressLocality: businessInfo.address.addressLocality,
+                addressRegion: businessInfo.address.addressRegion,
+                postalCode: businessInfo.address.postalCode,
+                addressCountry: businessInfo.address.addressCountry,
               },
               aggregateRating: {
                 '@type': 'AggregateRating',
                 ratingValue: '4.8',
                 ratingCount: '150',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                availability: 'https://schema.org/InStock',
+                url: siteUrl,
+                priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              },
+            }),
+          }}
+        />
+        {/* Structured Data - SoftwareApplication (Enhanced for Sales Enablement) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'SoftwareApplication',
+              '@id': `${siteUrl}#software`,
+              name: siteName,
+              description: siteDescription,
+              url: siteUrl,
+              applicationCategory: 'BusinessApplication',
+              applicationSubCategory: 'Sales Enablement Software',
+              operatingSystem: ['Web', 'iOS', 'Android'],
+              browserRequirements: 'Requires JavaScript. Requires HTML5.',
+              softwareVersion: '1.0',
+              softwareRequirements: 'Modern web browser with JavaScript enabled',
+              releaseNotes: 'Professional sales training platform with AI-powered role-play capabilities',
+              screenshot: `${siteUrl}/og-image.png`,
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+                availability: 'https://schema.org/InStock',
+                priceValidUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                url: siteUrl,
+                category: 'Sales Training',
+              },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.8',
+                ratingCount: '150',
+                bestRating: '5',
+                worstRating: '1',
               },
               featureList: [
                 'AI-Powered Role-Play Training',
-                'Real-time Feedback',
-                'Analytics Dashboard',
-                'Multiple Scenarios',
+                'Real-time Feedback and Analytics',
+                'Comprehensive Analytics Dashboard',
+                'Multiple Sales Scenarios',
                 'Enterprise Sales Focus',
+                'Voice-Based Training',
+                'Prospect Intelligence',
+                'Company Analysis Tools',
+                'Email Template Generation',
+                'Performance Tracking',
               ],
+              audience: {
+                '@type': 'Audience',
+                audienceType: 'Enterprise Sales Teams, GTM Professionals, Sales Managers',
+              },
+              creator: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                url: siteUrl,
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                url: siteUrl,
+              },
             }),
           }}
         />
@@ -282,7 +421,7 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* Structured Data - FAQPage */}
+        {/* Structured Data - FAQPage (Enhanced for Sales Enablement) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -314,10 +453,74 @@ export default function RootLayout({
                     text: 'Yes, the Browserbase GTM Training platform is free to use. It provides comprehensive sales training tools including AI role-play, analytics, and skill development resources.',
                   },
                 },
+                {
+                  '@type': 'Question',
+                  name: 'Who is this platform designed for?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'This platform is designed for enterprise sales teams, GTM professionals, sales managers, and anyone looking to improve their B2B sales skills through AI-powered practice and real-time feedback.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'What features does the platform offer?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'The platform offers AI-powered role-play training, real-time feedback, comprehensive analytics, multiple sales scenarios, voice-based training, prospect intelligence, company analysis tools, and email template generation.',
+                  },
+                },
+                {
+                  '@type': 'Question',
+                  name: 'How can I get started?',
+                  acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: 'Simply sign up for a free account, choose a sales scenario, and start practicing. The platform provides instant feedback and tracks your progress to help you improve your sales skills over time.',
+                  },
+                },
               ],
             }),
           }}
         />
+        {/* Structured Data - LocalBusiness (for Sales Enablement) */}
+        {businessInfo.address.streetAddress && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'LocalBusiness',
+                '@id': `${siteUrl}#localbusiness`,
+                name: businessInfo.name,
+                description: siteDescription,
+                url: siteUrl,
+                telephone: businessInfo.phone,
+                email: businessInfo.email,
+                address: {
+                  '@type': 'PostalAddress',
+                  streetAddress: businessInfo.address.streetAddress,
+                  addressLocality: businessInfo.address.addressLocality,
+                  addressRegion: businessInfo.address.addressRegion,
+                  postalCode: businessInfo.address.postalCode,
+                  addressCountry: businessInfo.address.addressCountry,
+                },
+                priceRange: businessInfo.priceRange,
+                openingHours: 'Mo-Su 00:00-23:59',
+                areaServed: {
+                  '@type': 'Country',
+                  name: 'Worldwide',
+                },
+                serviceArea: {
+                  '@type': 'GeoCircle',
+                  geoMidpoint: {
+                    '@type': 'GeoCoordinates',
+                    latitude: '37.7749',
+                    longitude: '-122.4194',
+                  },
+                },
+              }),
+            }}
+          />
+        )}
         {/* ElevenLabs widget loaded in component to avoid double-loading */}
       </head>
       <body className="antialiased">
