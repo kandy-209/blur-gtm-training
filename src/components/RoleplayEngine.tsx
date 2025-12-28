@@ -7,24 +7,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { analytics } from '@/lib/analytics';
-import { trackRoleplayEvent } from '@/lib/vercel-analytics';
 import { ConversionTracker } from '@/lib/conversion-tracking';
 import VoiceControls from '@/components/VoiceControls';
 import ResponseSuggestions from '@/components/ResponseSuggestions';
-import { LoadingState } from '@/components/ui/loading-state';
-import { ErrorState } from '@/components/ui/error-state';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { Volume2, VolumeX, Copy, RotateCcw, Lightbulb } from 'lucide-react';
+import { Volume2, VolumeX, Copy, RotateCcw } from 'lucide-react';
 import ConversationMetrics from '@/components/ConversationMetrics';
 import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
 import RoleplayCoaching from '@/components/RoleplayCoaching';
-import { enhanceRoleplayTurn, generateCompleteFeedback, getRealTimeCoaching, analyzeCompleteConversation } from '@/lib/roleplay-integration-helper';
+import { enhanceRoleplayTurn, generateCompleteFeedback, analyzeCompleteConversation } from '@/lib/roleplay-integration-helper';
+import type { AdvancedConversationMetrics, AdaptiveBehavior } from '@/lib/roleplay-enhancements-advanced';
+import type { ConversationContext } from '@/lib/roleplay-enhancements';
 import AdvancedFeedbackDisplay from '@/components/AdvancedFeedbackDisplay';
 import { AdvancedFeedback } from '@/lib/feedback-enhancements-advanced';
-import { useRealTimeCoaching } from '@/hooks/useRealTimeCoaching';
-import RealTimeCoachingPanel from '@/components/RealTimeCoachingPanel';
 import ConversationQualityIndicator from '@/components/ConversationQualityIndicator';
 import AdaptiveDifficultyIndicator from '@/components/AdaptiveDifficultyIndicator';
 import ConversationInsightsPanel from '@/components/ConversationInsightsPanel';
@@ -50,15 +47,13 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [comprehensiveFeedback, setComprehensiveFeedback] = useState<FeedbackAnalysis | null>(null);
   const [advancedFeedback, setAdvancedFeedback] = useState<AdvancedFeedback | null>(null);
   const [showAdvancedFeedback, setShowAdvancedFeedback] = useState(false);
-  // Use real-time coaching hook for automatic updates
-  const realTimeCoaching = useRealTimeCoaching(state, scenario, repMessage, !state.isComplete);
   
   // Advanced metrics and insights state
   const [advancedMetrics, setAdvancedMetrics] = useState<{
-    metrics?: any;
-    behavior?: any;
-    insights?: any;
-    context?: any;
+    metrics?: AdvancedConversationMetrics;
+    behavior?: AdaptiveBehavior;
+    insights?: ReturnType<typeof analyzeCompleteConversation>['insights'];
+    context?: ConversationContext;
   } | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
@@ -495,7 +490,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         handlePlayAudio(initialMessage);
       }
     }
-  }, [voiceMode, autoPlayAudio, state.conversationHistory.length]);
+  }, [voiceMode, autoPlayAudio, state.conversationHistory.length, handlePlayAudio]);
 
   return (
     <div className="flex flex-col h-full max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
