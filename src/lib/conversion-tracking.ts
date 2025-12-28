@@ -61,14 +61,8 @@ export class ConversionTracker {
         })
       }
 
-      // Custom endpoint for server-side tracking
-      fetch('/api/analytics/conversion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(event),
-      }).catch((error) => {
-        console.error('Failed to track conversion:', error)
-      })
+      // Custom endpoint for server-side tracking with retry logic
+      this.trackWithRetry('/api/analytics/conversion', event, 3)
     } catch (error) {
       console.error('Conversion tracking error:', error)
     }
@@ -106,14 +100,8 @@ export class ConversionTracker {
         })
       }
 
-      // Custom endpoint
-      fetch('/api/analytics/funnel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(funnelData),
-      }).catch((error) => {
-        console.error('Failed to track funnel step:', error)
-      })
+      // Custom endpoint with retry logic
+      this.trackWithRetry('/api/analytics/funnel', funnelData, 3)
     } catch (error) {
       console.error('Funnel tracking error:', error)
     }
@@ -174,6 +162,52 @@ export class ConversionTracker {
       score: metadata.score,
       meetingBooked: metadata.meetingBooked,
     })
+  }
+
+  /**
+   * Track with retry logic for reliability
+   */
+  private static async trackWithRetry(
+    endpoint: string,
+    data: any,
+    maxRetries: number = 3
+  ): Promise<void> {
+    let attempts = 0;
+    const retryDelay = 1000; // Start with 1 second
+
+    while (attempts < maxRetries) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          return; // Success
+        }
+
+        // If not a retryable error, give up
+        if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+          console.warn(`Non-retryable error ${response.status} from ${endpoint}`);
+          return;
+        }
+
+        attempts++;
+        if (attempts < maxRetries) {
+          // Exponential backoff
+          await new Promise((resolve) => setTimeout(resolve, retryDelay * attempts));
+        }
+      } catch (error) {
+        attempts++;
+        if (attempts >= maxRetries) {
+          console.error(`Failed to track after ${maxRetries} attempts:`, error);
+          return;
+        }
+        // Exponential backoff on error
+        await new Promise((resolve) => setTimeout(resolve, retryDelay * attempts));
+      }
+    }
   }
 }
 

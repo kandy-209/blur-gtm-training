@@ -97,15 +97,35 @@ export default function SEOHead() {
     // Update document title
     document.title = metadata.title;
 
-    // Helper function to update or create meta tag
+    // Helper function to update or create meta tag with performance optimization
     const updateMetaTag = (name: string, content: string, attribute: string = 'name') => {
-      let tag = document.querySelector(`meta[${attribute}="${name}"]`);
-      if (!tag) {
-        tag = document.createElement('meta');
-        tag.setAttribute(attribute, name);
-        document.head.appendChild(tag);
+      const updateTag = () => {
+        let tag = document.querySelector(`meta[${attribute}="${name}"]`);
+        if (!tag) {
+          tag = document.createElement('meta');
+          tag.setAttribute(attribute, name);
+          document.head.appendChild(tag);
+        }
+        // Only update if content changed to avoid unnecessary DOM manipulation
+        const currentContent = tag.getAttribute('content');
+        if (currentContent !== content) {
+          tag.setAttribute('content', content);
+        }
+      };
+
+      // Critical tags update immediately
+      const criticalTags = ['description', 'og:title', 'og:description', 'twitter:title', 'twitter:description'];
+      if (criticalTags.includes(name)) {
+        updateTag();
+      } else {
+        // Use requestIdleCallback for non-critical updates if available
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(updateTag, { timeout: 1000 });
+        } else {
+          // Fallback to setTimeout for browsers without requestIdleCallback
+          setTimeout(updateTag, 0);
+        }
       }
-      tag.setAttribute('content', content);
     };
 
     // Update meta description

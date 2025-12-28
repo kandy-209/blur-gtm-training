@@ -20,9 +20,15 @@ import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
 import RoleplayCoaching from '@/components/RoleplayCoaching';
-import { enhanceRoleplayTurn, generateCompleteFeedback, getRealTimeCoaching } from '@/lib/roleplay-integration-helper';
+import { enhanceRoleplayTurn, generateCompleteFeedback, getRealTimeCoaching, analyzeCompleteConversation } from '@/lib/roleplay-integration-helper';
 import AdvancedFeedbackDisplay from '@/components/AdvancedFeedbackDisplay';
 import { AdvancedFeedback } from '@/lib/feedback-enhancements-advanced';
+import { useRealTimeCoaching } from '@/hooks/useRealTimeCoaching';
+import RealTimeCoachingPanel from '@/components/RealTimeCoachingPanel';
+import ConversationQualityIndicator from '@/components/ConversationQualityIndicator';
+import AdaptiveDifficultyIndicator from '@/components/AdaptiveDifficultyIndicator';
+import ConversationInsightsPanel from '@/components/ConversationInsightsPanel';
+import ProgressTracker from '@/components/ProgressTracker';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -44,11 +50,15 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [comprehensiveFeedback, setComprehensiveFeedback] = useState<FeedbackAnalysis | null>(null);
   const [advancedFeedback, setAdvancedFeedback] = useState<AdvancedFeedback | null>(null);
   const [showAdvancedFeedback, setShowAdvancedFeedback] = useState(false);
-  const [realTimeCoaching, setRealTimeCoaching] = useState<{
-    suggestions: string[];
-    warnings: string[];
-    opportunities: string[];
-    nextBestAction: string;
+  // Use real-time coaching hook for automatic updates
+  const realTimeCoaching = useRealTimeCoaching(state, scenario, repMessage, !state.isComplete);
+  
+  // Advanced metrics and insights state
+  const [advancedMetrics, setAdvancedMetrics] = useState<{
+    metrics?: any;
+    behavior?: any;
+    insights?: any;
+    context?: any;
   } | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
@@ -126,16 +136,27 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       { role: 'rep' as const, message: userMessage, timestamp: new Date() },
     ];
 
-    // Get enhanced analysis and coaching (async to not block)
+    // Generate enhanced prompt and advanced metrics for better AI context (non-blocking, optional)
+    let enhancedPrompt: string | undefined;
     try {
       const tempState = {
         ...state,
         conversationHistory: updatedHistory,
       };
-      const { coaching } = enhanceRoleplayTurn(tempState, scenario, []);
-      setRealTimeCoaching(coaching);
+      const enhancement = enhanceRoleplayTurn(tempState, scenario, []);
+      enhancedPrompt = enhancement.enhancedPrompt;
+      
+      // Get complete analysis for all metrics
+      const completeAnalysis = analyzeCompleteConversation(tempState, scenario, []);
+      setAdvancedMetrics({
+        metrics: completeAnalysis.metrics,
+        behavior: completeAnalysis.behavior,
+        insights: completeAnalysis.insights,
+        context: completeAnalysis.context,
+      });
     } catch (error) {
-      console.warn('Failed to get real-time coaching:', error);
+      console.warn('Failed to generate enhanced prompt, using default:', error);
+      // Continue without enhanced prompt - it's optional
     }
 
     setState((prev) => ({
@@ -162,7 +183,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             role: h.role,
             message: h.message,
           })),
-          enhancedPrompt, // Include enhanced prompt
+          ...(enhancedPrompt && { enhancedPrompt }), // Include enhanced prompt if available
         }),
       });
 
@@ -787,48 +808,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           )}
           
           {/* Real-Time Coaching */}
-          {realTimeCoaching && (realTimeCoaching.suggestions.length > 0 || realTimeCoaching.warnings.length > 0 || realTimeCoaching.opportunities.length > 0) && (
-            <Card className="border-l-4 border-blue-500 bg-blue-50 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-700">
-                  <Lightbulb className="h-4 w-4" />
-                  Real-Time Coaching
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                {realTimeCoaching.opportunities.length > 0 && (
-                  <div className="p-2 bg-green-100 rounded">
-                    <div className="font-semibold text-green-800 mb-1">Opportunities:</div>
-                    {realTimeCoaching.opportunities.map((opp, idx) => (
-                      <div key={idx} className="text-green-700">• {opp}</div>
-                    ))}
-                  </div>
-                )}
-                {realTimeCoaching.suggestions.length > 0 && (
-                  <div className="p-2 bg-blue-100 rounded">
-                    <div className="font-semibold text-blue-800 mb-1">Suggestions:</div>
-                    {realTimeCoaching.suggestions.map((sug, idx) => (
-                      <div key={idx} className="text-blue-700">• {sug}</div>
-                    ))}
-                  </div>
-                )}
-                {realTimeCoaching.warnings.length > 0 && (
-                  <div className="p-2 bg-orange-100 rounded">
-                    <div className="font-semibold text-orange-800 mb-1">Warnings:</div>
-                    {realTimeCoaching.warnings.map((warn, idx) => (
-                      <div key={idx} className="text-orange-700">• {warn}</div>
-                    ))}
-                  </div>
-                )}
-                {realTimeCoaching.nextBestAction && (
-                  <div className="p-2 bg-purple-100 rounded">
-                    <div className="font-semibold text-purple-800">Next Best Action:</div>
-                    <div className="text-purple-700">{realTimeCoaching.nextBestAction}</div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          <RealTimeCoachingPanel coaching={realTimeCoaching} />
         </div>
       )}
 
