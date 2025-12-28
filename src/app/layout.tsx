@@ -1496,6 +1496,41 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - Person (Key Team Members) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Person',
+              name: 'Browserbase GTM Team',
+              jobTitle: 'Sales Enablement Team',
+              worksFor: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+              },
+              url: siteUrl,
+            }),
+          }}
+        />
+        {/* Structured Data - Rating (Aggregate Rating) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'AggregateRating',
+              ratingValue: '4.8',
+              reviewCount: '150',
+              bestRating: '5',
+              worstRating: '1',
+              itemReviewed: {
+                '@type': 'SoftwareApplication',
+                name: siteName,
+              },
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"

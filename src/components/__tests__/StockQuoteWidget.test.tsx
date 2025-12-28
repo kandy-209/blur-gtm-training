@@ -3,7 +3,7 @@
  */
 
 import { render, screen, waitFor } from '@testing-library/react';
-import { StockQuoteWidget } from '@/components/StockQuoteWidget';
+import StockQuoteWidget from '@/components/StockQuoteWidget';
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -20,10 +20,10 @@ describe('StockQuoteWidget', () => {
   });
 
   it('should display loading state initially', () => {
-    render(<StockQuoteWidget symbol="AAPL" />);
+    render(<StockQuoteWidget />);
     
     // Component should render without errors
-    expect(screen.getByText(/AAPL/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Enter symbol/i)).toBeInTheDocument();
   });
 
   it('should handle fetch errors gracefully', async () => {
@@ -31,9 +31,9 @@ describe('StockQuoteWidget', () => {
       new Error('Network error')
     );
 
-    render(<StockQuoteWidget symbol="AAPL" />);
+    render(<StockQuoteWidget />);
     
     // Component should still render
-    expect(screen.getByText(/AAPL/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Enter symbol/i)).toBeInTheDocument();
   });
 });

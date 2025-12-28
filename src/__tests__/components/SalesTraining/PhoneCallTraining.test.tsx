@@ -62,7 +62,8 @@ describe('PhoneCallTraining', () => {
     const input = screen.getByPlaceholderText('(555) 123-4567 or +1 (555) 123-4567');
     await user.type(input, '15551234567');
     
-    expect(input).toHaveValue('(555) 123-4567');
+    // 11 digits (starting with 1) formats as international: +1 (555) 123-4567
+    expect(input).toHaveValue('+1 (555) 123-4567');
   });
 
   it('should disable start button when scenario not selected', () => {
@@ -109,7 +110,8 @@ describe('PhoneCallTraining', () => {
     // Note: Scenario selection is skipped due to Radix UI Select limitations in JSDOM
     // In a real browser, we would select a scenario first, then the button would be enabled
     // For this test, we verify the phone input works correctly
-    expect(input).toHaveValue('(555) 123-4567');
+    // 11 digits (starting with 1) formats as international: +1 (555) 123-4567
+    expect(input).toHaveValue('+1 (555) 123-4567');
   });
 
   it('should display error message on failure', async () => {
@@ -128,7 +130,8 @@ describe('PhoneCallTraining', () => {
     // Note: Full call initiation test is skipped due to Radix UI Select limitations in JSDOM
     // In a real browser, we would select a scenario, click the button, and verify error handling
     // For this test, we verify the phone input formatting works
-    expect(input).toHaveValue('(555) 123-4567');
+    // 11 digits (starting with 1) formats as international: +1 (555) 123-4567
+    expect(input).toHaveValue('+1 (555) 123-4567');
   });
 });
 

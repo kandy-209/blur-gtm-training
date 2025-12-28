@@ -10,7 +10,7 @@ import { NextRequest } from 'next/server';
 import { POST as saveMetrics, GET as getMetrics } from '@/app/api/voice-coaching/metrics/route';
 import { GET as getFeedback } from '@/app/api/voice-coaching/feedback/route';
 
-// Mock Supabase client
+// Mock Supabase client - must be defined before route imports
 const mockSupabaseClient = {
   from: jest.fn(() => ({
     insert: jest.fn(() => ({
@@ -38,6 +38,10 @@ const mockSupabaseClient = {
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => mockSupabaseClient),
 }));
+
+// Re-import routes after mocks are set up to ensure they use the mocked client
+// The routes are already imported at the top, but we need to ensure the mock is active
+// The route module initializes supabase at module load time, so env vars must be set before import
 
 describe('Voice Coaching API', () => {
   describe('POST /api/voice-coaching/metrics', () => {

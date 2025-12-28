@@ -3,11 +3,17 @@
  * Tests error handling, missing data, timeouts, and API failures
  */
 
+// Mock Stagehand before importing ResearchService to avoid ESM issues
+jest.mock('@browserbasehq/stagehand', () => ({
+  Stagehand: jest.fn().mockImplementation(() => ({
+    run: jest.fn(),
+    close: jest.fn(),
+    init: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 import { ResearchService } from '../research-service';
 import type { Stagehand } from '@browserbasehq/stagehand';
-
-// Mock dependencies
-jest.mock('@browserbasehq/stagehand');
 jest.mock('../utils', () => ({
   withRetry: jest.fn((fn) => fn()),
   safeNavigateWithObservation: jest.fn().mockResolvedValue(true),
