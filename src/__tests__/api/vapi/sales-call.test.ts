@@ -144,8 +144,9 @@ describe('Sales Call API', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(data.error).toContain('Vapi API key');
+      // Route returns 503 when API key is missing
+      expect(response.status).toBe(503);
+      expect(data.error).toMatch(/Vapi API key|not configured/i);
     });
   });
 

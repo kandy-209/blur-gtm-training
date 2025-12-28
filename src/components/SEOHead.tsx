@@ -139,8 +139,8 @@ export default function SEOHead() {
     updateMetaTag('twitter:title', metadata.title);
     updateMetaTag('twitter:description', metadata.description);
     updateMetaTag('twitter:image', ogImage);
-    updateMetaTag('twitter:site', '@blur');
-    updateMetaTag('twitter:creator', '@blur');
+    updateMetaTag('twitter:site', '@browserbase');
+    updateMetaTag('twitter:creator', '@browserbase');
 
     // Update additional professional meta tags
     updateMetaTag('article:author', siteName);

@@ -529,6 +529,14 @@ function ScenariosPage() {
                           Start
                         </Button>
                       </Link>
+                      <div className="flex items-center">
+                        <SocialShare
+                          title={`${scenario.persona.name} - Browserbase Sales Training`}
+                          description={scenario.objection_statement.substring(0, 150)}
+                          scenarioId={scenario.id}
+                          scenarioName={scenario.persona.name}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

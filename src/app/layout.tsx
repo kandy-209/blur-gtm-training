@@ -309,13 +309,13 @@ export default function RootLayout({
         <meta name="rating" content="general" />
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         
-        {/* Twitter Card Meta Tags */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@browserbase" />
-        <meta name="twitter:creator" content="@browserbase" />
-        <meta name="twitter:title" content={siteName} />
-        <meta name="twitter:description" content={siteDescription.substring(0, 200)} />
-        <meta name="twitter:image" content={`${siteUrl}/og-image.png`} />
+         {/* Twitter Card Meta Tags */}
+         <meta name="twitter:card" content="summary_large_image" />
+         <meta name="twitter:site" content="@browserbase" />
+         <meta name="twitter:creator" content="@browserbase" />
+         <meta name="twitter:title" content={siteName} />
+         <meta name="twitter:description" content={siteDescription.substring(0, 200)} />
+         <meta name="twitter:image" content={`${siteUrl}/api/og?title=${encodeURIComponent(siteName)}&description=${encodeURIComponent(siteDescription.substring(0, 100))}`} />
         
         {/* Additional Performance Hints */}
         <meta name="referrer" content="strict-origin-when-cross-origin" />
