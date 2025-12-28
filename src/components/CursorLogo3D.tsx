@@ -1,5 +1,6 @@
 // @ts-nocheck - React Three Fiber types
 'use client';
+// @ts-nocheck
 
 /// <reference types="@react-three/fiber" />
 
@@ -31,15 +32,12 @@ export default function CursorLogo3D({
   });
 
   return (
-    // @ts-ignore - React Three Fiber types
+    // @ts-ignore - React Three Fiber JSX elements
     <group ref={groupRef} position={position} scale={scale}>
       {/* Simplified Cursor shape - using box geometry */}
-      {/* @ts-ignore - React Three Fiber types */}
       <mesh position={[0, 0, 0]}>
         {/* Cursor arrow body */}
-        {/* @ts-ignore - React Three Fiber types */}
         <boxGeometry args={[0.2, 0.6, 0.1]} />
-        {/* @ts-ignore - React Three Fiber types */}
         <meshStandardMaterial
           color="#000000"
           metalness={0.8}
@@ -50,11 +48,8 @@ export default function CursorLogo3D({
       </mesh>
       
       {/* Arrow tip */}
-      {/* @ts-ignore - React Three Fiber types */}
       <mesh position={[0, 0.35, 0]} rotation={[0, 0, Math.PI / 4]}>
-        {/* @ts-ignore - React Three Fiber types */}
         <boxGeometry args={[0.15, 0.15, 0.1]} />
-        {/* @ts-ignore - React Three Fiber types */}
         <meshStandardMaterial
           color="#000000"
           metalness={0.8}
@@ -72,7 +67,7 @@ export default function CursorLogo3D({
         outlineWidth={0.02}
         outlineColor="#ffffff"
       >
-        CURSOR
+        BROWSERBASE
       </Text>
     </group>
   );

@@ -13,8 +13,14 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 
 let supabase: ReturnType<typeof createClient> | null = null;
 
+// Initialize supabase if both URL and key are available
 if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+    supabase = null;
+  }
 }
 
 /**
@@ -23,13 +29,7 @@ if (supabaseUrl && supabaseKey) {
  */
 export async function POST(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      );
-    }
-
+    // Parse body first to check for missing parameters before checking supabase
     const body = await request.json();
     const {
       conversationId,
@@ -40,10 +40,27 @@ export async function POST(request: NextRequest) {
       coachingSuggestions
     } = body;
 
+    // Check for missing required parameters first (before supabase check)
     if (!conversationId || !metrics) {
       return NextResponse.json(
         { error: 'conversationId and metrics are required' },
         { status: 400 }
+      );
+    }
+
+    // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
+    if (!supabase && supabaseUrl && supabaseKey) {
+      try {
+        supabase = createClient(supabaseUrl, supabaseKey);
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error);
+      }
+    }
+    
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 500 }
       );
     }
 
@@ -98,13 +115,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      );
-    }
-
+    // Check for missing parameters first (before supabase check)
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get('conversationId');
 
@@ -112,6 +123,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'conversationId is required' },
         { status: 400 }
+      );
+    }
+
+    // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
+    if (!supabase && supabaseUrl && supabaseKey) {
+      try {
+        supabase = createClient(supabaseUrl, supabaseKey);
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error);
+      }
+    }
+    
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 500 }
       );
     }
 

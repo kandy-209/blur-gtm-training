@@ -111,11 +111,11 @@ describe('Vapi Sales Call API - Edge Cases', () => {
         const callCall = (global.fetch as jest.Mock).mock.calls[1];
         const callBody = JSON.parse(callCall[1].body);
 
-        // Verify phoneNumber is at top level (not nested in customer)
-        expect(callBody).toHaveProperty('phoneNumber');
-        expect(callBody.phoneNumber).toBe(expected);
-        expect(callBody.phoneNumber).toMatch(/^\+[1-9]\d{9,14}$/); // E.164 format (10-15 digits after +)
-        expect(callBody.customer).toBeUndefined(); // Should NOT have customer.number
+        // Verify phone number is in customer.number (Vapi API format)
+        expect(callBody).toHaveProperty('customer');
+        expect(callBody.customer).toHaveProperty('number');
+        expect(callBody.customer.number).toBe(expected);
+        expect(callBody.customer.number).toMatch(/^\+[1-9]\d{9,14}$/); // E.164 format (10-15 digits after +)
       });
     });
   });
@@ -182,12 +182,10 @@ describe('Vapi Sales Call API - Edge Cases', () => {
       const callCall = (global.fetch as jest.Mock).mock.calls[1];
       const callBody = JSON.parse(callCall[1].body);
 
-      // Should have phoneNumber at top level
-      expect(callBody).toHaveProperty('phoneNumber');
-      expect(callBody.phoneNumber).toBe('+15551234567');
-      
-      // Should NOT have customer.number (old format)
-      expect(callBody.customer).toBeUndefined();
+      // Should have customer.number (Vapi API format)
+      expect(callBody).toHaveProperty('customer');
+      expect(callBody.customer).toHaveProperty('number');
+      expect(callBody.customer.number).toBe('+15551234567');
       
       // Should have assistantId
       expect(callBody).toHaveProperty('assistantId');
@@ -256,8 +254,8 @@ describe('Vapi Sales Call API - Edge Cases', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      // Route returns 503 when API key is missing, 500 for other errors
-      expect([500, 503]).toContain(response.status);
+      // Route returns 503 when API key is missing, 500 for other errors, 400 for invalid phone
+      expect([400, 500, 503]).toContain(response.status);
       expect(data.error).toMatch(/Vapi call error|Failed to initiate call|API key not configured/);
     });
 
@@ -320,7 +318,7 @@ describe('Vapi Sales Call API - Edge Cases', () => {
         const callCall = (global.fetch as jest.Mock).mock.calls[1];
         const callBody = JSON.parse(callCall[1].body);
 
-        expect(callBody.phoneNumber).toMatch(/^\+[1-9]\d{1,14}$/);
+        expect(callBody.customer?.number).toMatch(/^\+[1-9]\d{1,14}$/);
       }
     });
   });

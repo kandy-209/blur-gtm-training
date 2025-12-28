@@ -31,7 +31,23 @@ interface EmailTemplate {
     body: string;
     cta: string;
   }>;
+  // Optional style diagnostics from the backend
+  bbqScore?: {
+    total: number;
+    wordBand: number;
+    buzzwords: number;
+    structure: number;
+    clarity: number;
+  };
+  issues?: Array<{
+    type: string;
+    severity: string;
+    message: string;
+  }>;
+  style?: EmailStyle;
 }
+
+type EmailStyle = 'bbq_plain' | 'exec_concise';
 
 export default function EmailTemplateGenerator() {
   const [prospectName, setProspectName] = useState('');
@@ -46,6 +62,8 @@ export default function EmailTemplateGenerator() {
   const [template, setTemplate] = useState<EmailTemplate | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [style, setStyle] = useState<EmailStyle>('bbq_plain');
+  const [improving, setImproving] = useState(false);
 
   const handleGenerate = async () => {
     if (!companyName.trim()) {
@@ -70,14 +88,16 @@ export default function EmailTemplateGenerator() {
           emailType,
           tone,
           context: context.trim() || undefined,
+          style,
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Failed to generate email template');
+        throw new Error(data?.error || 'Failed to generate email template');
       }
 
-      const data = await response.json();
       setTemplate(data);
     } catch (err: any) {
       setError(err.message || 'Failed to generate email template');
@@ -92,6 +112,42 @@ export default function EmailTemplateGenerator() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleImprove = async () => {
+    if (!template) return;
+    setImproving(true);
+    try {
+      const response = await fetch('/api/llm/bbq-rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          original: template.body,
+          style,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to improve email');
+      }
+
+      setTemplate((prev) =>
+        prev
+          ? {
+              ...prev,
+              body: data.rewritten || prev.body,
+              bbqScore: data.bbqScore || prev.bbqScore,
+              // keep full issue objects if present
+              issues: data.lintAfter?.issues || prev.issues,
+            }
+          : prev
+      );
+    } catch (err: any) {
+      setError(err.message || 'Failed to improve email');
+    } finally {
+      setImproving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -101,7 +157,8 @@ export default function EmailTemplateGenerator() {
             AI Email Template Generator
           </CardTitle>
           <CardDescription>
-            Generate personalized email templates for your sales outreach
+            Generate personalized sales emails optimized for Gong-style best practices:
+            ~50–75 words, no fluff, one clear interest-based CTA, and short, internal-style subject lines.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -179,6 +236,18 @@ export default function EmailTemplateGenerator() {
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label htmlFor="style">Email Style</Label>
+              <Select value={style} onValueChange={(v: any) => setStyle(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bbq_plain">BBQ plain (conversational)</SelectItem>
+                  <SelectItem value="exec_concise">Exec concise (short &amp; direct)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {emailType === 'objection-response' && (
@@ -225,6 +294,36 @@ export default function EmailTemplateGenerator() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {(template.style || template.bbqScore) && (
+              <div className="text-xs text-gray-600 flex flex-wrap gap-3 items-center">
+                {template.style && (
+                  <span>
+                    Style:{' '}
+                    <span className="font-medium">
+                      {template.style === 'bbq_plain' ? 'BBQ plain' : 'Exec concise'}
+                    </span>
+                  </span>
+                )}
+                {template.bbqScore && (
+                  <span>
+                    BBQ Score:{' '}
+                    <span className="font-semibold">
+                      {template.bbqScore.total}/100
+                    </span>
+                  </span>
+                )}
+                {template.issues && template.issues.length > 0 && (
+                  <span>
+                    Notes:{' '}
+                    {template.issues
+                      .slice(0, 2)
+                      .map((i) => i.message)
+                      .join(' • ')}
+                  </span>
+                )}
+              </div>
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label>Subject Line</Label>
@@ -248,17 +347,27 @@ export default function EmailTemplateGenerator() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label>Email Body</Label>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => copyToClipboard(template.body)}
-                >
-                  {copied ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(template.body)}
+                  >
+                    {copied ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImprove}
+                    disabled={improving}
+                  >
+                    {improving ? 'Improving…' : 'Improve with BBQ-it'}
+                  </Button>
+                </div>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg whitespace-pre-wrap text-sm">
                 {template.body}
@@ -319,5 +428,18 @@ export default function EmailTemplateGenerator() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

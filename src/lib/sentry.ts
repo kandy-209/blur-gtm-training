@@ -27,8 +27,23 @@ export function initSentry() {
         tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
         profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
         debug: process.env.NODE_ENV === 'development',
-        // Enhanced error filtering
+        // Enhanced error filtering with user context
         beforeSend(event, hint) {
+          // Add user context if available
+          if (typeof window !== 'undefined') {
+            try {
+              const userId = localStorage.getItem('training_user_id') || 
+                           localStorage.getItem('guest_user');
+              if (userId) {
+                event.user = {
+                  id: userId,
+                };
+              }
+            } catch {
+              // Ignore localStorage errors
+            }
+          }
+          
           // Filter out non-critical errors in production
           if (process.env.NODE_ENV === 'production') {
             // Don't send client-side errors for 4xx status codes
@@ -44,7 +59,8 @@ export function initSentry() {
               if (
                 errorMessage.includes('ResizeObserver') ||
                 errorMessage.includes('Non-Error promise rejection') ||
-                errorMessage.includes('NetworkError')
+                errorMessage.includes('NetworkError') ||
+                errorMessage.includes('ChunkLoadError')
               ) {
                 return null;
               }
@@ -54,7 +70,8 @@ export function initSentry() {
         },
         // Add user context when available
         initialScope: (scope) => {
-          scope.setTag('app', 'cursor-gtm-training');
+          scope.setTag('app', 'blur-gtm-training');
+          scope.setTag('version', process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0');
           return scope;
         },
         // Performance monitoring

@@ -247,7 +247,7 @@ export function getSecurityHeaders(request: NextRequest): Record<string, string>
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io https://*.supabase.co",
     "media-src 'self' data: blob: https:",
-    "frame-src 'self' https://*.elevenlabs.io",
+    "frame-src 'self' https://*.elevenlabs.io https://vercel.live",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

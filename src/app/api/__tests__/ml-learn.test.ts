@@ -45,7 +45,7 @@ describe('/api/ml/learn', () => {
         {
           id: 'insight_1',
           type: 'pattern' as const,
-          category: 'Competitive_Copilot',
+          category: 'Competitive_SelfHosted',
           insight: 'Test insight',
           confidence: 85,
           evidence: ['Evidence 1'],
@@ -58,7 +58,7 @@ describe('/api/ml/learn', () => {
 
       const request = new MockNextRequest('http://localhost/api/ml/learn', {
         method: 'POST',
-        body: JSON.stringify({ objectionCategory: 'Competitive_Copilot' }),
+        body: JSON.stringify({ objectionCategory: 'Competitive_SelfHosted' }),
         headers: { 'Content-Type': 'application/json' },
       }) as any;
 
@@ -92,7 +92,7 @@ describe('/api/ml/learn', () => {
 
       const request = new MockNextRequest('http://localhost/api/ml/learn', {
         method: 'POST',
-        body: JSON.stringify({ objectionCategory: 'Competitive_Copilot' }),
+        body: JSON.stringify({ objectionCategory: 'Competitive_SelfHosted' }),
         headers: { 'Content-Type': 'application/json' },
       }) as any;
 
@@ -110,7 +110,7 @@ describe('/api/ml/learn', () => {
         {
           id: 'insight_1',
           type: 'pattern' as const,
-          category: 'Competitive_Copilot',
+          category: 'Competitive_SelfHosted',
           insight: 'Test insight',
           confidence: 85,
           evidence: ['Evidence 1'],
@@ -129,7 +129,7 @@ describe('/api/ml/learn', () => {
       (ContinuousLearningAgent.learnFromData as jest.Mock).mockResolvedValue(mockInsights);
       (ContinuousLearningAgent.evaluateModelImprovement as jest.Mock).mockResolvedValue(mockImprovement);
 
-      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_Copilot', {
+      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_SelfHosted', {
         method: 'GET',
       }) as any;
 
@@ -159,7 +159,7 @@ describe('/api/ml/learn', () => {
         new Error('Learning failed')
       );
 
-      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_Copilot', {
+      const request = new MockNextRequest('http://localhost/api/ml/learn?category=Competitive_SelfHosted', {
         method: 'GET',
       }) as any;
 

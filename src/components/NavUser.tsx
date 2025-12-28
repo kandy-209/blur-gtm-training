@@ -6,6 +6,22 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
+import SiteSearch from '@/components/SiteSearch';
+
+// Define nav links outside component to ensure consistency between server and client
+const navLinks = [
+  { href: '/scenarios', label: 'Scenarios' },
+  { href: '/sales-training', label: 'Phone Training' },
+  { href: '/sales-skills', label: 'Sales Skills' },
+  { href: '/prospect-intelligence', label: 'Prospect Intelligence' },
+  { href: '/features', label: 'Features' },
+  { href: '/roi-calculator', label: 'ROI Calculator' },
+  { href: '/chat', label: 'Chat' },
+  { href: '/analytics', label: 'Analytics' },
+  { href: '/live', label: 'Live Role-Play' },
+  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/help', label: 'Help' },
+] as const;
 
 export default function NavUser() {
   const { user, isGuest, signOut } = useAuth();
@@ -28,21 +44,15 @@ export default function NavUser() {
     }
   };
 
-  const navLinks = [
-    { href: '/scenarios', label: 'Scenarios' },
-    { href: '/sales-training', label: 'Phone Training' },
-    { href: '/features', label: 'Features' },
-    { href: '/analytics', label: 'Analytics' },
-    { href: '/live', label: 'Live Role-Play' },
-    { href: '/leaderboard', label: 'Leaderboard' },
-  ];
-
   return (
     <>
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center space-x-1">
+        <div className="mr-4">
+          <SiteSearch />
+        </div>
         {navLinks.map((link) => (
-          <Link key={link.href} href={link.href}>
+          <Link key={link.href} href={link.href} prefetch={false}>
             <Button variant="ghost" className="text-sm font-medium">{link.label}</Button>
           </Link>
         ))}

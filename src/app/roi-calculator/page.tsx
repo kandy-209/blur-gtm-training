@@ -25,7 +25,7 @@ function ROICalculatorContent() {
   const searchParams = useSearchParams();
   const symbolParam = searchParams?.get('symbol');
 
-  // Preset averages based on Cursor productivity data
+  // Preset averages based on Browserbase productivity data
   const [tiers, setTiers] = useState<TierData[]>([
     { n: 30, productivity: 38, title: 'Entry Level Engineer', payRange: '$80k - $120k', productivityType: 'Learning acceleration & code completion' },
     { n: 50, productivity: 32, title: 'Senior Engineer', payRange: '$150k - $200k', productivityType: 'Code completion & architecture planning' },
@@ -138,7 +138,7 @@ function ROICalculatorContent() {
                   ROI Calculator
                 </h1>
                 <p className="text-gray-600">
-                  Calculate the business impact and return on investment for Cursor Enterprise
+                  Calculate the business impact and return on investment for Browserbase
                 </p>
               </div>
               {companyData && (

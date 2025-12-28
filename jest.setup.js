@@ -1,6 +1,25 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Mock hasPointerCapture for Radix UI Select (required by jsdom)
+Object.defineProperty(Element.prototype, 'hasPointerCapture', {
+  value: jest.fn().mockReturnValue(false),
+  writable: true,
+  configurable: true,
+});
+
+Object.defineProperty(Element.prototype, 'setPointerCapture', {
+  value: jest.fn(),
+  writable: true,
+  configurable: true,
+});
+
+Object.defineProperty(Element.prototype, 'releasePointerCapture', {
+  value: jest.fn(),
+  writable: true,
+  configurable: true,
+});
+
 // Polyfill TextEncoder/TextDecoder for Jest environment
 if (typeof global.TextEncoder === 'undefined') {
   global.TextEncoder = class TextEncoder {
@@ -258,6 +277,16 @@ if (typeof global.Request === 'undefined') {
       return cloned;
     }
   };
+}
+
+// Polyfill for scrollIntoView (required by Radix UI Select in JSDOM)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = jest.fn();
+}
+
+// Polyfill fetch for Anthropic SDK in test environment
+if (typeof global.fetch === 'undefined') {
+  global.fetch = require('node-fetch');
 }
 
 // Suppress console errors in tests (optional - remove if you want to see them)

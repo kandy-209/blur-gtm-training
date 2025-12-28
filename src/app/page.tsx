@@ -34,7 +34,7 @@ export default function HomePage() {
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'WebPage',
-      name: 'Cursor Enterprise GTM Training Platform',
+      name: 'Browserbase GTM Training Platform',
       description: 'Transform into a world-class GTM Operator with AI-powered role-play training that builds unshakeable confidence',
       mainEntity: {
         '@type': 'ItemList',
@@ -147,10 +147,39 @@ export default function HomePage() {
                         Real Phone Call Training
                       </CardTitle>
                       <CardDescription className="text-base text-gray-600 mb-4">
-                        Practice with real phone calls using VAPI. Get instant AI analysis on your objection handling, closing techniques, and communication skills.
+                        Practice with real phone calls using AI. Get instant AI analysis on your objection handling, closing techniques, and communication skills.
                       </CardDescription>
                       <div className="flex items-center gap-2 text-blue-600 font-semibold">
                         <span>Start Phone Training</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Prospect Intelligence Feature Card */}
+          <div className="mt-8">
+            <Link href="/prospect-intelligence" suppressHydrationWarning className="block mb-16">
+              <Card className="card-premium card-liquid hover:shadow-2xl transition-all duration-300 border-2 border-purple-200 hover:border-purple-400 bg-gradient-to-br from-purple-50 to-white hover:-translate-y-1">
+                <CardContent className="p-8">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="flex-shrink-0">
+                      <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center shadow-lg">
+                        <Search className="h-10 w-10 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                      <CardTitle className="text-2xl font-bold text-gray-900 mb-2">
+                        Prospect Intelligence
+                      </CardTitle>
+                      <CardDescription className="text-base text-gray-600 mb-4">
+                        Automatically research prospect companies. Get tech stack, hiring activity, engineering culture, and ICP fit scores in under a minute.
+                      </CardDescription>
+                      <div className="flex items-center gap-2 text-purple-600 font-semibold">
+                        <span>Research Prospects</span>
                         <ArrowRight className="h-4 w-4" />
                       </div>
                     </div>

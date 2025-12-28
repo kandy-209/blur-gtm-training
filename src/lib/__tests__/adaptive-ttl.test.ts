@@ -8,28 +8,34 @@ jest.mock('../next-cache-wrapper', () => ({
   getCacheMetrics: jest.fn((key?: string) => {
     if (key === 'high-hit-key') {
       return {
-        hits: 80,
-        misses: 20,
-        staleServed: 5,
-        errors: 0,
-        totalRequests: 100,
+        'high-hit-key': {
+          hits: 85,
+          misses: 15,
+          staleServed: 3,
+          errors: 0,
+          totalRequests: 100,
+        },
       };
     }
     if (key === 'low-hit-key') {
       return {
-        hits: 30,
-        misses: 70,
-        staleServed: 0,
-        errors: 0,
-        totalRequests: 100,
+        'low-hit-key': {
+          hits: 40,
+          misses: 60,
+          staleServed: 0,
+          errors: 0,
+          totalRequests: 100,
+        },
       };
     }
     return {
-      hits: 50,
-      misses: 50,
-      staleServed: 25,
-      errors: 0,
-      totalRequests: 100,
+      'default-key': {
+        hits: 50,
+        misses: 50,
+        staleServed: 25,
+        errors: 0,
+        totalRequests: 100,
+      },
     };
   }),
 }));

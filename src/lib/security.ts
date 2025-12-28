@@ -135,22 +135,39 @@ export function validateText(text: string, options: {
 
 // Security headers middleware
 export function getSecurityHeaders(): Record<string, string> {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Enhanced CSP - stricter in production
+  const cspDirectives = [
+    "default-src 'self'",
+    // Scripts - allow inline for Next.js but prefer nonces in production
+    isProduction 
+      ? "script-src 'self' 'unsafe-inline' https://unpkg.com https://va.vercel-scripts.com https://vercel.live https://*.elevenlabs.io"
+      : "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://va.vercel-scripts.com https://vercel.live https://*.elevenlabs.io",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io https://va.vercel-scripts.com https://api.vapi.ai https://vercel.live https://*.supabase.co wss://*.elevenlabs.io",
+    "media-src 'self' data: blob: https:",
+    "frame-src 'self' https://*.elevenlabs.io https://vercel.live",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "upgrade-insecure-requests",
+  ];
+
   return {
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'geolocation=(), microphone=(self), camera=()',
-    'Content-Security-Policy': [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://va.vercel-scripts.com https://vercel.live",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://api.openai.com https://api.elevenlabs.io https://*.elevenlabs.io https://va.vercel-scripts.com https://api.vapi.ai https://vercel.live",
-      "media-src 'self' data: blob: https:",
-      "frame-src 'self' https://*.elevenlabs.io",
-    ].join('; '),
+    'Permissions-Policy': 'geolocation=(), microphone=(self), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()',
+    'Content-Security-Policy': cspDirectives.join('; '),
+    'Strict-Transport-Security': isProduction ? 'max-age=31536000; includeSubDomains; preload' : '',
+    'X-DNS-Prefetch-Control': 'on',
+    'X-Download-Options': 'noopen',
+    'X-Permitted-Cross-Domain-Policies': 'none',
   };
 }
 

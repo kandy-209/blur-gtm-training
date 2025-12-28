@@ -17,7 +17,7 @@ export function EnterpriseChat({ initialView = 'overview' }: { initialView?: 'ov
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm here to help you learn about Cursor Enterprise features, security, compliance, and administrative controls. Ask me about any enterprise feature, setup, or sales positioning.",
+      content: "Hi! I'm here to help you learn about Browserbase features, security, compliance, and administrative controls. Ask me about any enterprise feature, setup, or sales positioning.",
     }
   ]);
   const [input, setInput] = useState('');
@@ -88,7 +88,7 @@ export function EnterpriseChat({ initialView = 'overview' }: { initialView?: 'ov
           </div>
           <div>
             <CardTitle className="text-base">Enterprise Assistant</CardTitle>
-            <p className="text-xs text-muted-foreground">Ask about Cursor Enterprise features</p>
+            <p className="text-xs text-muted-foreground">Ask about Browserbase features</p>
           </div>
         </div>
       </CardHeader>

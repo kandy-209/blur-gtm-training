@@ -2,7 +2,7 @@ import { generatePageMetadata } from '@/app/metadata';
 
 export const metadata = generatePageMetadata({
   title: 'Sales Training Scenarios',
-  description: 'Practice enterprise sales scenarios with AI-powered role-play. Handle objections, practice positioning, and improve your Cursor Enterprise sales skills with realistic buyer simulations.',
+  description: 'Practice enterprise sales scenarios with AI-powered role-play. Handle objections, practice positioning, and improve your Browserbase sales skills with realistic buyer simulations.',
   path: '/scenarios',
   keywords: [
     'sales scenarios',
@@ -10,7 +10,7 @@ export const metadata = generatePageMetadata({
     'AI role-play',
     'objection handling scenarios',
     'sales training exercises',
-    'Cursor Enterprise scenarios',
+    'Browserbase scenarios',
   ],
 });
 

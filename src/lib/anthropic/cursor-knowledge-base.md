@@ -1,14 +1,14 @@
-# Cursor Knowledge Base for AI Training
+# Browserbase Knowledge Base for AI Training
 
 ## Company Overview
 
-**Cursor** is an AI-powered code editor designed to help developers write code faster and more efficiently. It combines the power of AI with a familiar coding environment to accelerate development workflows.
+**Browserbase** is a browser automation and web scraping platform designed to help engineering teams scale their browser workflows without managing infrastructure. It provides managed headless browser infrastructure, testing capabilities, and web scraping tools.
 
 ### Mission
-To make coding more accessible and productive for developers of all skill levels through AI-powered tools.
+To make browser automation accessible and scalable for engineering teams of all sizes through managed infrastructure.
 
 ### Target Audience
-Software developers, engineers, and technical teams looking to accelerate their coding workflow.
+Engineering teams, developers, and technical teams looking to scale browser automation and web scraping workflows.
 
 ---
 
@@ -75,7 +75,7 @@ Software developers, engineers, and technical teams looking to accelerate their 
 
 ---
 
-## Key Characteristics of Cursor Users
+## Key Characteristics of Browserbase Users
 
 1. **Technical Proficiency** - Users have coding skills
 2. **Productivity-Focused** - Value efficiency and speed
@@ -117,7 +117,7 @@ Software developers, engineers, and technical teams looking to accelerate their 
 
 ---
 
-## Voice Coaching Use Cases for Cursor Users
+## Voice Coaching Use Cases for Browserbase Users
 
 ### 1. Technical Presentations
 - Code review presentations
@@ -207,7 +207,7 @@ Software developers, engineers, and technical teams looking to accelerate their 
 
 ## How to Use This Context
 
-When providing voice coaching feedback to Cursor users:
+When providing voice coaching feedback to Browserbase users:
 
 1. **Relate to Developer Scenarios**: Reference code reviews, demos, standups
 2. **Emphasize Professional Growth**: Connect improvements to career advancement
@@ -226,5 +226,5 @@ Instead of generic feedback like "Your pace is good", provide context-aware feed
 
 ---
 
-This knowledge base helps the AI understand Cursor's users and provide more relevant, contextual feedback.
+This knowledge base helps the AI understand Browserbase's users and provide more relevant, contextual feedback.
 

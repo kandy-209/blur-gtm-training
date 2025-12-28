@@ -1,11 +1,12 @@
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm ci",
+  "installCommand": "npm ci --legacy-peer-deps",
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "SUPABASE_SKIP_POSTINSTALL": "true"
   },
   "headers": [
     {

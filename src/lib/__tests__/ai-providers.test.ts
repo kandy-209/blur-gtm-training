@@ -39,26 +39,34 @@ describe('AI Providers', () => {
 
     it('should throw error when no API key configured', () => {
       delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.GOOGLE_GEMINI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
       
-      expect(() => getAIProvider()).toThrow('ANTHROPIC_API_KEY not configured');
+      expect(() => getAIProvider()).toThrow(/No AI provider available|ANTHROPIC_API_KEY not configured/);
     });
 
     it('should throw error when Anthropic key format is invalid', () => {
       process.env.ANTHROPIC_API_KEY = 'invalid-key';
+      delete process.env.GOOGLE_GEMINI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
       
-      expect(() => getAIProvider()).toThrow(/ANTHROPIC_API_KEY.*invalid|format invalid/);
+      expect(() => getAIProvider()).toThrow(/No AI provider available|ANTHROPIC_API_KEY.*invalid|format invalid/);
     });
 
     it('should throw error with empty API key', () => {
       process.env.ANTHROPIC_API_KEY = '';
+      delete process.env.GOOGLE_GEMINI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
       
-      expect(() => getAIProvider()).toThrow('ANTHROPIC_API_KEY not configured');
+      expect(() => getAIProvider()).toThrow(/No AI provider available|ANTHROPIC_API_KEY not configured/);
     });
 
     it('should throw error with whitespace-only API key', () => {
       process.env.ANTHROPIC_API_KEY = '   ';
+      delete process.env.GOOGLE_GEMINI_API_KEY;
+      delete process.env.OPENAI_API_KEY;
       
-      expect(() => getAIProvider()).toThrow('ANTHROPIC_API_KEY not configured');
+      expect(() => getAIProvider()).toThrow(/No AI provider available|ANTHROPIC_API_KEY not configured/);
     });
   });
 

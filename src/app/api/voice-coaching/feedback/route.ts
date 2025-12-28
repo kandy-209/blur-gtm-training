@@ -15,7 +15,12 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABAS
 let supabase: ReturnType<typeof createClient> | null = null;
 
 if (supabaseUrl && supabaseKey) {
-  supabase = createClient(supabaseUrl, supabaseKey);
+  try {
+    supabase = createClient(supabaseUrl, supabaseKey);
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+    supabase = null;
+  }
 }
 
 /**
@@ -24,13 +29,7 @@ if (supabaseUrl && supabaseKey) {
  */
 export async function GET(request: NextRequest) {
   try {
-    if (!supabase) {
-      return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      );
-    }
-
+    // Check for missing parameters first (before supabase check)
     const { searchParams } = new URL(request.url);
     const conversationId = searchParams.get('conversationId');
 
@@ -38,6 +37,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'conversationId is required' },
         { status: 400 }
+      );
+    }
+
+    // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
+    if (!supabase && supabaseUrl && supabaseKey) {
+      try {
+        supabase = createClient(supabaseUrl, supabaseKey);
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error);
+      }
+    }
+    
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Supabase not configured' },
+        { status: 500 }
       );
     }
 

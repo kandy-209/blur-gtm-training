@@ -7,17 +7,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { analytics } from '@/lib/analytics';
-import { trackRoleplayEvent } from '@/lib/vercel-analytics';
+import { ConversionTracker } from '@/lib/conversion-tracking';
 import VoiceControls from '@/components/VoiceControls';
 import ResponseSuggestions from '@/components/ResponseSuggestions';
-import { LoadingState } from '@/components/ui/loading-state';
-import { ErrorState } from '@/components/ui/error-state';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { Volume2, VolumeX, Copy, RotateCcw } from 'lucide-react';
 import ConversationMetrics from '@/components/ConversationMetrics';
 import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
+import RoleplayCoaching from '@/components/RoleplayCoaching';
+import { enhanceRoleplayTurn, generateCompleteFeedback, analyzeCompleteConversation } from '@/lib/roleplay-integration-helper';
+import type { AdvancedConversationMetrics, AdaptiveBehavior } from '@/lib/roleplay-enhancements-advanced';
+import type { ConversationContext } from '@/lib/roleplay-enhancements';
+import AdvancedFeedbackDisplay from '@/components/AdvancedFeedbackDisplay';
+import { AdvancedFeedback } from '@/lib/feedback-enhancements-advanced';
+import ConversationQualityIndicator from '@/components/ConversationQualityIndicator';
+import AdaptiveDifficultyIndicator from '@/components/AdaptiveDifficultyIndicator';
+import ConversationInsightsPanel from '@/components/ConversationInsightsPanel';
+import ProgressTracker from '@/components/ProgressTracker';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -37,6 +45,16 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [showFeedback, setShowFeedback] = useState(false);
   const [showEnhancedFeedback, setShowEnhancedFeedback] = useState(false);
   const [comprehensiveFeedback, setComprehensiveFeedback] = useState<FeedbackAnalysis | null>(null);
+  const [advancedFeedback, setAdvancedFeedback] = useState<AdvancedFeedback | null>(null);
+  const [showAdvancedFeedback, setShowAdvancedFeedback] = useState(false);
+  
+  // Advanced metrics and insights state
+  const [advancedMetrics, setAdvancedMetrics] = useState<{
+    metrics?: AdvancedConversationMetrics;
+    behavior?: AdaptiveBehavior;
+    insights?: ReturnType<typeof analyzeCompleteConversation>['insights'];
+    context?: ConversationContext;
+  } | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +67,10 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       eventType: 'scenario_start',
       scenarioId: scenario.id,
     });
+    
+    // Track conversion event
+    const userId = analytics.getUserId();
+    ConversionTracker.trackScenarioStart(scenario.id, userId);
   }, [scenario.id]);
 
   const handlePlayAudio = useCallback(async (text: string) => {
@@ -109,6 +131,29 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       { role: 'rep' as const, message: userMessage, timestamp: new Date() },
     ];
 
+    // Generate enhanced prompt and advanced metrics for better AI context (non-blocking, optional)
+    let enhancedPrompt: string | undefined;
+    try {
+      const tempState = {
+        ...state,
+        conversationHistory: updatedHistory,
+      };
+      const enhancement = enhanceRoleplayTurn(tempState, scenario, []);
+      enhancedPrompt = enhancement.enhancedPrompt;
+      
+      // Get complete analysis for all metrics
+      const completeAnalysis = analyzeCompleteConversation(tempState, scenario, []);
+      setAdvancedMetrics({
+        metrics: completeAnalysis.metrics,
+        behavior: completeAnalysis.behavior,
+        insights: completeAnalysis.insights,
+        context: completeAnalysis.context,
+      });
+    } catch (error) {
+      console.warn('Failed to generate enhanced prompt, using default:', error);
+      // Continue without enhanced prompt - it's optional
+    }
+
     setState((prev) => ({
       ...prev,
       conversationHistory: updatedHistory,
@@ -133,6 +178,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             role: h.role,
             message: h.message,
           })),
+          ...(enhancedPrompt && { enhancedPrompt }), // Include enhanced prompt if available
         }),
       });
 
@@ -197,6 +243,19 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       setState(newState);
       setShowFeedback(true);
 
+      // Update advanced metrics after agent response
+      try {
+        const updatedAnalysis = analyzeCompleteConversation(newState, scenario, []);
+        setAdvancedMetrics({
+          metrics: updatedAnalysis.metrics,
+          behavior: updatedAnalysis.behavior,
+          insights: updatedAnalysis.insights,
+          context: updatedAnalysis.context,
+        });
+      } catch (error) {
+        console.warn('Failed to update advanced metrics:', error);
+      }
+
       // Track feedback view
       analytics.track({
         eventType: 'feedback_view',
@@ -245,6 +304,25 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           scenarioId: scenario.id,
           score: agentResponse.confidence_score,
         });
+        
+        // Track conversion with detailed metrics
+        const userId = analytics.getUserId();
+        const meetingBooked = agentResponse.next_step_action === 'MEETING_BOOKED' || 
+                              agentResponse.sale_indicators?.meeting_agreed === true;
+        const timeToComplete = Date.now() - (state.conversationHistory[0]?.timestamp?.getTime() || Date.now());
+        const objectionsHandled = state.conversationHistory.filter(h => 
+          h.role === 'rep' && scenario.keyPoints.some(kp => 
+            h.message.toLowerCase().includes(kp.toLowerCase())
+          )
+        ).length;
+        
+        ConversionTracker.trackScenarioComplete(scenario.id, userId, {
+          score: agentResponse.confidence_score,
+          timeToComplete: Math.floor(timeToComplete / 1000), // Convert to seconds
+          objectionsHandled,
+          turnCount: state.turnNumber,
+          meetingBooked,
+        });
 
         // Generate comprehensive feedback
         try {
@@ -266,6 +344,17 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             setComprehensiveFeedback(feedback);
             setShowEnhancedFeedback(true);
           }
+
+          // Generate advanced feedback
+          const completeFeedback = generateCompleteFeedback(
+            agentResponse,
+            newState,
+            scenario,
+            {}, // historicalData - would come from analytics
+            {} // averageScores - would come from analytics
+          );
+          setAdvancedFeedback(completeFeedback.advanced);
+          setShowAdvancedFeedback(true);
         } catch (error) {
           console.error('Failed to generate comprehensive feedback:', error);
         }
@@ -401,7 +490,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         handlePlayAudio(initialMessage);
       }
     }
-  }, [voiceMode, autoPlayAudio, state.conversationHistory.length]);
+  }, [voiceMode, autoPlayAudio, state.conversationHistory.length, handlePlayAudio]);
 
   return (
     <div className="flex flex-col h-full max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-6">
@@ -472,6 +561,46 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
         />
       )}
 
+      {/* Advanced Metrics Dashboard - Show when available */}
+      {!state.isComplete && advancedMetrics && state.conversationHistory.length >= 2 && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {advancedMetrics.metrics && (
+              <ConversationQualityIndicator 
+                metrics={advancedMetrics.metrics} 
+                className="animate-fade-in"
+              />
+            )}
+            {advancedMetrics.behavior && (
+              <AdaptiveDifficultyIndicator 
+                behavior={advancedMetrics.behavior}
+                className="animate-fade-in"
+              />
+            )}
+            {advancedMetrics.context && (
+              <ProgressTracker 
+                context={advancedMetrics.context}
+                scenario={scenario}
+                className="animate-fade-in"
+              />
+            )}
+          </div>
+
+          {/* Conversation Insights Panel */}
+          {advancedMetrics.insights && (
+            <ConversationInsightsPanel 
+              insights={{
+                strengths: advancedMetrics.insights.strengths || [],
+                opportunities: advancedMetrics.insights.opportunities || [],
+                criticalActions: advancedMetrics.insights.criticalActions || [],
+                nextSteps: advancedMetrics.insights.nextSteps || [],
+              }}
+              className="animate-fade-in"
+            />
+          )}
+        </div>
+      )}
+
       {/* Conversation History */}
       <Card className="flex-1 border-gray-200 overflow-hidden">
         <div className="h-full overflow-y-auto p-3 sm:p-4 md:p-6 min-h-[300px] sm:min-h-[400px] max-h-[500px] sm:max-h-[600px]">
@@ -525,6 +654,26 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           onClose={() => setShowEnhancedFeedback(false)}
           showManagerView={true}
         />
+      )}
+      
+      {/* Advanced Feedback Display */}
+      {showAdvancedFeedback && advancedFeedback && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Advanced Performance Analysis</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAdvancedFeedback(false)}
+            >
+              Close
+            </Button>
+          </div>
+          <AdvancedFeedbackDisplay
+            feedback={advancedFeedback}
+            onClose={() => setShowAdvancedFeedback(false)}
+          />
+        </div>
       )}
 
       {/* Basic Feedback Panel */}
@@ -630,6 +779,17 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       {/* Input Area */}
       {!state.isComplete && (
         <div className="space-y-4">
+          {/* Real-Time Coaching */}
+          <RoleplayCoaching
+            userMessage={repMessage}
+            scenario={{
+              id: scenario.id,
+              keyPoints: scenario.keyPoints,
+              objection_category: scenario.objection_category,
+            }}
+            conversationHistory={state.conversationHistory}
+          />
+          
           {voiceMode ? (
             <VoiceControls
               onTranscript={handleVoiceTranscript}
@@ -727,7 +887,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
               <div className="mb-6">
                 <div className="text-5xl mb-4">🚀</div>
                 <h3 className="text-2xl font-bold mb-2 text-green-900">Enterprise Sale Closed!</h3>
-                <p className="text-lg text-green-700 mb-1">Congratulations! You successfully closed the Cursor Enterprise sale!</p>
+                <p className="text-lg text-green-700 mb-1">Congratulations! You successfully closed the Browserbase sale!</p>
                 <div className="text-4xl font-bold text-green-900 mb-6">Final Score: {state.finalScore}/100</div>
               </div>
               <div className="bg-white rounded-lg p-4 mb-6 text-left max-w-md mx-auto">

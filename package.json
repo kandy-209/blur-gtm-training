@@ -1,8 +1,11 @@
 {
-  "name": "cursor-gtm-training",
+  "name": "browserbase-gtm-training",
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "verify:all": "node scripts/verify-all.js",
+    "setup:prospect-db": "node scripts/setup-prospect-intelligence-db.js",
+    "db:migrate:prospect": "bash scripts/run-prospect-intelligence-migration.sh",
     "dev": "next dev",
     "dev:debug": "next dev --inspect",
     "dev:debug-brk": "NODE_OPTIONS=--inspect-brk next dev",
@@ -30,6 +33,7 @@
     "test:api": "jest src/__tests__/api",
     "test:verbose": "jest --verbose",
     "test:ui": "jest src/__tests__/components",
+    "verify:improvements": "node scripts/verify-improvements.js",
     "setup:production": "bash scripts/setup-production.sh",
     "setup:interactive": "node setup-production.js",
     "db:migrate": "echo 'Run scripts/create-supabase-tables.sql in Supabase SQL Editor'",
@@ -42,8 +46,13 @@
     "test:performance": "node scripts/test-performance.js",
     "test:lighthouse": "npx lighthouse http://localhost:3000 --view",
     "test:a11y": "npx @axe-core/cli http://localhost:3000 || echo 'Install @axe-core/cli: npm install -g @axe-core/cli'",
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "ANALYZE=true BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "ANALYZE=true BUNDLE_ANALYZE=browser next build",
     "test:backend": "bash scripts/test-backend.sh",
     "test:integration": "node scripts/test-integration.js",
+    "test:prospect-intelligence": "node test-prospect-intelligence.js",
+    "test:prospect-intelligence:full": "node test-prospect-intelligence.js --full-test",
     "test:all": "npm run typecheck && npm test && npm run test:backend",
     "sync": "powershell -ExecutionPolicy Bypass -File scripts/sync-git.ps1",
     "sync:mac": "bash scripts/sync-git.sh",
@@ -65,12 +74,16 @@
     "api-keys:supabase": "powershell -ExecutionPolicy Bypass -File scripts/quick-setup-supabase.ps1",
     "api-keys:create-env": "powershell -ExecutionPolicy Bypass -File scripts/create-env-local.ps1",
     "api-keys:sync-vercel": "powershell -ExecutionPolicy Bypass -File scripts/sync-vercel-env-to-local.ps1",
-    "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1"
+    "fix:powershell": "powershell -ExecutionPolicy Bypass -File scripts/fix-powershell-execution-policy.ps1",
+    "postinstall": "echo \"Skipping Supabase CLI download for production builds\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.1",
     "@aws-sdk/client-s3": "^3.943.0",
     "@aws-sdk/lib-storage": "^3.943.0",
+    "@browserbasehq/stagehand": "^3.0.6",
+    "@google/generative-ai": "^0.24.1",
+    "@playwright/test": "^1.57.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-progress": "^1.0.3",
@@ -88,6 +101,7 @@
     "bullmq": "^5.65.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "geist": "^1.5.1",
     "ioredis": "^5.8.2",
@@ -107,7 +121,8 @@
     "tailwind-merge": "^3.4.0",
     "three": "^0.181.2",
     "web-vitals": "^4.2.4",
-    "winston": "^3.18.3"
+    "winston": "^3.18.3",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
@@ -123,11 +138,16 @@
     "autoprefixer": "^10.4.16",
     "eslint": "^8.57.0",
     "eslint-config-next": "^16.0.7",
+    "ignore-loader": "^0.1.2",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "pg": "^8.16.3",
     "postcss": "^8.4.32",
+    "supabase": "^2.67.3",
     "tailwindcss": "^3.3.6",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.9.3"
+    "tap": "^21.5.0",
+    "typescript": "^5.9.3",
+    "why-is-node-running": "^3.2.2"
   }
 }

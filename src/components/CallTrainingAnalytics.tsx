@@ -64,8 +64,8 @@ function CallTrainingAnalytics() {
     };
 
     fetchCallAnalytics();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchCallAnalytics, 30000);
+    // Refresh every 60 seconds (less aggressive to avoid rate limits)
+    const interval = setInterval(fetchCallAnalytics, 60000);
     return () => clearInterval(interval);
   }, [user?.id]);
 

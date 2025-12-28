@@ -26,6 +26,28 @@ export default function BypassProtection() {
     // Override fetch to add bypass token to all requests
     const originalFetch = window.fetch;
     window.fetch = function(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+      // Early check for localhost/debug URLs - prevent fetch entirely to avoid CSP violations
+      let urlString: string | null = null;
+      
+      if (typeof input === 'string') {
+        urlString = input;
+      } else if (input instanceof URL) {
+        urlString = input.toString();
+      } else if (input instanceof Request) {
+        urlString = input.url;
+      }
+      
+      // If it's a localhost debug URL, prevent fetch entirely to avoid CSP violation
+      if (urlString && (urlString.includes('127.0.0.1:7243') || urlString.includes('localhost:7243'))) {
+        // Return a promise that never resolves (effectively cancels the request)
+        // This prevents CSP violations by not attempting the fetch at all
+        // The calling code should have .catch() to handle this silently
+        return new Promise(() => {
+          // Never resolves - silently cancels the request
+          // This prevents the browser from attempting the fetch, avoiding CSP violations
+        });
+      }
+      
       let url: string;
       let urlObj: URL;
       
@@ -51,6 +73,22 @@ export default function BypassProtection() {
         return originalFetch(input, init);
       }
       
+      // Skip modification for localhost/debug endpoints to avoid CSP violations
+      // BUT allow same-origin requests (relative URLs) even on localhost
+      const isSameOrigin = urlObj.origin === window.location.origin;
+      const isLocalhostDebug = (urlObj.hostname === '127.0.0.1' || urlObj.hostname === 'localhost') && 
+                                !isSameOrigin;
+      
+      if (isLocalhostDebug) {
+        // Silently fail for cross-origin localhost URLs to prevent CSP violations
+        return Promise.reject(new Error('Localhost endpoint blocked by CSP'));
+      }
+      
+      // Allow same-origin requests to pass through without modification
+      if (isSameOrigin) {
+        return originalFetch(input, init);
+      }
+
       // Add bypass token to query params if not present
       if (!urlObj.searchParams.has('x-vercel-protection-bypass')) {
         urlObj.searchParams.set('x-vercel-protection-bypass', BYPASS_TOKEN);

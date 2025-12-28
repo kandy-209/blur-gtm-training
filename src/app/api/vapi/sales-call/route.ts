@@ -19,7 +19,19 @@ export async function POST(request: NextRequest) {
   const VAPI_API_KEY = process.env.VAPI_API_KEY || '';
   
   try {
-    const body = await request.json();
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (jsonError: any) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid JSON in request body',
+          message: jsonError.message || 'Failed to parse request body',
+        },
+        { status: 400 }
+      );
+    }
+    
     const { phoneNumber, userId, scenarioId, trainingMode = 'practice' } = body;
 
     console.log('Vapi call request:', { phoneNumber, userId, scenarioId, trainingMode, hasApiKey: !!VAPI_API_KEY });
@@ -33,14 +45,37 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate phone number format - remove all formatting first
-    const cleanedPhone = phoneNumber.replace(/\D/g, ''); // Remove all non-digits
+    // Handle both formatted strings and already-cleaned numbers
+    let cleanedPhone: string;
+    if (phoneNumber.startsWith('+')) {
+      // Already in E.164 format, just remove + and validate
+      cleanedPhone = phoneNumber.replace(/\D/g, '');
+    } else {
+      // Remove all non-digits
+      cleanedPhone = phoneNumber.replace(/\D/g, '');
+    }
     
     if (!cleanedPhone || cleanedPhone.length < 10) {
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          error: 'Invalid phone number format',
+          message: 'Phone number must contain at least 10 digits',
           received: phoneNumber,
-          cleaned: cleanedPhone
+          cleaned: cleanedPhone,
+          hint: 'Please use format: (555) 123-4567 or +1 (555) 123-4567'
+        },
+        { status: 400 }
+      );
+    }
+    
+    if (cleanedPhone.length > 15) {
+      return NextResponse.json(
+        { 
+          error: 'Invalid phone number format',
+          message: 'Phone number is too long (max 15 digits)',
+          received: phoneNumber,
+          cleaned: cleanedPhone,
+          length: cleanedPhone.length
         },
         { status: 400 }
       );
@@ -60,7 +95,8 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Phone number must be 10-15 digits.',
+          error: 'Invalid phone number format',
+          message: 'Phone number must be 10-15 digits',
           received: phoneNumber,
           cleaned: cleanedPhone,
           length: cleanedPhone.length
@@ -69,26 +105,59 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Final validation: E.164 format (+ followed by 1-15 digits, first digit must be 1-9)
-    if (!/^\+[1-9]\d{9,14}$/.test(phoneForVapi)) {
-      console.error('Invalid phone number format:', { original: phoneNumber, cleaned: cleanedPhone, formatted: phoneForVapi });
+    // Final validation: E.164 format
+    // E.164 allows: + followed by 1-15 digits, where the first digit after + can be 0-9
+    // But for practical purposes, we allow +1 for US numbers
+    const e164Pattern = /^\+[1-9]\d{9,14}$/;
+    if (!e164Pattern.test(phoneForVapi)) {
+      console.error('Invalid phone number format:', { 
+        original: phoneNumber, 
+        cleaned: cleanedPhone, 
+        formatted: phoneForVapi,
+        length: phoneForVapi.length,
+        pattern: e164Pattern.toString()
+      });
       return NextResponse.json(
         { 
-          error: 'Invalid phone number format. Please use format: (555) 123-4567 or +1 (555) 123-4567',
+          error: 'Invalid phone number format',
+          message: 'Phone number must be in E.164 format (e.g., +12094702824)',
           received: phoneNumber,
           cleaned: cleanedPhone,
-          formatted: phoneForVapi
+          formatted: phoneForVapi,
+          hint: 'Ensure phone number is in E.164 format (e.g., +1234567890). For US numbers, use +1 followed by 10 digits.'
         },
         { status: 400 }
       );
     }
+    
+    console.log('Phone number validated:', {
+      original: phoneNumber,
+      cleaned: cleanedPhone,
+      formatted: phoneForVapi,
+      length: phoneForVapi.length
+    });
 
     // Validate scenario exists
     const scenario = scenarios.find(s => s.id === scenarioId);
     if (!scenario) {
       return NextResponse.json(
-        { error: 'Scenario not found' },
+        { 
+          error: 'Scenario not found',
+          scenarioId,
+          availableScenarios: scenarios.map(s => s.id),
+        },
         { status: 404 }
+      );
+    }
+
+    // Validate scenario has required fields
+    if (!scenario.persona) {
+      return NextResponse.json(
+        { 
+          error: 'Scenario missing persona data',
+          scenarioId: scenario.id,
+        },
+        { status: 400 }
       );
     }
 
@@ -116,7 +185,23 @@ export async function POST(request: NextRequest) {
     try {
       systemPrompt = buildSystemPrompt(scenario);
       if (!systemPrompt || systemPrompt.trim().length === 0) {
-        throw new Error('System prompt is empty');
+        // Fallback prompt - ensure we have valid data
+        const personaName = scenario.persona?.name || 'a prospect';
+        const objectionStatement = scenario.objection_statement || 'I need to think about it';
+        
+        systemPrompt = `You are ${personaName} evaluating Browserbase. 
+Respond naturally to the sales rep's questions and objections. 
+Objection: ${objectionStatement}`;
+        
+        if (!systemPrompt || systemPrompt.trim().length === 0) {
+          return NextResponse.json(
+            { 
+              error: 'Failed to create system prompt',
+              message: 'Unable to generate prompt from scenario data',
+            },
+            { status: 500 }
+          );
+        }
       }
       console.log('System prompt built successfully, length:', systemPrompt.length);
     } catch (promptError: any) {
@@ -128,14 +213,24 @@ export async function POST(request: NextRequest) {
         hasObjection: !!scenario.objection_statement,
         hasKeyPoints: !!scenario.keyPoints
       });
-      // Fallback prompt
-      systemPrompt = `You are ${scenario.persona?.name || 'a prospect'} evaluating Cursor Enterprise. 
-      Respond naturally to the sales rep's questions and objections. 
-      Objection: ${scenario.objection_statement || 'I need to think about it'}`;
+      // Fallback prompt - ensure we have valid data
+      const personaName = scenario.persona?.name || 'a prospect';
+      const objectionStatement = scenario.objection_statement || 'I need to think about it';
+      
+      systemPrompt = `You are ${personaName} evaluating Browserbase. 
+Respond naturally to the sales rep's questions and objections. 
+Objection: ${objectionStatement}`;
       
       if (!systemPrompt || systemPrompt.trim().length === 0) {
-        throw new Error('Failed to create fallback system prompt');
+        return NextResponse.json(
+          { 
+            error: 'Failed to create system prompt',
+            message: 'Unable to generate prompt from scenario data',
+          },
+          { status: 500 }
+        );
       }
+      console.log('Using fallback system prompt, length:', systemPrompt.length);
     }
 
     // Create Vapi assistant with scenario context
@@ -154,7 +249,15 @@ export async function POST(request: NextRequest) {
     
     if (!assistantName || assistantName.length === 0 || assistantName.length > 40) {
       console.error('Invalid assistant name generated:', { assistantName, length: assistantName?.length });
-      throw new Error(`Failed to generate valid assistant name (length: ${assistantName?.length || 0})`);
+      return NextResponse.json(
+        { 
+          error: 'Failed to generate valid assistant name',
+          message: `Assistant name is invalid (length: ${assistantName?.length || 0})`,
+          scenarioId: scenario.id,
+          personaName: personaName,
+        },
+        { status: 500 }
+      );
     }
     
     console.log('Generated assistant name:', { assistantName, length: assistantName.length });
@@ -164,11 +267,24 @@ export async function POST(request: NextRequest) {
     const firstMessage = scenario.objection_statement || 'Hello, I received your call.';
     
     if (!voiceId || voiceId.trim().length === 0) {
-      throw new Error('ElevenLabs voice ID is required');
+      return NextResponse.json(
+        { 
+          error: 'ElevenLabs voice ID is required',
+          message: 'NEXT_PUBLIC_ELEVENLABS_VOICE_ID environment variable is not set',
+        },
+        { status: 500 }
+      );
     }
     
     if (!firstMessage || firstMessage.trim().length === 0) {
-      throw new Error('First message is required');
+      return NextResponse.json(
+        { 
+          error: 'First message is required',
+          message: 'Scenario missing objection_statement',
+          scenarioId: scenario.id,
+        },
+        { status: 400 }
+      );
     }
     
     const assistantRequest = {
@@ -194,11 +310,23 @@ export async function POST(request: NextRequest) {
     
     // Validate request structure
     if (!assistantRequest.name || assistantRequest.name.length > 40) {
-      throw new Error(`Invalid assistant name: ${assistantRequest.name} (length: ${assistantRequest.name.length})`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant name',
+          message: `Assistant name is invalid: ${assistantRequest.name} (length: ${assistantRequest.name?.length || 0})`,
+        },
+        { status: 400 }
+      );
     }
     
     if (!assistantRequest.voice.provider || assistantRequest.voice.provider !== '11labs') {
-      throw new Error(`Invalid voice provider: ${assistantRequest.voice.provider}`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid voice provider',
+          message: `Voice provider must be '11labs', got: ${assistantRequest.voice.provider}`,
+        },
+        { status: 400 }
+      );
     }
 
     // Validate JSON serialization before sending
@@ -209,7 +337,13 @@ export async function POST(request: NextRequest) {
       JSON.parse(requestBody);
     } catch (jsonError: any) {
       console.error('Failed to serialize assistant request:', jsonError);
-      throw new Error(`Invalid assistant request data: ${jsonError.message}`);
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant request data',
+          message: `Failed to serialize request: ${jsonError.message}`,
+        },
+        { status: 500 }
+      );
     }
     
     console.log('Creating Vapi assistant with request:', {
@@ -224,17 +358,40 @@ export async function POST(request: NextRequest) {
       requestBodyLength: requestBody.length,
     });
 
-    const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: requestBody,
-    });
+    let assistantResponse: Response;
+    try {
+      assistantResponse = await fetch('https://api.vapi.ai/assistant', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      });
+    } catch (fetchError: any) {
+      console.error('❌ Network error creating Vapi assistant:', {
+        error: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name,
+      });
+      return NextResponse.json(
+        { 
+          error: 'Network error connecting to Vapi API',
+          message: fetchError.message || 'Failed to connect to Vapi service',
+          hint: 'Check your internet connection and Vapi API status',
+        },
+        { status: 503 }
+      );
+    }
 
     if (!assistantResponse.ok) {
-      const errorText = await assistantResponse.text();
+      let errorText = '';
+      try {
+        errorText = await assistantResponse.text();
+      } catch (textError) {
+        errorText = `Failed to read error response: ${textError}`;
+      }
+      
       let errorMessage = 'Failed to create assistant';
       let errorDetails: any = {};
       try {
@@ -256,14 +413,39 @@ export async function POST(request: NextRequest) {
           systemPromptLength: systemPrompt.length,
         }
       });
-      throw new Error(`Vapi assistant error (${assistantResponse.status}): ${errorMessage}`);
+      return NextResponse.json(
+        { 
+          error: `Vapi assistant error (${assistantResponse.status})`,
+          message: errorMessage,
+          details: errorDetails,
+        },
+        { status: assistantResponse.status >= 400 && assistantResponse.status < 500 ? assistantResponse.status : 502 }
+      );
     }
 
-    const assistant = await assistantResponse.json();
+    let assistant: any;
+    try {
+      assistant = await assistantResponse.json();
+    } catch (jsonError: any) {
+      console.error('Failed to parse assistant response:', jsonError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid response from Vapi API',
+          message: 'Failed to parse assistant creation response',
+        },
+        { status: 502 }
+      );
+    }
     
     if (!assistant || !assistant.id) {
       console.error('Invalid assistant response:', assistant);
-      throw new Error('Invalid assistant response from Vapi API - missing assistant ID');
+      return NextResponse.json(
+        { 
+          error: 'Invalid assistant response from Vapi API',
+          message: 'Missing assistant ID in response',
+        },
+        { status: 502 }
+      );
     }
     
     console.log('Assistant created successfully:', {
@@ -279,10 +461,24 @@ export async function POST(request: NextRequest) {
     });
 
     // Initiate call - Vapi API format
-    // Vapi requires phoneNumber at top level, not nested in customer
+    // Vapi requires:
+    // 1. phoneNumberId (the Vapi phone number to call FROM)
+    // 2. customer object with number (the phone number to call TO)
     const callRequestBody: any = {
       assistantId: assistant.id,
-      phoneNumber: phoneForVapi, // Top-level phoneNumber field
+    };
+    
+    // Add phoneNumberId if configured (the Vapi phone number to use)
+    const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
+    if (phoneNumberId) {
+      callRequestBody.phoneNumberId = phoneNumberId;
+      console.log('Using configured phoneNumberId (caller):', phoneNumberId);
+    }
+    
+    // Add customer object with the destination phone number
+    // This is the phone number we're calling TO (the user's phone)
+    callRequestBody.customer = {
+      number: phoneForVapi, // E.164 format: the destination number
     };
     
     // Add metadata if supported
@@ -297,23 +493,48 @@ export async function POST(request: NextRequest) {
 
     console.log('Call request body:', {
       assistantId: callRequestBody.assistantId,
-      phoneNumber: callRequestBody.phoneNumber,
-      phoneNumberLength: callRequestBody.phoneNumber?.length,
-      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.phoneNumber) ? 'E.164' : 'INVALID',
+      phoneNumberId: callRequestBody.phoneNumberId,
+      customerNumber: callRequestBody.customer?.number,
+      phoneNumberFormat: /^\+[1-9]\d{9,14}$/.test(callRequestBody.customer?.number) ? 'E.164' : 'INVALID',
       hasMetadata: !!callRequestBody.metadata,
     });
 
-    const callResponse = await fetch('https://api.vapi.ai/call', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(callRequestBody),
-    });
+    let callResponse: Response;
+    try {
+      callResponse = await fetch('https://api.vapi.ai/call', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(callRequestBody),
+      });
+    } catch (fetchError: any) {
+      console.error('❌ Network error initiating Vapi call:', {
+        error: fetchError.message,
+        stack: fetchError.stack,
+        name: fetchError.name,
+        assistantId: assistant.id,
+        phoneNumber: phoneForVapi,
+      });
+      return NextResponse.json(
+        { 
+          error: 'Network error connecting to Vapi API',
+          message: fetchError.message || 'Failed to connect to Vapi service',
+          hint: 'Check your internet connection and Vapi API status',
+        },
+        { status: 503 }
+      );
+    }
 
     if (!callResponse.ok) {
-      const errorText = await callResponse.text();
+      let errorText = '';
+      try {
+        errorText = await callResponse.text();
+      } catch (textError) {
+        errorText = `Failed to read error response: ${textError}`;
+      }
+      
       let errorMessage = 'Failed to initiate call';
       let errorDetails: any = {};
       try {
@@ -340,10 +561,32 @@ export async function POST(request: NextRequest) {
         assistantIdType: typeof assistant.id,
       });
       
-      throw new Error(`Vapi call error (${callResponse.status}): ${errorMessage}`);
+      return NextResponse.json(
+        { 
+          error: `Vapi call error (${callResponse.status})`,
+          message: errorMessage,
+          details: errorDetails,
+          hint: errorMessage.includes('phoneNumber') || errorMessage.includes('phone')
+            ? 'Ensure phone number is in E.164 format (e.g., +1234567890)'
+            : 'Check Vapi API key and account status',
+        },
+        { status: callResponse.status >= 400 && callResponse.status < 500 ? callResponse.status : 502 }
+      );
     }
 
-    const callData = await callResponse.json();
+    let callData: any;
+    try {
+      callData = await callResponse.json();
+    } catch (jsonError: any) {
+      console.error('Failed to parse call response:', jsonError);
+      return NextResponse.json(
+        { 
+          error: 'Invalid response from Vapi API',
+          message: 'Failed to parse call initiation response',
+        },
+        { status: 502 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
@@ -351,19 +594,20 @@ export async function POST(request: NextRequest) {
       status: callData.status,
       scenario: {
         id: scenario.id,
-        persona: scenario.persona.name,
-        objectionCategory: scenario.objection_category,
+        persona: scenario.persona?.name || 'Unknown',
+        objectionCategory: scenario.objection_category || 'general',
       },
     });
   } catch (error: any) {
-    console.error('Sales call initiation error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error details:', {
+    console.error('❌ Sales call initiation error:', {
       message: error.message,
       name: error.name,
+      stack: error.stack,
       cause: error.cause,
       status: error.status,
-      response: error.response
+      response: error.response,
+      hasApiKey: !!VAPI_API_KEY,
+      apiKeyLength: VAPI_API_KEY?.length || 0,
     });
     
     const errorMessage = error.message || 'Failed to initiate call';
@@ -376,12 +620,12 @@ export async function POST(request: NextRequest) {
         message: errorMessage,
         // Include helpful hints based on error type
         hint: errorMessage.includes('API key') || errorMessage.includes('VAPI_API_KEY')
-          ? 'Check your VAPI_API_KEY in .env.local and restart dev server'
+          ? 'Check your VAPI_API_KEY in environment variables'
           : errorMessage.includes('phone') || errorMessage.includes('number')
           ? 'Ensure phone number is in E.164 format (e.g., +1234567890)'
           : errorMessage.includes('assistant')
           ? 'Failed to create Vapi assistant - check API key permissions and Vapi dashboard'
-          : errorMessage.includes('Vapi')
+          : errorMessage.includes('Vapi') || errorMessage.includes('network')
           ? 'Check Vapi API key and account status at https://vapi.ai/dashboard'
           : 'Check server logs for detailed error information',
         // Include debug info in development
@@ -390,7 +634,7 @@ export async function POST(request: NextRequest) {
             hasApiKey: !!VAPI_API_KEY,
             apiKeyLength: VAPI_API_KEY?.length || 0,
             errorType: error.name,
-            errorStack: error.stack?.split('\n').slice(0, 3).join('\n')
+            errorStack: error.stack?.split('\n').slice(0, 5).join('\n')
           }
         })
       },
@@ -438,8 +682,20 @@ export async function GET(request: NextRequest) {
     });
 
     if (!modalResponse.ok) {
-      const error = await modalResponse.json();
-      throw new Error(error.error || 'Failed to analyze call');
+      let errorMessage = 'Failed to analyze call';
+      try {
+        const error = await modalResponse.json();
+        errorMessage = error.error || errorMessage;
+      } catch {
+        errorMessage = `Modal API returned ${modalResponse.status}`;
+      }
+      return NextResponse.json(
+        { 
+          error: 'Failed to analyze call',
+          message: errorMessage,
+        },
+        { status: modalResponse.status >= 400 && modalResponse.status < 500 ? modalResponse.status : 502 }
+      );
     }
 
     const analysis = await modalResponse.json();
@@ -466,7 +722,7 @@ function buildSystemPrompt(scenario: any): string {
   const persona = scenario.persona || {};
   const objectionStatement = scenario.objection_statement || 'I need to think about it';
   
-  return `You are ${persona.name || 'a prospect'}, a real prospect evaluating Cursor Enterprise.
+  return `You are ${persona.name || 'a prospect'}, a real prospect evaluating Browserbase.
 
 PERSONA DETAILS:
 - Current Solution: ${persona.currentSolution || 'Unknown'}
@@ -475,7 +731,7 @@ PERSONA DETAILS:
 - Tone: ${persona.tone || 'Professional'}
 
 YOUR ROLE:
-You are on a phone call with a sales rep selling Cursor Enterprise. This is a training call.
+You are on a phone call with a sales rep selling Browserbase. This is a training call.
 
 CONVERSATION FLOW:
 1. Start with the objection: "${objectionStatement}"
@@ -484,7 +740,7 @@ CONVERSATION FLOW:
 4. Show increasing interest if the rep addresses your concerns well
 5. Progress towards either:
    - MEETING_BOOKED: Agree to a specific meeting time/date
-   - ENTERPRISE_SALE: Commit to purchasing Cursor Enterprise
+   - ENTERPRISE_SALE: Commit to purchasing Browserbase
 
 KEY POINTS TO DISCUSS:
 ${(scenario.keyPoints || []).map((p: string) => `- ${p}`).join('\n') || '- General discussion points'}

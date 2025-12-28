@@ -29,8 +29,8 @@ const chatConfigs: Record<string, ChatConfig> = {
   general: {
     chatType: 'general',
     title: 'General Chat',
-    description: 'Ask general questions about Cursor',
-    placeholder: 'Ask any question about Cursor...',
+    description: 'Ask general questions about Browserbase',
+    placeholder: 'Ask any question about Browserbase...',
   },
   technical: {
     chatType: 'technical',
@@ -47,8 +47,8 @@ const chatConfigs: Record<string, ChatConfig> = {
   features: {
     chatType: 'features',
     title: 'Features Chat',
-    description: 'Learn about Cursor features',
-    placeholder: 'Ask about Cursor features...',
+    description: 'Learn about Browserbase features',
+    placeholder: 'Ask about Browserbase features...',
   },
 };
 

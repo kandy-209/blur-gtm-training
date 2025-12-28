@@ -43,10 +43,24 @@ describe('cache-warmer', () => {
     });
 
     it('should handle errors gracefully', async () => {
+      const { cachedRouteHandler } = require('../next-cache-wrapper');
       const fetcher = jest.fn()
         .mockResolvedValueOnce({ data: 'value1' })
-        .mockRejectedValueOnce(new Error('Error'))
         .mockResolvedValueOnce({ data: 'value3' });
+
+      // Mock cachedRouteHandler to reject for the second key
+      let callCount = 0;
+      (cachedRouteHandler as jest.Mock).mockImplementation((key, fetcher) => {
+        callCount++;
+        if (callCount === 2) {
+          return Promise.reject(new Error('Cache error'));
+        }
+        return Promise.resolve({
+          data: fetcher(),
+          timestamp: new Date().toISOString(),
+          cached: false,
+        });
+      });
 
       const result = await warmCache({
         keys: ['key1', 'key2', 'key3'],
@@ -56,6 +70,15 @@ describe('cache-warmer', () => {
       expect(result.success).toBeGreaterThan(0);
       expect(result.failed).toBeGreaterThan(0);
       expect(result.errors.length).toBeGreaterThan(0);
+      
+      // Reset mock for other tests
+      (cachedRouteHandler as jest.Mock).mockImplementation((key, fetcher) => {
+        return Promise.resolve({
+          data: fetcher(),
+          timestamp: new Date().toISOString(),
+          cached: false,
+        });
+      });
     });
 
     it('should process in batches', async () => {

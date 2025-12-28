@@ -13,7 +13,7 @@ This will guide you through adding all required variables interactively.
 ### Step 1: Go to Vercel Dashboard
 
 1. Visit: https://vercel.com/dashboard
-2. Click on your project: **cursor-gtm-training**
+2. Click on your project: **browserbase-gtm-training**
 3. Go to **Settings** → **Environment Variables**
 
 ### Step 2: Add Each Variable

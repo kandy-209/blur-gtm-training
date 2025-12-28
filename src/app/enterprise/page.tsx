@@ -91,7 +91,7 @@ export default function EnterprisePage() {
           {/* Header */}
           <div className="mb-12">
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-gray-900 mb-3">
-              Cursor Enterprise
+              Browserbase Enterprise
             </h1>
             <p className="text-lg text-gray-600">
               Enterprise-grade security, compliance, and administrative controls
@@ -162,7 +162,7 @@ export default function EnterprisePage() {
           {/* Quick Links */}
           <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-4">
             <a 
-              href="https://trust.cursor.com/" 
+              href="https://www.browserbase.com/trust" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group"
@@ -182,7 +182,7 @@ export default function EnterprisePage() {
               </Card>
             </a>
             <a 
-              href="https://cursor.com/docs/enterprise" 
+              href="https://docs.browserbase.com" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group"
@@ -202,7 +202,7 @@ export default function EnterprisePage() {
               </Card>
             </a>
             <a 
-              href="https://cursor.com/security" 
+              href="https://www.browserbase.com/security" 
               target="_blank" 
               rel="noopener noreferrer"
               className="group"

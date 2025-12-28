@@ -32,9 +32,11 @@ import {
   X,
   Loader2
 } from 'lucide-react';
+import SiteSearch from '@/components/SiteSearch';
+import SocialShare from '@/components/SocialShare';
 
 const categoryIcons: Record<string, any> = {
-  'Competitive_Copilot': Puzzle,
+  'Competitive_SelfHosted': Puzzle,
   'Security_Privacy': Shield,
   'Pricing_Value': DollarSign,
   'Integration_Complexity': Clock,
@@ -43,12 +45,71 @@ const categoryIcons: Record<string, any> = {
 };
 
 const categoryColors: Record<string, string> = {
-  'Competitive_Copilot': 'bg-blue-100 text-blue-700 border-blue-200',
+  'Competitive_SelfHosted': 'bg-blue-100 text-blue-700 border-blue-200',
   'Security_Privacy': 'bg-red-100 text-red-700 border-red-200',
   'Pricing_Value': 'bg-green-100 text-green-700 border-green-200',
   'Integration_Complexity': 'bg-purple-100 text-purple-700 border-purple-200',
   'Adoption_Concerns': 'bg-orange-100 text-orange-700 border-orange-200',
   'Code_Quality': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+};
+
+// Color coding for badge text content
+const getBadgeColor = (text: string): string => {
+  const normalizedText = text.toLowerCase().trim();
+  
+  // Category-based colors
+  if (normalizedText.includes('competitive') || normalizedText.includes('self-hosted')) {
+    return 'bg-blue-100 text-blue-700 border-blue-200';
+  }
+  if (normalizedText.includes('security') || normalizedText.includes('privacy')) {
+    return 'bg-red-100 text-red-700 border-red-200';
+  }
+  if (normalizedText.includes('pricing') || normalizedText.includes('value') || normalizedText.includes('cost')) {
+    return 'bg-green-100 text-green-700 border-green-200';
+  }
+  if (normalizedText.includes('integration') || normalizedText.includes('complexity')) {
+    return 'bg-purple-100 text-purple-700 border-purple-200';
+  }
+  if (normalizedText.includes('adoption') || normalizedText.includes('concern')) {
+    return 'bg-orange-100 text-orange-700 border-orange-200';
+  }
+  if (normalizedText.includes('code') || normalizedText.includes('quality')) {
+    return 'bg-indigo-100 text-indigo-700 border-indigo-200';
+  }
+  
+  // Keyword-based colors
+  if (normalizedText.includes('productivity') || normalizedText.includes('efficiency')) {
+    return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+  }
+  if (normalizedText.includes('roi') || normalizedText.includes('return')) {
+    return 'bg-teal-100 text-teal-700 border-teal-200';
+  }
+  if (normalizedText.includes('security') || normalizedText.includes('compliance')) {
+    return 'bg-rose-100 text-rose-700 border-rose-200';
+  }
+  if (normalizedText.includes('collaboration') || normalizedText.includes('team')) {
+    return 'bg-cyan-100 text-cyan-700 border-cyan-200';
+  }
+  if (normalizedText.includes('enterprise') || normalizedText.includes('scale')) {
+    return 'bg-violet-100 text-violet-700 border-violet-200';
+  }
+  if (normalizedText.includes('speed') || normalizedText.includes('performance')) {
+    return 'bg-amber-100 text-amber-700 border-amber-200';
+  }
+  
+  // Default color based on text hash for consistency
+  const hash = normalizedText.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  const colors = [
+    'bg-blue-100 text-blue-700 border-blue-200',
+    'bg-purple-100 text-purple-700 border-purple-200',
+    'bg-pink-100 text-pink-700 border-pink-200',
+    'bg-indigo-100 text-indigo-700 border-indigo-200',
+    'bg-teal-100 text-teal-700 border-teal-200',
+    'bg-yellow-100 text-yellow-700 border-yellow-200',
+  ];
+  return colors[Math.abs(hash) % colors.length];
 };
 
 // Debounce hook for search
@@ -136,7 +197,7 @@ function ScenariosPage() {
   };
 
   const getCategoryColor = (category: string) => {
-    return categoryColors[category] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return categoryColors[category] || getBadgeColor(category);
   };
 
   // Add structured data for SEO
@@ -305,7 +366,7 @@ function ScenariosPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs sm:text-sm text-muted-foreground">Active filters:</span>
               {debouncedSearchQuery && (
-                <Badge variant="secondary" className="gap-1 text-xs sm:text-sm px-2 py-1">
+                <Badge variant="outline" size="sm" className={`gap-1 ${getBadgeColor(`search ${debouncedSearchQuery}`)}`}>
                   <span className="truncate max-w-[120px] sm:max-w-none">Search: {debouncedSearchQuery}</span>
                   <button
                     onClick={() => setSearchQuery('')}
@@ -317,7 +378,7 @@ function ScenariosPage() {
                 </Badge>
               )}
               {selectedCategory !== 'all' && (
-                <Badge variant="secondary" className="gap-1 text-xs sm:text-sm px-2 py-1">
+                <Badge variant="outline" size="sm" className={`gap-1 ${getBadgeColor(selectedCategory)}`}>
                   <span>{selectedCategory.replace(/_/g, ' ')}</span>
                   <button
                     onClick={() => setSelectedCategory('all')}
@@ -380,8 +441,9 @@ function ScenariosPage() {
                 >
                   {/* Category Badge */}
                   <Badge 
-                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 ${categoryColor} px-2 py-1 rounded-md text-[10px] sm:text-xs font-medium flex items-center gap-1 z-10 shadow-sm max-w-[120px] sm:max-w-[140px]`}
+                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 ${categoryColor} rounded-md text-[10px] font-medium flex items-center gap-1 z-10 shadow-sm max-w-[120px] sm:max-w-[140px]`}
                     variant="outline"
+                    size="sm"
                     aria-label={`Category: ${scenario.objection_category.replace(/_/g, ' ')}`}
                   >
                     <CategoryIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 flex-shrink-0" aria-hidden="true" />
@@ -467,6 +529,14 @@ function ScenariosPage() {
                           Start
                         </Button>
                       </Link>
+                      <div className="flex items-center">
+                        <SocialShare
+                          title={`${scenario.persona.name} - Browserbase Sales Training`}
+                          description={scenario.objection_statement.substring(0, 150)}
+                          scenarioId={scenario.id}
+                          scenarioName={scenario.persona.name}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

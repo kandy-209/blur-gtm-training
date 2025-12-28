@@ -89,7 +89,9 @@ export class ElevenLabsClient {
   private wsConnection: WebSocket | null = null;
 
   constructor(config: ElevenLabsConfig = {}) {
-    this.apiKey = config.apiKey || process.env.ELEVENLABS_API_KEY || '';
+    // Trim API key to remove any whitespace/newlines
+    const rawApiKey = config.apiKey || process.env.ELEVENLABS_API_KEY || '';
+    this.apiKey = rawApiKey.trim();
     this.defaultVoiceId = config.voiceId || process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
     this.defaultModelId = config.modelId || 'eleven_multilingual_v2';
     this.enableZeroRetention = config.enableZeroRetention ?? false;

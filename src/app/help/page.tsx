@@ -13,11 +13,11 @@ const faqs = [
   },
   {
     question: 'What is the ROI Calculator?',
-    answer: 'The ROI Calculator helps you calculate the business impact and return on investment for Cursor Enterprise based on productivity improvements and cost savings.',
+    answer: 'The ROI Calculator helps you calculate the business impact and return on investment for Browserbase based on productivity improvements and cost savings.',
   },
   {
     question: 'How does scoring work?',
-    answer: 'Your responses are evaluated based on how well you address objections, mention key value points, and demonstrate understanding of Cursor features. Scores range from 0-100.',
+    answer: 'Your responses are evaluated based on how well you address objections, mention key value points, and demonstrate understanding of Browserbase features. Scores range from 0-100.',
   },
   {
     question: 'Can I create custom scenarios?',
@@ -29,7 +29,7 @@ const faqs = [
   },
   {
     question: 'What features can I learn about?',
-    answer: 'Visit the Features page to explore Cursor Enterprise capabilities, including Plan Mode, AI Code Review, and more. Each feature includes learning paths for leadership and IC teams.',
+    answer: 'Visit the Features page to explore Browserbase capabilities, including browser automation, web scraping, headless browser infrastructure, and more. Each feature includes learning paths for leadership and IC teams.',
   },
 ];
 
@@ -158,6 +158,19 @@ export default function HelpPage() {
     </ProtectedRoute>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

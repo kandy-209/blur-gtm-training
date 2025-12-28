@@ -33,11 +33,16 @@ global.MediaStream = jest.fn().mockImplementation(() => ({
   ]),
 })) as any;
 
-global.navigator = {
-  mediaDevices: {
-    getUserMedia: jest.fn().mockResolvedValue(new MediaStream()),
+// Mock navigator.mediaDevices properly
+Object.defineProperty(global, 'navigator', {
+  value: {
+    mediaDevices: {
+      getUserMedia: jest.fn().mockResolvedValue(new MediaStream()),
+    },
   },
-} as any;
+  writable: true,
+  configurable: true,
+});
 
 describe('AudioAnalyzer', () => {
   let analyzer: AudioAnalyzer;
@@ -81,20 +86,31 @@ describe('AudioAnalyzer', () => {
     });
 
     it('should handle getUserMedia errors', async () => {
-      (navigator.mediaDevices.getUserMedia as jest.Mock).mockRejectedValueOnce(
+      const mockGetUserMedia = navigator.mediaDevices.getUserMedia as jest.Mock;
+      mockGetUserMedia.mockRejectedValueOnce(
         new Error('Permission denied')
       );
 
-      await expect(analyzer.startAnalysis()).rejects.toThrow();
+      await expect(analyzer.startAnalysis()).rejects.toThrow('Permission denied');
     });
 
     it('should handle missing getUserMedia', async () => {
       const originalGetUserMedia = navigator.mediaDevices.getUserMedia;
-      delete (navigator.mediaDevices as any).getUserMedia;
+      // Temporarily remove getUserMedia
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: undefined,
+        writable: true,
+        configurable: true,
+      });
 
       await expect(analyzer.startAnalysis()).rejects.toThrow();
 
-      navigator.mediaDevices.getUserMedia = originalGetUserMedia;
+      // Restore it
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: originalGetUserMedia,
+        writable: true,
+        configurable: true,
+      });
     });
   });
 

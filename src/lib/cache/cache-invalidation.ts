@@ -20,8 +20,7 @@ export async function invalidateByTag(tag: string): Promise<void> {
   try {
     // Next.js revalidateTag function
     const { revalidateTag } = await import('next/cache');
-    // @ts-ignore - Next.js revalidateTag API may vary by version
-    revalidateTag(tag);
+    revalidateTag(tag, 'page');
     log.info('Cache invalidated by tag', { tag });
   } catch (error) {
     log.error('Failed to invalidate by tag', error instanceof Error ? error : new Error(String(error)), { tag });

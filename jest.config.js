@@ -39,7 +39,7 @@ const customJestConfig = {
     '/src/__tests__/setup/enhanced-test-utils.ts',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(.*\\.mjs$|@vercel))',
+    'node_modules/(?!(.*\\.mjs$|@vercel|@google/genai|@browserbasehq/stagehand))',
   ],
 }
 
