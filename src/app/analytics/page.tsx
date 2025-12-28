@@ -6,6 +6,7 @@ import CallTrainingAnalytics from '@/components/CallTrainingAnalytics';
 import TopResponses from '@/components/TopResponses';
 import TechnicalQuestions from '@/components/TechnicalQuestions';
 import ConversionMetrics from '@/components/ConversionMetrics';
+import PredictiveAnalytics from '@/components/PredictiveAnalytics';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { ErrorBoundaryWithContext } from '@/components/ErrorBoundaryWithContext';
 import { Skeleton, SkeletonStats } from '@/components/ui/skeleton';
@@ -54,6 +55,12 @@ export default function AnalyticsPage() {
             <ErrorBoundaryWithContext component="ConversionMetrics" severity="high">
               <Suspense fallback={<Skeleton className="h-96 w-full" />}>
                 <ConversionMetrics />
+              </Suspense>
+            </ErrorBoundaryWithContext>
+            
+            <ErrorBoundaryWithContext component="PredictiveAnalytics" severity="medium">
+              <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+                <PredictiveAnalytics />
               </Suspense>
             </ErrorBoundaryWithContext>
             

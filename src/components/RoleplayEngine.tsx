@@ -19,6 +19,7 @@ import ConversationMetrics from '@/components/ConversationMetrics';
 import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
+import RoleplayCoaching from '@/components/RoleplayCoaching';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -654,6 +655,12 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       {/* Input Area */}
       {!state.isComplete && (
         <div className="space-y-4">
+          {/* Real-Time Coaching */}
+          <RoleplayCoaching
+            userMessage={repMessage}
+            scenario={scenario}
+            conversationHistory={state.conversationHistory}
+          />
           {voiceMode ? (
             <VoiceControls
               onTranscript={handleVoiceTranscript}

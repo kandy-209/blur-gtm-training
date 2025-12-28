@@ -52,6 +52,7 @@ describe('API Key Validation Tests', () => {
       process.env.BROWSERBASE_API_KEY = 'test-browserbase-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project-id';
       process.env.ANTHROPIC_API_KEY = 'sk-ant-api03-test123';
+      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
       const Stagehand = require('@browserbasehq/stagehand').Stagehand;
       const mockInit = jest.fn().mockResolvedValue(undefined);
@@ -61,7 +62,8 @@ describe('API Key Validation Tests', () => {
       };
       
       Stagehand.mockImplementation((config: any) => {
-        expect(config.model).toBe('claude-3-5-sonnet-20241022');
+        // Stagehand uses modelName, not model
+        expect(config.modelName).toBe('claude-3-5-sonnet-20241022');
         expect(config.modelClientOptions.apiKey).toBe('sk-ant-api03-test123');
         return mockStagehand;
       });
@@ -71,7 +73,7 @@ describe('API Key Validation Tests', () => {
       
       expect(Stagehand).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'claude-3-5-sonnet-20241022',
+          modelName: 'claude-3-5-sonnet-20241022',
           modelClientOptions: expect.objectContaining({
             apiKey: 'sk-ant-api03-test123',
           }),
@@ -83,6 +85,7 @@ describe('API Key Validation Tests', () => {
       process.env.BROWSERBASE_API_KEY = 'test-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
+      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
       const { Stagehand } = require('@browserbasehq/stagehand');
       let capturedConfig: any = null;
@@ -95,9 +98,10 @@ describe('API Key Validation Tests', () => {
       await service.initialize();
       
       // Verify model does NOT have "anthropic/" prefix
+      // Stagehand uses modelName, not model
       if (capturedConfig) {
-        expect(capturedConfig.model).not.toContain('anthropic/');
-        expect(capturedConfig.model).toBe('claude-3-5-sonnet-20241022');
+        expect(capturedConfig.modelName).not.toContain('anthropic/');
+        expect(capturedConfig.modelName).toBe('claude-3-5-sonnet-20241022');
       }
     });
   });
@@ -139,6 +143,7 @@ describe('API Key Validation Tests', () => {
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
       process.env.OPENAI_API_KEY = 'sk-proj-test';
+      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
       const { Stagehand } = require('@browserbasehq/stagehand');
       let capturedConfig: any = null;
@@ -150,8 +155,9 @@ describe('API Key Validation Tests', () => {
       const service = new ResearchService();
       await service.initialize();
       
+      // Stagehand uses modelName, not model
       if (capturedConfig) {
-        expect(capturedConfig.model).toBe('claude-3-5-sonnet-20241022');
+        expect(capturedConfig.modelName).toBe('claude-3-5-sonnet-20241022');
       }
     });
 
@@ -159,8 +165,9 @@ describe('API Key Validation Tests', () => {
       process.env.BROWSERBASE_API_KEY = 'test-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       process.env.STAGEHAND_LLM_PROVIDER = 'gemini';
-      process.env.GOOGLE_GEMINI_API_KEY = 'test-gemini-key';
+      // No GOOGLE_GEMINI_API_KEY - should fallback to Claude
       process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
+      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
       const { Stagehand } = require('@browserbasehq/stagehand');
       let capturedConfig: any = null;
@@ -173,8 +180,9 @@ describe('API Key Validation Tests', () => {
       await service.initialize();
       
       // Should fallback to Claude since Gemini not supported
+      // Stagehand uses modelName, not model
       if (capturedConfig) {
-        expect(capturedConfig.model).toBe('claude-3-5-sonnet-20241022');
+        expect(capturedConfig.modelName).toBe('claude-3-5-sonnet-20241022');
       }
     });
   });

@@ -9,6 +9,7 @@ import { ICPScoreCard } from './ICPScoreCard';
 import { TechStackCard } from './TechStackCard';
 import { HiringCard } from './HiringCard';
 import { EmailGenerator } from './EmailGenerator';
+import ProspectIntelligenceEnhancer from '@/components/ProspectIntelligenceEnhancer';
 import type { ProspectIntelligence } from '@/lib/prospect-intelligence/types';
 import { useState } from 'react';
 
@@ -180,6 +181,17 @@ export function ProspectIntelligenceResults({ data }: ProspectIntelligenceResult
 
           {/* ICP Score - Prominent Display */}
           <ICPScoreCard icpScore={data.icpScore} />
+
+          {/* AI-Powered Prospect Insights */}
+          <ProspectIntelligenceEnhancer
+            companyData={{
+              name: data.companyName,
+              techStack: data.techStack?.technologies?.map((t: any) => t.name || t) || [],
+              hiring: data.hiring,
+              financials: data.financials,
+              news: data.news,
+            }}
+          />
 
           {/* Key Insights for Sales */}
           <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">

@@ -24,6 +24,17 @@ if (supabaseUrl && supabaseKey) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check for missing parameters first (before supabase check)
+    const { searchParams } = new URL(request.url);
+    const conversationId = searchParams.get('conversationId');
+
+    if (!conversationId) {
+      return NextResponse.json(
+        { error: 'conversationId is required' },
+        { status: 400 }
+      );
+    }
+
     // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
     if (!supabase && supabaseUrl && supabaseKey) {
       try {
@@ -37,16 +48,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Supabase not configured' },
         { status: 500 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversationId');
-
-    if (!conversationId) {
-      return NextResponse.json(
-        { error: 'conversationId is required' },
-        { status: 400 }
       );
     }
 

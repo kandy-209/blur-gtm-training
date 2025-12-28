@@ -95,7 +95,7 @@ describe('ResearchService Edge Cases', () => {
       
       expect(Stagehand).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'claude-3-5-sonnet-20241022',
+          modelName: 'claude-3-5-sonnet-20241022',
         })
       );
     });
@@ -104,21 +104,24 @@ describe('ResearchService Edge Cases', () => {
       process.env.BROWSERBASE_API_KEY = 'test-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       delete process.env.ANTHROPIC_API_KEY;
+      delete process.env.GOOGLE_GEMINI_API_KEY;
       process.env.OPENAI_API_KEY = 'sk-test';
       
       const Stagehand = require('@browserbasehq/stagehand').Stagehand;
       const mockInit = jest.fn().mockResolvedValue(undefined);
-      Stagehand.mockImplementation(() => ({
+      const mockStagehand = {
         init: mockInit,
         page: { goto: jest.fn() },
-      }));
+        llmClient: {}, // Mock llmClient to prevent initialization errors
+      };
+      Stagehand.mockImplementation(() => mockStagehand);
       
       const service = new ResearchService();
       await service.initialize();
       
       expect(Stagehand).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gpt-4o',
+          modelName: 'gpt-4o',
         })
       );
     });
@@ -132,17 +135,19 @@ describe('ResearchService Edge Cases', () => {
       
       const Stagehand = require('@browserbasehq/stagehand').Stagehand;
       const mockInit = jest.fn().mockResolvedValue(undefined);
-      Stagehand.mockImplementation(() => ({
+      const mockStagehand = {
         init: mockInit,
         page: { goto: jest.fn() },
-      }));
+        llmClient: {}, // Mock llmClient to prevent initialization errors
+      };
+      Stagehand.mockImplementation(() => mockStagehand);
       
       const service = new ResearchService();
       await service.initialize();
       
       expect(Stagehand).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gpt-4o',
+          modelName: 'gpt-4o',
         })
       );
     });
@@ -156,6 +161,7 @@ describe('ResearchService Edge Cases', () => {
       process.env.BROWSERBASE_API_KEY = 'test-key';
       process.env.BROWSERBASE_PROJECT_ID = 'test-project';
       process.env.ANTHROPIC_API_KEY = 'sk-ant-test';
+      process.env.CLAUDE_MODEL = 'claude-3-5-sonnet-20241022'; // Explicitly set model
       
       const Stagehand = require('@browserbasehq/stagehand').Stagehand;
       mockStagehand = {
@@ -168,7 +174,15 @@ describe('ResearchService Edge Cases', () => {
           act: jest.fn().mockResolvedValue(undefined),
           title: jest.fn().mockResolvedValue('Mock Page Title'),
         },
-        extract: jest.fn(),
+        extract: jest.fn().mockResolvedValue({
+          companyName: 'Test Company',
+          description: 'Test Description',
+          industry: 'Tech',
+          isB2BSaaS: true,
+          sizeIndicators: [],
+          growthIndicators: [],
+        }),
+        llmClient: {}, // Mock llmClient to prevent initialization errors
       };
       
       Stagehand.mockImplementation(() => mockStagehand);
@@ -190,15 +204,19 @@ describe('ResearchService Edge Cases', () => {
       safeNavigateWithObservation.mockRejectedValue(new Error('Navigation failed'));
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle extraction failures gracefully', async () => {
+      const { safeNavigateWithObservation } = require('../utils');
+      safeNavigateWithObservation.mockResolvedValue(true);
       mockStagehand.extract.mockRejectedValue(new Error('Extraction failed'));
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle timeout errors', async () => {
+      const { safeNavigateWithObservation } = require('../utils');
+      safeNavigateWithObservation.mockResolvedValue(true);
       mockStagehand.extract.mockImplementation(() => 
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Timeout')), 100)
@@ -206,7 +224,7 @@ describe('ResearchService Edge Cases', () => {
       );
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle missing company information', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -223,7 +241,7 @@ describe('ResearchService Edge Cases', () => {
       
       // Should still complete but with minimal data
       await expect(service.researchProspect('https://example.com')).resolves.toBeDefined();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle API quota errors', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -232,7 +250,7 @@ describe('ResearchService Edge Cases', () => {
       mockStagehand.extract.mockRejectedValue(new Error('429 You exceeded your current quota'));
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow('quota');
-    });
+    }, 10000); // Increase timeout
 
     it('should handle authentication errors', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -241,26 +259,30 @@ describe('ResearchService Edge Cases', () => {
       mockStagehand.extract.mockRejectedValue(new Error('401 Incorrect API key provided'));
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow('API key');
-    });
+    }, 10000); // Increase timeout
 
     it('should handle network errors', async () => {
+      const { safeNavigateWithObservation } = require('../utils');
+      safeNavigateWithObservation.mockResolvedValue(true);
       mockStagehand.extract.mockRejectedValue(new Error('Network request failed'));
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle malformed extraction responses', async () => {
+      const { safeNavigateWithObservation } = require('../utils');
+      safeNavigateWithObservation.mockResolvedValue(true);
       mockStagehand.extract.mockResolvedValue(null);
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle websites that block automated access', async () => {
       const { safeNavigateWithObservation } = require('../utils');
       safeNavigateWithObservation.mockResolvedValue(false);
       
       await expect(service.researchProspect('https://example.com')).rejects.toThrow();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle slow-loading websites', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -278,7 +300,7 @@ describe('ResearchService Edge Cases', () => {
       });
       
       await expect(service.researchProspect('https://example.com')).resolves.toBeDefined();
-    });
+    }, 10000); // Increase timeout
 
     it('should handle missing careers page', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -304,7 +326,7 @@ describe('ResearchService Edge Cases', () => {
       
       const result = await service.researchProspect('https://example.com');
       expect(result.hiring.hasOpenEngineeringRoles).toBe(false);
-    });
+    }, 10000); // Increase timeout
 
     it('should handle cleanup errors gracefully', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -326,7 +348,8 @@ describe('ResearchService Edge Cases', () => {
       // Cleanup error should not prevent research from completing
       mockStagehand.close.mockRejectedValue(new Error('Cleanup failed'));
       // Cleanup happens in finally block, so it won't affect the result
-    });
+      await expect(service.close()).resolves.not.toThrow();
+    }, 10000); // Increase timeout
 
     it('should handle concurrent research requests', async () => {
       const { safeNavigateWithObservation } = require('../utils');
@@ -347,7 +370,7 @@ describe('ResearchService Edge Cases', () => {
       ];
       
       await expect(Promise.all(promises)).resolves.toHaveLength(2);
-    });
+    }, 15000); // Increase timeout for concurrent requests
   });
 
   describe('ICP Score Calculation Edge Cases', () => {

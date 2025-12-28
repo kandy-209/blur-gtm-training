@@ -29,6 +29,25 @@ if (supabaseUrl && supabaseKey) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Parse body first to check for missing parameters before checking supabase
+    const body = await request.json();
+    const {
+      conversationId,
+      userId,
+      metrics,
+      timestamp,
+      feedbackMessages,
+      coachingSuggestions
+    } = body;
+
+    // Check for missing required parameters first (before supabase check)
+    if (!conversationId || !metrics) {
+      return NextResponse.json(
+        { error: 'conversationId and metrics are required' },
+        { status: 400 }
+      );
+    }
+
     // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
     if (!supabase && supabaseUrl && supabaseKey) {
       try {
@@ -42,23 +61,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Supabase not configured' },
         { status: 500 }
-      );
-    }
-
-    const body = await request.json();
-    const {
-      conversationId,
-      userId,
-      metrics,
-      timestamp,
-      feedbackMessages,
-      coachingSuggestions
-    } = body;
-
-    if (!conversationId || !metrics) {
-      return NextResponse.json(
-        { error: 'conversationId and metrics are required' },
-        { status: 400 }
       );
     }
 
@@ -113,6 +115,17 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Check for missing parameters first (before supabase check)
+    const { searchParams } = new URL(request.url);
+    const conversationId = searchParams.get('conversationId');
+
+    if (!conversationId) {
+      return NextResponse.json(
+        { error: 'conversationId is required' },
+        { status: 400 }
+      );
+    }
+
     // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
     if (!supabase && supabaseUrl && supabaseKey) {
       try {
@@ -126,16 +139,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'Supabase not configured' },
         { status: 500 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversationId');
-
-    if (!conversationId) {
-      return NextResponse.json(
-        { error: 'conversationId is required' },
-        { status: 400 }
       );
     }
 
