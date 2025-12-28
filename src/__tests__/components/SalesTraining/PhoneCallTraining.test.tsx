@@ -44,8 +44,10 @@ describe('PhoneCallTraining', () => {
     const user = userEvent.setup();
     render(<PhoneCallTraining userId="test_user" />);
     
-    const select = screen.getByRole('combobox');
-    await user.click(select);
+    // Use getAllByRole and select the first one (scenario selector)
+    const comboboxes = screen.getAllByRole('combobox');
+    const scenarioSelect = comboboxes[0]; // First combobox is scenario selector
+    await user.click(scenarioSelect);
     
     await waitFor(() => {
       expect(screen.getByText('Test Persona')).toBeInTheDocument();
@@ -56,7 +58,7 @@ describe('PhoneCallTraining', () => {
     const user = userEvent.setup();
     render(<PhoneCallTraining userId="test_user" />);
     
-    const input = screen.getByPlaceholderText('+1 (555) 123-4567');
+    const input = screen.getByPlaceholderText('(555) 123-4567 or +1 (555) 123-4567');
     await user.type(input, '15551234567');
     
     expect(input).toHaveValue('(555) 123-4567');
@@ -73,16 +75,17 @@ describe('PhoneCallTraining', () => {
     const user = userEvent.setup();
     render(<PhoneCallTraining userId="test_user" />);
     
-    // Select scenario
-    const select = screen.getByRole('combobox');
-    await user.click(select);
+    // Select scenario - use first combobox
+    const comboboxes = screen.getAllByRole('combobox');
+    const scenarioSelect = comboboxes[0];
+    await user.click(scenarioSelect);
     await waitFor(async () => {
       const option = screen.getByText('Test Persona');
       await user.click(option);
     });
     
     // Enter phone number
-    const input = screen.getByPlaceholderText('+1 (555) 123-4567');
+    const input = screen.getByPlaceholderText('(555) 123-4567 or +1 (555) 123-4567');
     await user.type(input, '15551234567');
     
     // Button should be enabled
@@ -106,16 +109,17 @@ describe('PhoneCallTraining', () => {
 
     render(<PhoneCallTraining userId="test_user" />);
     
-    // Select scenario
-    const select = screen.getByRole('combobox');
-    await user.click(select);
+    // Select scenario - use first combobox
+    const comboboxes = screen.getAllByRole('combobox');
+    const scenarioSelect = comboboxes[0];
+    await user.click(scenarioSelect);
     await waitFor(async () => {
       const option = screen.getByText('Test Persona');
       await user.click(option);
     });
     
     // Enter phone
-    const input = screen.getByPlaceholderText('+1 (555) 123-4567');
+    const input = screen.getByPlaceholderText('(555) 123-4567 or +1 (555) 123-4567');
     await user.type(input, '15551234567');
     
     // Click start
@@ -136,15 +140,16 @@ describe('PhoneCallTraining', () => {
 
     render(<PhoneCallTraining userId="test_user" />);
     
-    // Select scenario and enter phone
-    const select = screen.getByRole('combobox');
-    await user.click(select);
+    // Select scenario and enter phone - use first combobox
+    const comboboxes = screen.getAllByRole('combobox');
+    const scenarioSelect = comboboxes[0];
+    await user.click(scenarioSelect);
     await waitFor(async () => {
       const option = screen.getByText('Test Persona');
       await user.click(option);
     });
     
-    const input = screen.getByPlaceholderText('+1 (555) 123-4567');
+    const input = screen.getByPlaceholderText('(555) 123-4567 or +1 (555) 123-4567');
     await user.type(input, '15551234567');
     
     const button = screen.getByRole('button', { name: /start training call/i });

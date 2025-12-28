@@ -28,7 +28,7 @@ describe('GET /api/vapi/call/[callId]/metrics', () => {
       id: 'call-123',
       status: 'completed',
       duration: 300,
-      transcript: 'Hello, I am interested in your product. But I have concerns about the price. Can you tell me more? This is great!',
+      transcript: 'Hello, I am interested in your product. But I have concerns about the price. Can you tell me more? This is great! Let\'s schedule a meeting.',
       messages: [
         {
           id: 'msg-1',
@@ -103,6 +103,8 @@ describe('GET /api/vapi/call/[callId]/metrics', () => {
     expect(data.energyLevel).toBeGreaterThan(50); // Should calculate energy
     expect(data.confidenceScore).toBeGreaterThan(0);
     expect(data.wordCount).toBeGreaterThan(0);
+    // meetingBooked requires both "meeting" AND ("schedule" OR "calendar")
+    // The test data has "schedule a meeting" which should match
     expect(data.meetingBooked).toBe(true); // Should detect meeting mention
     expect(data.keyMoments.length).toBeGreaterThan(0);
   });

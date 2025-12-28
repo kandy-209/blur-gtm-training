@@ -6,30 +6,37 @@ import { NextRequest } from 'next/server';
 import { POST as saveMetrics, GET as getMetrics } from '@/app/api/voice-coaching/metrics/route';
 import { GET as getFeedback } from '@/app/api/voice-coaching/feedback/route';
 
-// Mock Supabase
-jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      insert: jest.fn(() => ({
-        select: jest.fn(() => ({
-          single: jest.fn().mockResolvedValue({
-            data: { id: 'test-id', conversation_id: 'test_conv' },
+// Set environment variables BEFORE any imports
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
+
+// Mock Supabase client
+const mockSupabaseClient = {
+  from: jest.fn(() => ({
+    insert: jest.fn(() => ({
+      select: jest.fn(() => ({
+        single: jest.fn().mockResolvedValue({
+          data: { id: 'test-id', conversation_id: 'test_conv' },
+          error: null,
+        }),
+      })),
+    })),
+    select: jest.fn(() => ({
+      eq: jest.fn(() => ({
+        order: jest.fn(() => ({
+          ascending: jest.fn().mockResolvedValue({
+            data: [],
             error: null,
           }),
         })),
       })),
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          order: jest.fn(() => ({
-            ascending: jest.fn().mockResolvedValue({
-              data: [],
-              error: null,
-            }),
-          })),
-        })),
-      })),
     })),
   })),
+};
+
+// Mock Supabase before route imports it
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => mockSupabaseClient),
 }));
 
 describe('Voice Coaching API', () => {

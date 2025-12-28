@@ -15,6 +15,7 @@ import { Loader2, PlayCircle } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import SocialShare from '@/components/SocialShare';
+import BreadcrumbNav from '@/components/BreadcrumbNav';
 
 function RoleplayLoadingSkeleton() {
   return (
@@ -107,6 +108,15 @@ export default function RoleplayPage() {
       <ErrorBoundaryWithContext component="RoleplayPage" severity="critical">
         <div className="min-h-screen py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <div className="mb-4">
+              <BreadcrumbNav
+                items={[
+                  { label: 'Home', href: '/' },
+                  { label: 'Scenarios', href: '/scenarios' },
+                  { label: scenario.persona.name, href: `/roleplay/${scenario.id}` },
+                ]}
+              />
+            </div>
             <div className="mb-8 text-center">
               <div className="flex items-center justify-center gap-4 mb-4">
                 <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Sales Role-Play Training</h1>

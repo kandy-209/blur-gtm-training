@@ -11,6 +11,7 @@ import SEOHead from '@/components/SEOHead';
 import WebVitals from '@/components/WebVitals';
 import { UpdateNotification } from '@/components/UpdateNotification';
 import PerformanceOptimizer from '@/components/PerformanceOptimizer';
+import AccessibilityEnhancer from '@/components/AccessibilityEnhancer';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { initSentry } from '@/lib/sentry';
@@ -287,6 +288,24 @@ export default function RootLayout({
         <meta name="product:target_audience" content="Enterprise Sales Teams, GTM Professionals" />
         <meta name="product:use_case" content="Sales Training, Objection Handling, Role-Play Practice" />
         
+        {/* Language and Internationalization */}
+        <meta httpEquiv="content-language" content="en-US" />
+        <link rel="alternate" hrefLang="en" href={siteUrl} />
+        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
+        
+        {/* Additional SEO Meta Tags */}
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content={siteName} />
+        
+        {/* Preconnect to external domains for performance */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://vercel.live" />
+        
         {/* Enhanced Mobile and App Meta Tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Browserbase GTM" />
@@ -389,9 +408,7 @@ export default function RootLayout({
         <link rel="prefetch" href="/features" as="document" />
         <link rel="prefetch" href="/enterprise" as="document" />
         
-        {/* Language and region alternatives */}
-        <link rel="alternate" hrefLang="en" href={siteUrl} />
-        <link rel="alternate" hrefLang="x-default" href={siteUrl} />
+        {/* Language and region alternatives (duplicate removed - already defined above) */}
         
         {/* Mobile app deep links */}
         <meta name="apple-itunes-app" content="app-id=, app-argument=" />
@@ -1344,6 +1361,32 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - VideoObject (Training Videos) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'VideoObject',
+              name: 'Browserbase GTM Training Platform - Sales Role-Play Demo',
+              description: 'Learn how to master Browserbase sales positioning and objection handling through AI-powered role-play training',
+              thumbnailUrl: `${siteUrl}/og-image.png`,
+              uploadDate: '2025-01-01',
+              contentUrl: `${siteUrl}/training-demo`,
+              embedUrl: `${siteUrl}/training-demo`,
+              publisher: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+                logo: {
+                  '@type': 'ImageObject',
+                  url: `${siteUrl}/logos/browserbase-logo.svg`,
+                },
+              },
+              duration: 'PT10M',
+              inLanguage: 'en-US',
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"
@@ -1505,6 +1548,7 @@ export default function RootLayout({
         <GlobalVoiceAssistant />
         <UpdateNotification autoCheck={true} checkInterval={60 * 60 * 1000} />
         <WebVitals />
+        <AccessibilityEnhancer />
         <Analytics />
         <SpeedInsights />
       </body>
