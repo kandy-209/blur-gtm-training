@@ -24,7 +24,14 @@ const nextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: [
+      'lucide-react', 
+      '@radix-ui/react-icons',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      'recharts',
+    ],
     optimizeCss: true,
     // Enable partial prerendering for better LCP
     ppr: false, // Set to true when stable
@@ -38,6 +45,8 @@ const nextConfig = {
       '@browserbasehq/stagehand',
       'thread-stream', // Externalize to avoid test file issues
     ],
+    // Bundle optimization
+    bundlePagesRouterDependencies: true,
   },
   
   // Turbopack configuration (for dev mode)

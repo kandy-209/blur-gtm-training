@@ -10,12 +10,13 @@ import { requireAuth } from '@/lib/prospect-intelligence/auth-helper';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const requestId = generateRequestId();
 
   try {
-    const prospect = await getProspectResearch(params.id);
+    const { id } = await params;
+    const prospect = await getProspectResearch(id);
 
     if (!prospect) {
       return NextResponse.json(
@@ -44,15 +45,15 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const requestId = generateRequestId();
 
   try {
     // Require authentication
     const userId = await requireAuth(request);
-
-    const success = await deleteProspect(params.id, userId);
+    const { id } = await params;
+    const success = await deleteProspect(id, userId);
 
     if (!success) {
       return NextResponse.json(
