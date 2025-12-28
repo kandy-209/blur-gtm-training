@@ -24,6 +24,15 @@ if (supabaseUrl && supabaseKey) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Ensure supabase is initialized, especially for tests where mocks might affect module-level init
+    if (!supabase && supabaseUrl && supabaseKey) {
+      try {
+        supabase = createClient(supabaseUrl, supabaseKey);
+      } catch (error) {
+        console.error('Failed to initialize Supabase client:', error);
+      }
+    }
+    
     if (!supabase) {
       return NextResponse.json(
         { error: 'Supabase not configured' },

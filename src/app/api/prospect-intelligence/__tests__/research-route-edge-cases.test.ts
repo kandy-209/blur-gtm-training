@@ -143,7 +143,8 @@ describe('Prospect Intelligence Research API - Edge Cases', () => {
       const request = createRequest({ websiteUrl: longUrl });
       const response = await POST(request);
       // Should either validate or sanitize - accept any error status
-      expect([400, 500, 502, 503]).toContain(response.status);
+      const validStatuses = [400, 500, 502, 503];
+      expect(validStatuses).toContain(response.status);
     });
 
     it('should handle URLs with special characters', async () => {
