@@ -76,11 +76,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: siteUrl,
   },
-  other: {
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'black-translucent',
-    'mobile-web-app-capable': 'yes',
-  },
   authors: [{ name: 'Browserbase GTM Team' }],
   creator: 'Blur',
   publisher: 'Blur',
