@@ -1297,12 +1297,33 @@ export class ResearchService {
       }
 
       // Step 3: Detect technologies with retry
-      const techDetection = await withRetry(
-        () => detectTechnologies(this.stagehand!),
-        CONFIG.maxRetries,
-        CONFIG.rateLimitDelayMs,
-        'Tech stack detection'
-      );
+      let techDetection: TechDetection;
+      try {
+        techDetection = await withRetry(
+          () => detectTechnologies(this.stagehand!),
+          CONFIG.maxRetries,
+          CONFIG.rateLimitDelayMs,
+          'Tech stack detection'
+        );
+        // Ensure techDetection has the expected structure
+        if (!techDetection || !techDetection.detectedFromScripts) {
+          techDetection = {
+            detectedFromSource: techDetection?.detectedFromSource || [],
+            detectedFromScripts: techDetection?.detectedFromScripts || [],
+            detectedFromMeta: techDetection?.detectedFromMeta || [],
+            overallAssessment: techDetection?.overallAssessment || "",
+          };
+        }
+      } catch (error) {
+        // Fallback if detection fails
+        console.warn('Tech detection failed, using empty structure:', error);
+        techDetection = {
+          detectedFromSource: [],
+          detectedFromScripts: [],
+          detectedFromMeta: [],
+          overallAssessment: "",
+        };
+      }
 
       // Step 4: Analyze careers page with retry
       await delay(CONFIG.rateLimitDelayMs);
@@ -1396,9 +1417,18 @@ export class ResearchService {
       }
 
       // Build the complete prospect profile
+      // Ensure techDetection has the expected structure (safety check for tests)
+      const safeTechDetection = techDetection || {
+        detectedFromSource: [],
+        detectedFromScripts: [],
+        detectedFromMeta: [],
+        overallAssessment: "",
+      };
+      const detectedSource = safeTechDetection.detectedFromSource || [];
+      
       const primaryFramework =
-        techDetection.detectedFromSource.find((d) => d.confidence === "high")?.technology ||
-        techDetection.detectedFromSource[0]?.technology ||
+        detectedSource.find((d) => d.confidence === "high")?.technology ||
+        detectedSource[0]?.technology ||
         null;
 
       const partialData: Partial<ProspectIntelligence> = {
@@ -1410,18 +1440,18 @@ export class ResearchService {
         techStack: {
           primaryFramework,
           frameworkConfidence:
-            techDetection.detectedFromSource[0]?.confidence || "low",
-          frameworkEvidence: techDetection.detectedFromSource.map((d) => d.evidence),
-          additionalFrameworks: techDetection.detectedFromSource
+            detectedSource[0]?.confidence || "low",
+          frameworkEvidence: detectedSource.map((d) => d.evidence),
+          additionalFrameworks: detectedSource
             .slice(1)
             .map((d) => d.technology),
           buildTools: [],
           isModernStack: ["React", "Next.js", "Vue.js", "Angular", "Svelte"].includes(
             primaryFramework || ""
           ),
-          confidenceScore: techDetection.detectedFromSource.length > 0 
-            ? (techDetection.detectedFromSource[0]?.confidence === "high" ? 85 : 
-               techDetection.detectedFromSource[0]?.confidence === "medium" ? 65 : 45)
+          confidenceScore: detectedSource.length > 0 
+            ? (detectedSource[0]?.confidence === "high" ? 85 : 
+               detectedSource[0]?.confidence === "medium" ? 65 : 45)
             : 30,
           fallbackReason: primaryFramework ? null : "Framework not clearly detected from page source",
         },
@@ -1472,18 +1502,21 @@ export class ResearchService {
       const icpResult = calculateICPScore(partialData);
 
       // Build final result
+      // Use the safeTechDetection already defined above
+      const detectedScripts = safeTechDetection.detectedFromScripts || [];
+      
       const result: ProspectIntelligence = {
         ...partialData,
         thirdPartyTools: {
-          analytics: techDetection.detectedFromScripts.filter((s) =>
+          analytics: detectedScripts.filter((s) =>
             s.includes("analytics")
           ),
-          monitoring: techDetection.detectedFromScripts.filter((s) =>
+          monitoring: detectedScripts.filter((s) =>
             s.includes("monitoring")
           ),
           deployment: [],
-          chat: techDetection.detectedFromScripts.filter((s) => s.includes("chat")),
-          other: techDetection.detectedFromScripts.filter(
+          chat: detectedScripts.filter((s) => s.includes("chat")),
+          other: detectedScripts.filter(
             (s) =>
               !s.includes("analytics") &&
               !s.includes("monitoring") &&
@@ -1506,7 +1539,7 @@ export class ResearchService {
         dataQuality: {
           completenessScore: calculateCompleteness(partialData),
           confidenceLevel:
-            techDetection.detectedFromSource.length > 0 ? "medium" : "low",
+            safeTechDetection.detectedFromSource.length > 0 ? "medium" : "low",
           sourcesChecked,
           missingData: findMissingData(partialData),
         },

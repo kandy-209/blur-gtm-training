@@ -12,7 +12,10 @@ import WebVitals from '@/components/WebVitals';
 import { UpdateNotification } from '@/components/UpdateNotification';
 import PerformanceOptimizer from '@/components/PerformanceOptimizer';
 import AccessibilityEnhancer from '@/components/AccessibilityEnhancer';
+import AccessibilityAnnouncer from '@/components/AccessibilityAnnouncer';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
+import StructuredDataInjector from '@/components/StructuredDataInjector';
+import PerformanceMonitor from '@/components/PerformanceMonitor';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { initSentry } from '@/lib/sentry';
@@ -426,9 +429,16 @@ export default function RootLayout({
         
         {/* Language and region alternatives (duplicate removed - already defined above) */}
         
-        {/* Mobile app deep links */}
+        {/* Mobile app deep links - Enhanced for PWA */}
         <meta name="apple-itunes-app" content="app-id=, app-argument=" />
         <meta name="google-play-app" content="app-id=" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#0f172a" />
+        <meta name="msapplication-TileColor" content="#0f172a" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
         {/* Structured Data - Organization (Enhanced for Sales Enablement) */}
         <script
           type="application/ld+json"
@@ -1531,6 +1541,49 @@ export default function RootLayout({
             }),
           }}
         />
+        {/* Structured Data - EducationalOccupationalCredential */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'EducationalOccupationalCredential',
+              name: 'Browserbase Sales Certification',
+              description: 'Certification for mastering Browserbase sales positioning and objection handling',
+              credentialCategory: 'Professional Certification',
+              competencyRequired: 'Sales Skills, Browserbase Product Knowledge, Objection Handling',
+              educationalLevel: 'Professional',
+              recognizedBy: {
+                '@type': 'Organization',
+                name: businessInfo.name,
+              },
+            }),
+          }}
+        />
+        {/* Structured Data - LearningResource */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LearningResource',
+              name: 'Browserbase GTM Training Resources',
+              description: 'Comprehensive learning resources for mastering Browserbase sales',
+              learningResourceType: 'Interactive Tutorial',
+              educationalLevel: 'Professional',
+              teaches: [
+                'Browserbase Product Knowledge',
+                'Sales Positioning',
+                'Objection Handling',
+                'Enterprise Sales Techniques',
+              ],
+              about: {
+                '@type': 'Thing',
+                name: 'Browserbase Cloud Browser Infrastructure',
+              },
+            }),
+          }}
+        />
         {/* Structured Data - ItemList (Training Features) */}
         <script
           type="application/ld+json"
@@ -1693,7 +1746,10 @@ export default function RootLayout({
         <UpdateNotification autoCheck={true} checkInterval={60 * 60 * 1000} />
         <WebVitals />
         <AccessibilityEnhancer />
+        <AccessibilityAnnouncer />
         <AnalyticsTracker />
+        <StructuredDataInjector />
+        <PerformanceMonitor />
         <Analytics />
         <SpeedInsights />
       </body>
