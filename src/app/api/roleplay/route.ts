@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ScenarioInput, AgentResponse, Persona } from '@/types/roleplay';
+import { ScenarioInput, AgentResponse, Persona, RoleplayState } from '@/types/roleplay';
 import { sanitizeInput, validateText, validateJSONStructure } from '@/lib/security';
 import { db } from '@/lib/db';
 import { getAIProvider, type LLMProvider } from '@/lib/ai-providers';
@@ -7,6 +7,8 @@ import { handleError, withErrorHandler, generateRequestId } from '@/lib/error-ha
 import { log } from '@/lib/logger';
 import { recordApiCall, roleplayTurnsTotal } from '@/lib/metrics';
 import { captureException } from '@/lib/sentry';
+import { buildEnhancedSystemPrompt, analyzeConversationContext } from '@/lib/roleplay-enhancements';
+import { buildUltraEnhancedPrompt, buildConversationMemory, calculateAdvancedMetrics, calculateAdaptiveBehavior } from '@/lib/roleplay-enhancements-advanced';
 
 function buildSystemPrompt(persona: Persona, scenarioInput: ScenarioInput): string {
   return `# 1. Agent Persona: The Enterprise Decision-Maker
@@ -166,12 +168,14 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
       scenarioInput, 
       persona, 
       conversationHistory,
-      llmProvider
+      llmProvider,
+      enhancedPrompt: providedEnhancedPrompt
     }: { 
       scenarioInput: ScenarioInput;
       persona: Persona;
       conversationHistory: Array<{ role: string; message: string }>;
       llmProvider?: LLMProvider;
+      enhancedPrompt?: string;
     } = body;
 
     // Validate llmProvider if provided
@@ -217,7 +221,41 @@ export const POST = withErrorHandler(async function POST(request: NextRequest) {
       message: sanitizeInput(msg.message, 5000),
     }));
 
-    const systemPrompt = buildSystemPrompt(sanitizedPersona, scenarioInput);
+    // Use enhanced prompt if provided, otherwise build enhanced prompt
+    let systemPrompt: string;
+    if (providedEnhancedPrompt) {
+      systemPrompt = providedEnhancedPrompt;
+    } else {
+      // Build enhanced prompt using advanced enhancements
+      try {
+        // Create temporary state for analysis
+        const tempState: RoleplayState = {
+          scenario: {
+            id: scenarioInput.scenario_id,
+            persona: sanitizedPersona,
+            objection_category: scenarioInput.objection_category,
+            objection_statement: scenarioInput.objection_statement,
+            keyPoints: [], // Would need scenario data
+          },
+          turnNumber: scenarioInput.turn_number,
+          conversationHistory: sanitizedHistory.map((h, idx) => ({
+            role: h.role as 'rep' | 'agent',
+            message: h.message,
+            timestamp: new Date(),
+          })),
+          isComplete: false,
+        };
+
+        // Try to use advanced prompt if we have scenario data
+        // For now, fall back to enhanced prompt
+        const context = analyzeConversationContext(tempState, tempState.scenario);
+        systemPrompt = buildEnhancedSystemPrompt(sanitizedPersona, context, scenarioInput);
+      } catch (error) {
+        // Fallback to basic prompt if enhancement fails
+        console.warn('Failed to build enhanced prompt, using basic:', error);
+        systemPrompt = buildSystemPrompt(sanitizedPersona, scenarioInput);
+      }
+    }
 
     // Build messages for AI
     const messages: Array<{ role: 'user' | 'assistant'; content: string }> = [];

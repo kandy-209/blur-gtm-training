@@ -14,12 +14,15 @@ import ResponseSuggestions from '@/components/ResponseSuggestions';
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { Volume2, VolumeX, Copy, RotateCcw } from 'lucide-react';
+import { Volume2, VolumeX, Copy, RotateCcw, Lightbulb } from 'lucide-react';
 import ConversationMetrics from '@/components/ConversationMetrics';
 import EnhancedFeedback from '@/components/EnhancedFeedback';
 import { FeedbackAnalysis } from '@/infrastructure/agents/feedback-agent';
 import KeyboardShortcutsModal from '@/components/KeyboardShortcutsModal';
 import RoleplayCoaching from '@/components/RoleplayCoaching';
+import { enhanceRoleplayTurn, generateCompleteFeedback, getRealTimeCoaching } from '@/lib/roleplay-integration-helper';
+import AdvancedFeedbackDisplay from '@/components/AdvancedFeedbackDisplay';
+import { AdvancedFeedback } from '@/lib/feedback-enhancements-advanced';
 
 interface RoleplayEngineProps {
   scenario: Scenario;
@@ -39,6 +42,14 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
   const [showFeedback, setShowFeedback] = useState(false);
   const [showEnhancedFeedback, setShowEnhancedFeedback] = useState(false);
   const [comprehensiveFeedback, setComprehensiveFeedback] = useState<FeedbackAnalysis | null>(null);
+  const [advancedFeedback, setAdvancedFeedback] = useState<AdvancedFeedback | null>(null);
+  const [showAdvancedFeedback, setShowAdvancedFeedback] = useState(false);
+  const [realTimeCoaching, setRealTimeCoaching] = useState<{
+    suggestions: string[];
+    warnings: string[];
+    opportunities: string[];
+    nextBestAction: string;
+  } | null>(null);
   const [voiceMode, setVoiceMode] = useState(false);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,6 +126,18 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
       { role: 'rep' as const, message: userMessage, timestamp: new Date() },
     ];
 
+    // Get enhanced analysis and coaching (async to not block)
+    try {
+      const tempState = {
+        ...state,
+        conversationHistory: updatedHistory,
+      };
+      const { coaching } = enhanceRoleplayTurn(tempState, scenario, []);
+      setRealTimeCoaching(coaching);
+    } catch (error) {
+      console.warn('Failed to get real-time coaching:', error);
+    }
+
     setState((prev) => ({
       ...prev,
       conversationHistory: updatedHistory,
@@ -139,6 +162,7 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             role: h.role,
             message: h.message,
           })),
+          enhancedPrompt, // Include enhanced prompt
         }),
       });
 
@@ -291,6 +315,17 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
             setComprehensiveFeedback(feedback);
             setShowEnhancedFeedback(true);
           }
+
+          // Generate advanced feedback
+          const completeFeedback = generateCompleteFeedback(
+            agentResponse,
+            newState,
+            scenario,
+            {}, // historicalData - would come from analytics
+            {} // averageScores - would come from analytics
+          );
+          setAdvancedFeedback(completeFeedback.advanced);
+          setShowAdvancedFeedback(true);
         } catch (error) {
           console.error('Failed to generate comprehensive feedback:', error);
         }
@@ -551,6 +586,26 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
           showManagerView={true}
         />
       )}
+      
+      {/* Advanced Feedback Display */}
+      {showAdvancedFeedback && advancedFeedback && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Advanced Performance Analysis</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAdvancedFeedback(false)}
+            >
+              Close
+            </Button>
+          </div>
+          <AdvancedFeedbackDisplay
+            feedback={advancedFeedback}
+            onClose={() => setShowAdvancedFeedback(false)}
+          />
+        </div>
+      )}
 
       {/* Basic Feedback Panel */}
       {showFeedback && state.currentEvaluation && !showEnhancedFeedback && (
@@ -729,6 +784,50 @@ export default function RoleplayEngine({ scenario, onComplete }: RoleplayEngineP
                 setRepMessage(suggestion);
               }}
             />
+          )}
+          
+          {/* Real-Time Coaching */}
+          {realTimeCoaching && (realTimeCoaching.suggestions.length > 0 || realTimeCoaching.warnings.length > 0 || realTimeCoaching.opportunities.length > 0) && (
+            <Card className="border-l-4 border-blue-500 bg-blue-50 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-blue-700">
+                  <Lightbulb className="h-4 w-4" />
+                  Real-Time Coaching
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                {realTimeCoaching.opportunities.length > 0 && (
+                  <div className="p-2 bg-green-100 rounded">
+                    <div className="font-semibold text-green-800 mb-1">Opportunities:</div>
+                    {realTimeCoaching.opportunities.map((opp, idx) => (
+                      <div key={idx} className="text-green-700">• {opp}</div>
+                    ))}
+                  </div>
+                )}
+                {realTimeCoaching.suggestions.length > 0 && (
+                  <div className="p-2 bg-blue-100 rounded">
+                    <div className="font-semibold text-blue-800 mb-1">Suggestions:</div>
+                    {realTimeCoaching.suggestions.map((sug, idx) => (
+                      <div key={idx} className="text-blue-700">• {sug}</div>
+                    ))}
+                  </div>
+                )}
+                {realTimeCoaching.warnings.length > 0 && (
+                  <div className="p-2 bg-orange-100 rounded">
+                    <div className="font-semibold text-orange-800 mb-1">Warnings:</div>
+                    {realTimeCoaching.warnings.map((warn, idx) => (
+                      <div key={idx} className="text-orange-700">• {warn}</div>
+                    ))}
+                  </div>
+                )}
+                {realTimeCoaching.nextBestAction && (
+                  <div className="p-2 bg-purple-100 rounded">
+                    <div className="font-semibold text-purple-800">Next Best Action:</div>
+                    <div className="text-purple-700">{realTimeCoaching.nextBestAction}</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

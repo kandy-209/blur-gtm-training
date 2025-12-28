@@ -1493,14 +1493,18 @@ export class ResearchService {
           totalOpenRoles: careersData?.totalJobCount || null,
           jobBoardPlatform: careersData?.jobBoardPlatform || null,
           engineeringRoleTitles:
-            careersData?.jobListings
-              .filter((j) => j.isEngineering)
-              .map((j) => j.title) || [],
+            (careersData?.jobListings && Array.isArray(careersData.jobListings))
+              ? careersData.jobListings
+                  .filter((j) => j.isEngineering)
+                  .map((j) => j.title)
+              : [],
           seniorityLevels: [
             ...new Set(
-              careersData?.jobListings
-                .map((j) => j.seniority)
-                .filter(Boolean) as string[]
+              (careersData?.jobListings && Array.isArray(careersData.jobListings))
+                ? careersData.jobListings
+                    .map((j) => j.seniority)
+                    .filter(Boolean) as string[]
+                : []
             ),
           ],
           hiringSignals: careersData?.hiringUrgencySignals || [],
@@ -1511,14 +1515,20 @@ export class ResearchService {
           hasEngineeringBlog: blogData.found,
           engineeringBlogUrl: blogData.url,
           recentBlogTopics: blogData.topics,
-          developmentPractices: cultureInfo.developmentPractices,
-          techCultureHighlights: cultureInfo.techCultureHighlights,
+          developmentPractices: Array.isArray(cultureInfo.developmentPractices) 
+            ? cultureInfo.developmentPractices 
+            : [],
+          techCultureHighlights: Array.isArray(cultureInfo.techCultureHighlights)
+            ? cultureInfo.techCultureHighlights
+            : [],
           opensourcePresence:
-            cultureInfo.techCultureHighlights.some(
-              (h) =>
-                h.toLowerCase().includes("open source") ||
-                h.toLowerCase().includes("opensource")
-            ) || false,
+            (Array.isArray(cultureInfo.techCultureHighlights) && cultureInfo.techCultureHighlights.length > 0)
+              ? cultureInfo.techCultureHighlights.some(
+                  (h) =>
+                    h.toLowerCase().includes("open source") ||
+                    h.toLowerCase().includes("opensource")
+                )
+              : false,
         },
         companySize: {
           estimatedEmployeeRange: null,
